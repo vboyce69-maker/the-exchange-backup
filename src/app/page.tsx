@@ -23,7 +23,8 @@ import {
   Flower2,
   Newspaper,
   Shapes,
-  Tv
+  Tv,
+  Briefcase
 } from "lucide-react";
 import Link from "next/link";
 
@@ -39,6 +40,7 @@ const CATEGORIES = [
   { name: "Home & Garden", icon: Flower2 },
   { name: "Building Materials", icon: Hammer },
   { name: "Baby Clothing", icon: Baby },
+  { name: "Business Services", icon: Briefcase },
   { name: "Classifieds", icon: Newspaper },
   { name: "Hobbies", icon: Shapes },
   { name: "Entertainment", icon: Tv },
