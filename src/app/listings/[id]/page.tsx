@@ -2,7 +2,7 @@
 "use client";
 
 import { useState } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { Navigation } from "@/components/Navigation";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -19,19 +19,42 @@ import {
   Info,
   Gavel,
   Trophy,
-  History
+  Calendar,
+  HandCoins,
+  Map as MapIcon,
+  ChevronRight,
+  Shield
 } from "lucide-react";
 import Image from "next/image";
 import { VerifiedBadge } from "@/components/VerifiedBadge";
 import Link from "next/link";
 import { toast } from "@/hooks/use-toast";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Label } from "@/components/ui/label";
+
+const SAFE_ZONES = [
+  { id: "sz1", name: "Central Police Station", distance: "1.2 km", address: "123 Law Ave" },
+  { id: "sz2", name: "Mall Entrance A", distance: "2.0 km", address: "456 Retail Way" },
+  { id: "sz3", name: "Shell Garage Main Road", distance: "0.8 km", address: "789 Petrol St" },
+];
+
+const TIME_SLOTS = [
+  { id: "t1", label: "Today 15:00" },
+  { id: "t2", label: "Today 17:30" },
+  { id: "t3", label: "Tomorrow 10:00" },
+  { id: "t4", label: "Tomorrow 14:00" },
+];
 
 export default function ListingDetailPage() {
   const { id } = useParams();
+  const router = useRouter();
   const [bidAmount, setBidAmount] = useState("");
+  const [bookingStep, setBookingStep] = useState(1);
+  const [selectedLocation, setSelectedLocation] = useState("");
+  const [selectedTime, setSelectedTime] = useState("");
+  const [isBookingOpen, setIsBookingOpen] = useState(false);
 
-  // Mock data for detail view
-  // In a real app, this would be fetched via useDoc hook
   const listing = {
     id,
     title: "Mountain Bike XT-400",
@@ -41,9 +64,9 @@ export default function ListingDetailPage() {
     imageUrl: "https://picsum.photos/seed/bike/800/600",
     sellerName: "Alex Rivera",
     sellerRating: 4.9,
-    sellerReliability: 95,
+    sellerReliability: 96,
     isVerified: true,
-    isAuction: id === "a1" || id === "a2" || id === "a3" || false, // Simulate auction if it's from the auction list
+    isAuction: id === "a1" || id === "a2" || id === "a3" || false,
     postedDate: "2 days ago",
     category: "Sports",
     currentBid: 4200,
@@ -61,7 +84,6 @@ export default function ListingDetailPage() {
       });
       return;
     }
-
     toast({
       title: "Bid Placed!",
       description: `You are now the highest bidder at R ${amount.toLocaleString()}.`,
@@ -69,12 +91,21 @@ export default function ListingDetailPage() {
     setBidAmount("");
   };
 
+  const handleSendBookingRequest = () => {
+    toast({
+      title: "Request Sent!",
+      description: `Meeting request sent to ${listing.sellerName} for ${selectedLocation} at ${selectedTime}.`,
+    });
+    setIsBookingOpen(false);
+    // In a real app, this would update Firestore
+    setTimeout(() => router.push('/messages'), 1500);
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <Navigation />
       <main className="container mx-auto px-4 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
-          {/* Left: Images */}
           <div className="space-y-4">
             <div className="relative aspect-square rounded-3xl overflow-hidden border bg-white shadow-sm">
               <Image 
@@ -94,7 +125,6 @@ export default function ListingDetailPage() {
             </div>
           </div>
 
-          {/* Right: Info */}
           <div className="space-y-6">
             <div className="flex justify-between items-start">
               <div>
@@ -163,14 +193,6 @@ export default function ListingDetailPage() {
                         Place Bid
                       </Button>
                     </div>
-                    <p className="text-[10px] text-center text-muted-foreground">
-                      Minimum next bid: <span className="font-bold">R {(listing.currentBid + 100).toLocaleString()}</span>
-                    </p>
-                  </div>
-
-                  <div className="flex items-center gap-2 justify-center py-2 bg-green-50 rounded-xl text-green-700 text-xs font-medium">
-                    <Trophy className="w-4 h-4" />
-                    Highest bidder wins at the end of the period.
                   </div>
                 </CardContent>
               </Card>
@@ -180,13 +202,87 @@ export default function ListingDetailPage() {
                   <span className="text-3xl font-bold text-primary">R {listing.price.toLocaleString()}</span>
                   <Badge className="bg-green-500/10 text-green-600 border-green-200">Available</Badge>
                 </div>
-                <div className="flex gap-3">
-                  <Button className="flex-1 bg-primary text-white font-bold h-12 rounded-xl">
-                    <MessageSquare className="w-5 h-5 mr-2" /> Chat with Seller
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <Button className="w-full bg-primary text-white font-bold h-12 rounded-xl">
+                    <MessageSquare className="w-5 h-5 mr-2" /> Chat
                   </Button>
-                  <Button variant="outline" className="flex-1 border-primary text-primary font-bold h-12 rounded-xl">
-                    Buy Now
+                  <Button variant="outline" className="w-full border-primary text-primary font-bold h-12 rounded-xl">
+                    <HandCoins className="w-5 h-5 mr-2" /> Make Offer
                   </Button>
+                  
+                  <Dialog open={isBookingOpen} onOpenChange={setIsBookingOpen}>
+                    <DialogTrigger asChild>
+                      <Button variant="secondary" className="w-full sm:col-span-2 bg-accent text-accent-foreground font-bold h-12 rounded-xl">
+                        <Calendar className="w-5 h-5 mr-2" /> Book Meeting
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent className="sm:max-w-[425px] rounded-3xl">
+                      <DialogHeader>
+                        <DialogTitle className="flex items-center gap-2">
+                          <ShieldCheck className="w-6 h-6 text-primary" />
+                          {bookingStep === 1 ? "Choose Safe Location" : "Select Time"}
+                        </DialogTitle>
+                      </DialogHeader>
+                      
+                      <div className="py-4">
+                        {bookingStep === 1 ? (
+                          <div className="space-y-4">
+                            <RadioGroup value={selectedLocation} onValueChange={setSelectedLocation}>
+                              {SAFE_ZONES.map((zone) => (
+                                <div key={zone.id} className="flex items-center space-x-2 border p-4 rounded-2xl hover:bg-secondary/50 cursor-pointer transition-colors">
+                                  <RadioGroupItem value={zone.name} id={zone.id} />
+                                  <Label htmlFor={zone.id} className="flex-1 cursor-pointer">
+                                    <div className="flex justify-between items-center">
+                                      <span className="font-bold">{zone.name}</span>
+                                      <Badge variant="outline" className="text-[10px]">{zone.distance}</Badge>
+                                    </div>
+                                    <p className="text-xs text-muted-foreground">{zone.address}</p>
+                                  </Label>
+                                </div>
+                              ))}
+                            </RadioGroup>
+                            <div className="flex gap-2">
+                              <Button variant="ghost" className="flex-1 rounded-xl text-primary h-11">
+                                <MapIcon className="w-4 h-4 mr-2" /> View Map
+                              </Button>
+                              <Button 
+                                className="flex-1 rounded-xl bg-primary h-11" 
+                                disabled={!selectedLocation}
+                                onClick={() => setBookingStep(2)}
+                              >
+                                Continue <ChevronRight className="w-4 h-4 ml-1" />
+                              </Button>
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="space-y-4">
+                            <RadioGroup value={selectedTime} onValueChange={setSelectedTime}>
+                              {TIME_SLOTS.map((slot) => (
+                                <div key={slot.id} className="flex items-center space-x-2 border p-4 rounded-2xl hover:bg-secondary/50 cursor-pointer transition-colors">
+                                  <RadioGroupItem value={slot.label} id={slot.id} />
+                                  <Label htmlFor={slot.id} className="flex-1 cursor-pointer font-bold">
+                                    {slot.label}
+                                  </Label>
+                                </div>
+                              ))}
+                            </RadioGroup>
+                            <div className="flex gap-2">
+                              <Button variant="ghost" className="flex-1 rounded-xl" onClick={() => setBookingStep(1)}>
+                                Back
+                              </Button>
+                              <Button 
+                                className="flex-1 rounded-xl bg-primary h-11" 
+                                disabled={!selectedTime}
+                                onClick={handleSendBookingRequest}
+                              >
+                                Send Request
+                              </Button>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </DialogContent>
+                  </Dialog>
                 </div>
                 <p className="text-xs text-center text-muted-foreground flex items-center justify-center gap-1">
                   <ShieldCheck className="w-3 h-3 text-primary" />
@@ -226,9 +322,6 @@ export default function ListingDetailPage() {
                       </div>
                     </div>
                   </div>
-                  <Link href={`/profile/${listing.sellerName.toLowerCase()}`}>
-                    <Button variant="ghost" size="sm" className="text-primary hover:text-primary hover:bg-white">View Profile</Button>
-                  </Link>
                 </div>
                 
                 <div className="grid grid-cols-2 gap-4 border-t pt-4">
