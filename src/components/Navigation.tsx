@@ -12,7 +12,8 @@ import {
   TrendingUp, 
   Gavel,
   ShieldCheck,
-  Home
+  Home,
+  CheckCircle
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -30,7 +31,7 @@ export function Navigation() {
     <nav className="sticky top-0 z-50 w-full border-b bg-white/80 backdrop-blur-md">
       <div className="container mx-auto px-4 h-16 flex items-center justify-between">
         <Link href="/" className="flex items-center gap-2">
-          <div className="bg-primary p-1.5 rounded-lg">
+          <div className="bg-primary p-1.5 rounded-lg shadow-sm">
             <ShieldCheck className="w-6 h-6 text-white" />
           </div>
           <span className="font-headline font-bold text-xl text-primary tracking-tight">LocalBid <span className="text-accent">Exchange</span></span>
@@ -44,8 +45,8 @@ export function Navigation() {
                 key={item.href}
                 href={item.href}
                 className={cn(
-                  "flex items-center gap-2 text-sm font-medium transition-colors hover:text-primary",
-                  pathname === item.href ? "text-primary" : "text-muted-foreground"
+                  "flex items-center gap-2 text-sm font-medium transition-colors hover:text-primary py-2 px-1 border-b-2 border-transparent",
+                  pathname === item.href ? "text-primary border-primary" : "text-muted-foreground"
                 )}
               >
                 <Icon className="w-4 h-4" />
@@ -56,15 +57,21 @@ export function Navigation() {
         </div>
 
         <div className="flex items-center gap-3">
-          <div className="relative hidden lg:block w-64">
+          <div className="relative hidden lg:block w-48 xl:w-64">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <input 
               type="text" 
               placeholder="Search items..." 
-              className="w-full bg-background border rounded-full py-1.5 pl-9 pr-4 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20"
+              className="w-full bg-background border rounded-full py-1.5 pl-9 pr-4 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
             />
           </div>
-          <Button variant="outline" size="sm" className="hidden sm:flex border-primary text-primary hover:bg-primary/5">
+          <Link href="/verify" className="hidden sm:block">
+            <Button variant="ghost" size="sm" className="text-primary hover:bg-primary/5 font-bold">
+              <CheckCircle className="w-4 h-4 mr-1.5" />
+              Verify ID
+            </Button>
+          </Link>
+          <Button variant="outline" size="sm" className="hidden sm:flex border-primary text-primary hover:bg-primary/5 font-bold">
             <PlusCircle className="w-4 h-4 mr-2" />
             List Item
           </Button>
