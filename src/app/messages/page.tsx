@@ -24,12 +24,23 @@ import {
   XCircle,
   Navigation as NavIcon,
   AlertTriangle,
-  ChevronRight
+  ChevronRight,
+  ThumbsUp,
+  MessageSquare
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { VerifiedBadge } from "@/components/VerifiedBadge";
 import { toast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Checkbox } from "@/components/ui/checkbox";
 
 interface Message {
   id: string;
@@ -49,10 +60,11 @@ export default function MessagesPage() {
   const [inputValue, setInputValue] = useState("");
   const [isSending, setIsSending] = useState(false);
   const [scamAlert, setScamAlert] = useState<AntiScamChatProtectionOutput | null>(null);
+  const [showFeedback, setShowFeedback] = useState(false);
   
   // Meeting Flow States
   const [meetingRequest, setMeetingRequest] = useState<{
-    status: 'none' | 'pending' | 'accepted' | 'declined' | 'on_the_way' | 'arrived' | 'completed';
+    status: 'none' | 'pending' | 'accepted' | 'on_the_way' | 'arrived' | 'completed' | 'reported';
     location: string;
     time: string;
     requester: string;
@@ -105,7 +117,12 @@ export default function MessagesPage() {
   };
 
   const handleCompleted = () => {
+    setShowFeedback(true);
+  };
+
+  const submitFeedback = () => {
     setMeetingRequest({ ...meetingRequest, status: 'completed' });
+    setShowFeedback(false);
     toast({ title: "Deal Completed!", description: "Success! Score +10 reliability points." });
   };
 
@@ -115,7 +132,7 @@ export default function MessagesPage() {
       title: "No-Show Reported",
       description: "Penalty of -15 reliability points applied to user. Safety first.",
     });
-    setMeetingRequest({ ...meetingRequest, status: 'none' });
+    setMeetingRequest({ ...meetingRequest, status: 'reported' });
   };
 
   return (
@@ -231,7 +248,7 @@ export default function MessagesPage() {
             )}
 
             {/* LIVE TRACKER STATUS SCREEN */}
-            {(meetingRequest.status === 'accepted' || meetingRequest.status === 'on_the_way' || meetingRequest.status === 'arrived') && (
+            {(['accepted', 'on_the_way', 'arrived'].includes(meetingRequest.status)) && (
               <Card className="border-none shadow-2xl bg-white rounded-3xl overflow-hidden ring-1 ring-green-100 animate-in slide-in-from-top-4">
                 <div className="bg-green-600 p-4 text-white flex justify-between items-center">
                   <div className="flex items-center gap-2 font-bold text-sm">
@@ -247,7 +264,6 @@ export default function MessagesPage() {
                   </div>
 
                   <div className="grid grid-cols-2 gap-12 relative mb-8">
-                    {/* Status Line */}
                     <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-0.5 bg-slate-100 z-0" />
                     
                     <div className="flex flex-col items-center gap-3 relative z-10">
@@ -321,6 +337,26 @@ export default function MessagesPage() {
               </Card>
             )}
 
+            {meetingRequest.status === 'reported' && (
+              <Alert variant="destructive" className="rounded-3xl border-destructive/50">
+                <XCircle className="h-5 w-5" />
+                <AlertTitle className="font-bold">No-Show Reported</AlertTitle>
+                <AlertDescription>
+                  This behavior has been flagged. The user's reliability score has been penalized. Safety first.
+                </AlertDescription>
+              </Alert>
+            )}
+
+            {meetingRequest.status === 'completed' && (
+              <div className="flex flex-col items-center justify-center py-8 bg-green-50 rounded-[3rem] border-2 border-dashed border-green-200 animate-in zoom-in-95">
+                <div className="bg-green-600 p-4 rounded-full mb-4 shadow-lg">
+                  <CheckCircle2 className="w-8 h-8 text-white" />
+                </div>
+                <h3 className="text-xl font-black text-green-700 uppercase">Trade Successful!</h3>
+                <p className="text-xs text-green-600 font-bold">+15 Reliability Points Earned</p>
+              </div>
+            )}
+
             {/* Standard Messages */}
             {messages.map((m) => (
               <div key={m.id} className={cn(
@@ -357,6 +393,38 @@ export default function MessagesPage() {
           </div>
         </div>
       </main>
+
+      {/* Auto-Rating Post Deal */}
+      <Dialog open={showFeedback} onOpenChange={setShowFeedback}>
+        <DialogContent className="sm:max-w-[425px] rounded-[2.5rem] border-none p-8">
+          <DialogHeader>
+            <DialogTitle className="text-2xl font-black text-[#225BC3]">How did it go?</DialogTitle>
+            <DialogDescription className="font-bold">
+              Help us maintain a safe community by rating the behavior.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-6">
+            {[
+              { id: "smooth", label: "Smooth trade", icon: CheckCircle2 },
+              { id: "desc", label: "Item matched description", icon: MapPin },
+              { id: "friendly", label: "Friendly behavior", icon: ThumbsUp }
+            ].map((opt) => (
+              <div key={opt.id} className="flex items-center space-x-3 p-4 rounded-2xl bg-slate-50 border border-slate-100 hover:bg-white hover:border-[#34CBED] transition-all cursor-pointer group">
+                <Checkbox id={opt.id} className="h-5 w-5 rounded-lg border-2 border-slate-300 data-[state=checked]:bg-[#34CBED] data-[state=checked]:border-[#34CBED]" />
+                <label htmlFor={opt.id} className="flex-1 flex items-center gap-2 font-bold text-[#225BC3] cursor-pointer">
+                  <opt.icon className="w-4 h-4 text-[#34CBED]" />
+                  {opt.label}
+                </label>
+              </div>
+            ))}
+          </div>
+          <DialogFooter>
+            <Button className="w-full h-14 bg-[#225BC3] text-white font-black rounded-2xl shadow-xl" onClick={submitFeedback}>
+              Submit Feedback
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

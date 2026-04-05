@@ -24,9 +24,17 @@ import {
   Shield,
   Zap,
   TrendingUp,
-  Award
+  Award,
+  AlertTriangle,
+  ChevronRight,
+  Info
 } from "lucide-react";
 import { VerifiedBadge } from "@/components/VerifiedBadge";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 
 export default function UserProfilePage() {
   const { id } = useParams();
@@ -146,12 +154,55 @@ export default function UserProfilePage() {
                     <TrendingUp className="w-5 h-5 text-[#34CBED]" />
                     <h3 className="font-black text-lg text-[#225BC3] uppercase tracking-tighter">Reliability Score</h3>
                   </div>
-                  <Badge className="bg-[#34CBED] text-white font-black border-none text-md h-8 px-4">
-                    {user.reliability}%
-                  </Badge>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button variant="ghost" size="icon" className="rounded-full h-8 w-8 text-muted-foreground">
+                        <Info className="h-4 w-4" />
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-72 rounded-3xl p-6 shadow-2xl border-none ring-1 ring-[#225BC3]/10">
+                      <div className="space-y-3">
+                        <h4 className="font-black text-[#225BC3] uppercase text-xs tracking-widest">Score Formula</h4>
+                        <div className="space-y-2 text-[10px] font-bold">
+                          <div className="flex justify-between text-green-600"><span>Showed up</span><span>+5 pts</span></div>
+                          <div className="flex justify-between text-green-600"><span>Completed deal</span><span>+10 pts</span></div>
+                          <div className="flex justify-between text-green-600"><span>Smooth trade</span><span>+2 pts</span></div>
+                          <div className="flex justify-between text-orange-500"><span>Late to meeting</span><span>-3 pts</span></div>
+                          <div className="flex justify-between text-destructive"><span>No Show</span><span>-15 pts</span></div>
+                          <div className="flex justify-between text-destructive font-black"><span>Scam Report</span><span>-50 pts</span></div>
+                        </div>
+                      </div>
+                    </PopoverContent>
+                  </Popover>
                 </div>
-                <div className="h-4 w-full bg-slate-50 rounded-full overflow-hidden p-1 shadow-inner">
-                  <div className="h-full bg-[#34CBED] rounded-full transition-all duration-1000" style={{ width: `${user.reliability}%` }} />
+
+                <div className="flex flex-col items-center">
+                   <div className="relative w-32 h-32 flex items-center justify-center mb-4">
+                      <svg className="w-full h-full transform -rotate-90">
+                        <circle
+                          cx="64"
+                          cy="64"
+                          r="58"
+                          stroke="currentColor"
+                          strokeWidth="8"
+                          fill="transparent"
+                          className="text-slate-100"
+                        />
+                        <circle
+                          cx="64"
+                          cy="64"
+                          r="58"
+                          stroke="currentColor"
+                          strokeWidth="8"
+                          fill="transparent"
+                          strokeDasharray={364.4}
+                          strokeDashoffset={364.4 * (1 - user.reliability / 100)}
+                          className="text-[#34CBED] transition-all duration-1000 ease-out"
+                        />
+                      </svg>
+                      <span className="absolute text-4xl font-black text-[#225BC3]">{user.reliability}%</span>
+                   </div>
+                   <Badge className="bg-[#34CBED] text-white font-black border-none px-4 py-1">Top Tier Seller</Badge>
                 </div>
                 
                 <div className="grid grid-cols-2 gap-4">
@@ -162,18 +213,22 @@ export default function UserProfilePage() {
                   <div className="p-5 bg-green-50/50 rounded-3xl border border-green-100/50">
                     <p className="text-[10px] uppercase font-black text-green-600/60 mb-1 tracking-widest">Behavior</p>
                     <div className="flex items-center gap-1 text-green-700 font-black">
-                      <Award className="w-4 h-4" /> Top Tier
+                      <Award className="w-4 h-4" /> Trusted
                     </div>
                   </div>
                 </div>
 
-                <div className="bg-slate-50 p-4 rounded-2xl space-y-2">
-                  <p className="text-[9px] font-black uppercase text-muted-foreground tracking-widest">Tracked Actions</p>
-                  <div className="grid grid-cols-2 gap-y-2 text-[10px] font-bold">
-                    <span className="text-green-600">Showed Up: +5</span>
-                    <span className="text-green-600">Completed: +10</span>
-                    <span className="text-red-500">Late: -3</span>
-                    <span className="text-red-600">No Show: -15</span>
+                <div className="bg-slate-50 p-4 rounded-2xl space-y-3">
+                  <p className="text-[9px] font-black uppercase text-muted-foreground tracking-widest">Recent Activity</p>
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between text-[10px] font-bold">
+                      <span className="flex items-center gap-1 text-green-600"><CheckCircle2 className="w-3 h-3"/> Smooth Trade</span>
+                      <span className="text-muted-foreground">Yesterday</span>
+                    </div>
+                    <div className="flex items-center justify-between text-[10px] font-bold">
+                      <span className="flex items-center gap-1 text-green-600"><ShieldCheck className="w-3 h-3"/> ID Verified</span>
+                      <span className="text-muted-foreground">Jan 12</span>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -211,7 +266,7 @@ export default function UserProfilePage() {
                         <div>
                           <h4 className="font-black text-xl text-[#225BC3]">{item.title}</h4>
                           <div className="flex items-center gap-2 text-sm text-muted-foreground font-bold">
-                            <Clock className="w-4 h-4" /> Successfully Trade • {item.date}
+                            <Clock className="w-4 h-4" /> Successful Trade • {item.date}
                           </div>
                         </div>
                       </div>
