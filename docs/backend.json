@@ -1,0 +1,435 @@
+{
+  "entities": {
+    "UserProfile": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "UserProfile",
+      "type": "object",
+      "description": "Represents a user's profile on the LocalBid Exchange platform, including personal information, reliability, and verification status.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the UserProfile entity."
+        },
+        "email": {
+          "type": "string",
+          "description": "User's email address, used for login and notifications.",
+          "format": "email"
+        },
+        "username": {
+          "type": "string",
+          "description": "Publicly displayed username of the user."
+        },
+        "firstName": {
+          "type": "string",
+          "description": "User's first name."
+        },
+        "lastName": {
+          "type": "string",
+          "description": "User's last name."
+        },
+        "profileImageUrl": {
+          "type": "string",
+          "description": "URL to the user's profile picture.",
+          "format": "uri"
+        },
+        "locationLatitude": {
+          "type": "number",
+          "description": "Geographic latitude of the user's primary location."
+        },
+        "locationLongitude": {
+          "type": "number",
+          "description": "Geographic longitude of the user's primary location."
+        },
+        "reliabilityScore": {
+          "type": "number",
+          "description": "A score reflecting the user's reliability based on their behavior (e.g., showing up, completing deals). Defaulted to a starting value, e.g., 100."
+        },
+        "totalSales": {
+          "type": "number",
+          "description": "The total number of sales completed by this user as a seller."
+        },
+        "averageSellerRating": {
+          "type": "number",
+          "description": "The average rating received by this user as a seller, from 1 to 5."
+        },
+        "isIdVerified": {
+          "type": "boolean",
+          "description": "Indicates whether the user has successfully completed ID verification and received a 'Verified' badge."
+        },
+        "idVerificationStatus": {
+          "type": "string",
+          "description": "The current status of the user's ID verification process.",
+          "items": {
+            "type": "string"
+          }
+        },
+        "registrationDate": {
+          "type": "string",
+          "description": "Timestamp when the user registered their account.",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "email",
+        "username",
+        "reliabilityScore",
+        "totalSales",
+        "isIdVerified",
+        "idVerificationStatus",
+        "registrationDate"
+      ]
+    },
+    "ReliabilityScoreHistory": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "ReliabilityScoreHistory",
+      "type": "object",
+      "description": "Records individual events and their corresponding score changes that contribute to a user's overall reliability score.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the ReliabilityScoreHistory event."
+        },
+        "userId": {
+          "type": "string",
+          "description": "Reference to the UserProfile whose reliability score was affected. (Relationship: UserProfile 1:N ReliabilityScoreHistory)"
+        },
+        "eventType": {
+          "type": "string",
+          "description": "The type of event that occurred, influencing the reliability score.",
+          "items": {
+            "type": "string"
+          }
+        },
+        "scoreChange": {
+          "type": "number",
+          "description": "The numeric change applied to the user's reliability score for this event (positive for good, negative for bad)."
+        },
+        "timestamp": {
+          "type": "string",
+          "description": "The date and time when this reliability event occurred.",
+          "format": "date-time"
+        },
+        "associatedEntityId": {
+          "type": "string",
+          "description": "Optional: Reference to the ID of the entity (e.g., Transaction, UserReport) that this reliability event is associated with."
+        },
+        "details": {
+          "type": "string",
+          "description": "Optional: Additional details or notes about the reliability event."
+        }
+      },
+      "required": [
+        "id",
+        "userId",
+        "eventType",
+        "scoreChange",
+        "timestamp"
+      ]
+    },
+    "SafeMeetingPoint": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "SafeMeetingPoint",
+      "type": "object",
+      "description": "Defines pre-approved safe public locations recommended for buyers and sellers to meet for transactions.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the SafeMeetingPoint entity."
+        },
+        "name": {
+          "type": "string",
+          "description": "The common name of the safe meeting point (e.g., 'Central Police Station', 'Coffee Corner Mall')."
+        },
+        "address": {
+          "type": "string",
+          "description": "The full physical address of the safe meeting point."
+        },
+        "latitude": {
+          "type": "number",
+          "description": "Geographic latitude of the safe meeting point."
+        },
+        "longitude": {
+          "type": "number",
+          "description": "Geographic longitude of the safe meeting point."
+        },
+        "type": {
+          "type": "string",
+          "description": "The category or type of the safe meeting point.",
+          "items": {
+            "type": "string"
+          }
+        },
+        "description": {
+          "type": "string",
+          "description": "Optional: Additional descriptive details about the meeting point, such as specific entrance or availability."
+        },
+        "is24Hours": {
+          "type": "boolean",
+          "description": "Indicates if the location is accessible 24 hours a day."
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "address",
+        "latitude",
+        "longitude",
+        "type"
+      ]
+    },
+    "IdVerification": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "IdVerification",
+      "type": "object",
+      "description": "Stores the details and status of a user's identity verification attempt.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the ID verification record."
+        },
+        "userId": {
+          "type": "string",
+          "description": "Reference to the UserProfile attempting verification. (Relationship: UserProfile 1:N IdVerification)"
+        },
+        "documentType": {
+          "type": "string",
+          "description": "The type of identification document submitted by the user.",
+          "items": {
+            "type": "string"
+          }
+        },
+        "documentFrontImageUrl": {
+          "type": "string",
+          "description": "URL to the uploaded image of the front side of the identification document.",
+          "format": "uri"
+        },
+        "documentBackImageUrl": {
+          "type": "string",
+          "description": "Optional: URL to the uploaded image of the back side of the identification document.",
+          "format": "uri"
+        },
+        "selfieImageUrl": {
+          "type": "string",
+          "description": "Optional: URL to the uploaded selfie image for liveness detection or face matching.",
+          "format": "uri"
+        },
+        "submissionDate": {
+          "type": "string",
+          "description": "The date and time when the verification request was submitted.",
+          "format": "date-time"
+        },
+        "status": {
+          "type": "string",
+          "description": "The current status of the ID verification request.",
+          "items": {
+            "type": "string"
+          }
+        },
+        "reviewDate": {
+          "type": "string",
+          "description": "Optional: The date and time when the verification request was reviewed.",
+          "format": "date-time"
+        },
+        "reviewerId": {
+          "type": "string",
+          "description": "Optional: Reference to the internal admin user who reviewed this verification request."
+        },
+        "rejectionReason": {
+          "type": "string",
+          "description": "Optional: The reason for rejection if the status is 'rejected' or 'retake_required'."
+        }
+      },
+      "required": [
+        "id",
+        "userId",
+        "documentType",
+        "documentFrontImageUrl",
+        "submissionDate",
+        "status"
+      ]
+    },
+    "ChatThread": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "ChatThread",
+      "type": "object",
+      "description": "Represents a conversation thread between two or more users.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the ChatThread entity."
+        },
+        "participantIds": {
+          "type": "array",
+          "description": "An array of UserProfile IDs participating in this chat thread. (Relationship: UserProfile N:N ChatThread)",
+          "items": {
+            "type": "string"
+          }
+        },
+        "associatedListingId": {
+          "type": "string",
+          "description": "Optional: Reference to a Listing if this chat thread is related to a specific product. (Relationship: Listing 1:N ChatThread)"
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "The date and time when the chat thread was created.",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "description": "The date and time when the chat thread was last updated (e.g., a new message was sent).",
+          "format": "date-time"
+        },
+        "lastMessageId": {
+          "type": "string",
+          "description": "Reference to the ID of the last message sent in this thread. (Relationship: ChatMessage 1:1 ChatThread)"
+        }
+      },
+      "required": [
+        "id",
+        "participantIds",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "ChatMessage": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "ChatMessage",
+      "type": "object",
+      "description": "Represents an individual message exchanged between users within a chat thread, including anti-scam analysis results.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the ChatMessage entity."
+        },
+        "chatThreadId": {
+          "type": "string",
+          "description": "Reference to the ChatThread this message belongs to. (Relationship: ChatThread 1:N ChatMessage)"
+        },
+        "senderId": {
+          "type": "string",
+          "description": "Reference to the UserProfile who sent this message. (Relationship: UserProfile 1:N ChatMessage)"
+        },
+        "receiverId": {
+          "type": "string",
+          "description": "Reference to the UserProfile who is the primary recipient of this message. (Relationship: UserProfile 1:N ChatMessage)"
+        },
+        "messageContent": {
+          "type": "string",
+          "description": "The actual text content of the chat message."
+        },
+        "timestamp": {
+          "type": "string",
+          "description": "The date and time when the message was sent.",
+          "format": "date-time"
+        },
+        "readStatus": {
+          "type": "boolean",
+          "description": "Indicates if the message has been read by the receiver."
+        },
+        "scamStatus": {
+          "type": "string",
+          "description": "The result of the anti-scam guard's analysis of the message content. 'clean' if no issues, 'warning' if potential scam detected, 'blocked' if severe scam attempt prevented.",
+          "items": {
+            "type": "string"
+          }
+        },
+        "scamDetectionDetails": {
+          "type": "string",
+          "description": "Optional: Details about what triggered a 'warning' or 'blocked' scam status (e.g., detected keywords or patterns)."
+        }
+      },
+      "required": [
+        "id",
+        "chatThreadId",
+        "senderId",
+        "receiverId",
+        "messageContent",
+        "timestamp",
+        "readStatus",
+        "scamStatus"
+      ]
+    }
+  },
+  "auth": {
+    "providers": [
+      "password",
+      "anonymous"
+    ]
+  },
+  "firestore": {
+    "structure": [
+      {
+        "path": "/users/{userId}",
+        "definition": {
+          "entityName": "UserProfile",
+          "schema": {
+            "$ref": "#/backend/entities/UserProfile"
+          },
+          "description": "Stores the profile data for a specific user, identified by their authentication UID. The `userId` wildcard ensures ownership. This document includes crucial fields like `reliabilityScore` and `isIdVerified`."
+        }
+      },
+      {
+        "path": "/users/{userId}/reliabilityScoreHistory/{historyId}",
+        "definition": {
+          "entityName": "ReliabilityScoreHistory",
+          "schema": {
+            "$ref": "#/backend/entities/ReliabilityScoreHistory"
+          },
+          "description": "A subcollection under each user's profile to log events that affect their reliability score. The `userId` field is denormalized in each document for Authorization Independence."
+        }
+      },
+      {
+        "path": "/users/{userId}/idVerifications/{verificationId}",
+        "definition": {
+          "entityName": "IdVerification",
+          "schema": {
+            "$ref": "#/backend/entities/IdVerification"
+          },
+          "description": "Records a user's ID verification submission and its status. Owned by the user, with review capabilities for administrators. The `userId` field is denormalized in each document for Authorization Independence."
+        }
+      },
+      {
+        "path": "/safeMeetingPoints/{pointId}",
+        "definition": {
+          "entityName": "SafeMeetingPoint",
+          "schema": {
+            "$ref": "#/backend/entities/SafeMeetingPoint"
+          },
+          "description": "Stores details of pre-approved safe public meeting locations. These documents are publicly readable for all users, but writeable only by authorized administrators."
+        }
+      },
+      {
+        "path": "/chatThreads/{threadId}",
+        "definition": {
+          "entityName": "ChatThread",
+          "schema": {
+            "$ref": "#/backend/entities/ChatThread"
+          },
+          "description": "Stores metadata for a chat conversation, including all `participantIds`. This `participantIds` array (e.g., `['uid1', 'uid2']`) is critical for authorization and provides Authorization Independence for the thread itself, allowing rules to check `request.auth.uid in resource.data.participantIds`."
+        }
+      },
+      {
+        "path": "/chatThreads/{threadId}/messages/{messageId}",
+        "definition": {
+          "entityName": "ChatMessage",
+          "schema": {
+            "$ref": "#/backend/entities/ChatMessage"
+          },
+          "description": "Individual messages within a `ChatThread`. To ensure Authorization Independence, each `ChatMessage` document MUST include a denormalized `threadParticipantIds` array (copied from the parent `ChatThread`'s `participantIds`). This allows security rules to evaluate access purely from the message document itself (e.g., `request.auth.uid in resource.data.threadParticipantIds`), eliminating the need for `get()` calls to the parent thread document."
+        }
+      },
+      {
+        "path": "/app_roles/admin/{adminId}",
+        "definition": {
+          "entityName": "AdminRole",
+          "schema": {
+            "$ref": "#/backend/entities/AdminRole"
+          },
+          "description": "A collection for Database Access Control (DBAC) where the document ID (`adminId`) corresponds to a user's UID, granting them administrative privileges. Used for Authorization Independence in rules (e.g., `exists(/databases/$(database)/documents/app_roles/admin/$(request.auth.uid))`)."
+        }
+      }
+    ],
+    "reasoning": "The Firestore data structure for LocalBid Exchange is designed with a strong emphasis on Authorization Independence, Structural Segregation, and predictable access modeling to ensure security, scalability, and debuggability. \n\n**Authorization Independence (CRITICAL) & Denormalization Strategy:**\n\n1.  **User-Owned Data:** `UserProfile`, `ReliabilityScoreHistory`, and `IdVerification` are structured under `/users/{userId}/...` paths. This makes the `userId` wild-card (`request.auth.uid`) the inherent owner, enabling atomic security rules without `get()` calls to parent documents. For instance, `ReliabilityScoreHistory` documents explicitly contain `userId` in their data, and `IdVerification` documents also contain `userId`. This denormalization means a document's authorization can be determined solely from its own data or its path. \n2.  **Collaborative Data (Chat):** `ChatThread` documents (e.g., `/chatThreads/{threadId}`) contain a `participantIds` array. This array serves as the denormalized authorization context for multi-user access to that specific thread. To extend this independence to `ChatMessage`s (which are in a subcollection of `ChatThread`), each `ChatMessage` document will *also* denormalize the `participantIds` from its parent `ChatThread` into a field like `threadParticipantIds`. This ensures that access to any `ChatMessage` document can be authorized by checking `request.auth.uid` against `resource.data.threadParticipantIds` without needing to perform a `get()` operation on the parent `ChatThread` document within security rules. This makes creation, update, and deletion of messages atomic and independently verifiable. \n3.  **Global Data:** `SafeMeetingPoint` documents (e.g., `/safeMeetingPoints/{pointId}`) are globally readable. Administration of these points (writes) will rely on a separate, existence-based `app_roles/admin/{adminId}` collection for security rules, avoiding custom claims and `get()` calls on `UserProfile` for role checks.\n\n**Querying for Authorization & QAPs (Rules are not Filters):**\n\n1.  **User-Specific Data:** For `/users/{userId}/reliabilityScoreHistory` and `/users/{userId}/idVerifications`, `list` operations are implicitly secured by the path (`userId` must match `request.auth.uid`).\n2.  **Public Data:** `/safeMeetingPoints` is designed for public read/list access, making `list` operations inherently secure and efficient.\n3.  **Collaborative Data (`ChatThread`, `ChatMessage`):** For `ChatThread` (e.g., `/chatThreads`), `list` operations by a user will require a query filter such as `where('participantIds', 'array-contains', request.auth.uid)`. Firebase security rules can then enforce this `array-contains` filter, ensuring only relevant threads are returned to the requesting user (QAP compliant). Similarly, for `ChatMessage`s, a `list` operation will be restricted to messages where `request.auth.uid` is present in the denormalized `threadParticipantIds` field.\n\n**Structural Segregation & Access Modeling:**\n\n*   **Private User Data:** `/users/{userId}` for `UserProfile` follows the path-based ownership for private data.\n*   **User-Owned Subcollections:** `/users/{userId}/reliabilityScoreHistory` and `/users/{userId}/idVerifications` extend the user-owned hierarchy.\n*   **Collaborative Data:** `chatThreads/{threadId}` with its `participantIds` array, and `chatThreads/{threadId}/messages/{messageId}` (with denormalized `threadParticipantIds` in each message) provide a robust structure for multi-user interactions.\n*   **Global Public Data:** `safeMeetingPoints/{pointId}` offers a segregated collection for publicly accessible, admin-managed data.\n*   **DBAC (Database Access Control):** A dedicated `/app_roles/admin/{adminId}` collection is used to manage administrative privileges, relying on document existence for role-based authorization rather than custom claims, adhering to DBAC principles."
+  }
+}

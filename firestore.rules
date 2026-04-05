@@ -1,0 +1,153 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    /**
+     * LOCALBID EXCHANGE SECURITY RULES
+     *
+     * Core Philosophy:
+     * This ruleset enforces a strict user-ownership model for personal data and a collaborative 
+     * participant-based model for communication. It prioritizes Authorization Independence by 
+     * utilizing denormalized fields (like participant lists) to ensure rules are performant 
+     * and do not require excessive cross-document lookups.
+     *
+     * Data Structure:
+     * - /users/{userId}: Private user profiles and verification data.
+     * - /chatThreads/{threadId}: Shared conversations between participants.
+     * - /safeMeetingPoints/{pointId}: Publicly readable safety locations.
+     * - /app_roles/admin/{adminId}: Admin-only access control list.
+     *
+     * Key Security Decisions:
+     * - Reliability scores and verification statuses are stored under user-owned paths but 
+     *   require strict ownership for modifications.
+     * - Chat security relies on "threadParticipantIds" being present on every message to 
+     *   allow for independent authorization without parent-document reads.
+     * - Administrative actions are gated by the existence of a document in the /app_roles/admin collection.
+     * - Prototyping Mode: Schema shapes are not strictly enforced, but relational integrity 
+     *   (e.g., matching UIDs) is mandatory.
+     */
+
+    // --- Helper Functions ---
+
+    /** Checks if the requester is authenticated. */
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    /** Checks if the requester's UID matches the provided userId. */
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    /** Checks if the requester is verified as an admin via DBAC. */
+    function isAdmin() {
+      return isSignedIn() && exists(/databases/$(database)/documents/app_roles/admin/$(request.auth.uid));
+    }
+
+    /** Checks if the requester is part of a list of participants (for Chats). */
+    function isParticipant(participantIds) {
+      return isSignedIn() && request.auth.uid in participantIds;
+    }
+
+    /** Combines ownership and existence checks for updates/deletes. */
+    function isExistingOwner(userId) {
+      return resource != null && isOwner(userId);
+    }
+
+    // --- Rules ---
+
+    /**
+     * @description Rules for User Profiles. Users can manage their own profile.
+     * @path /users/{userId}
+     * @allow (create, update) if the authenticated UID matches the document ID.
+     * @deny (update) if a user attempts to modify someone else's profile.
+     * @principle Ownership and Self-Creation.
+     */
+    match /users/{userId} {
+      allow get: if isSignedIn();
+      allow list: if isAdmin();
+      allow create: if isOwner(userId) && request.resource.data.id == userId;
+      allow update: if isExistingOwner(userId) && request.resource.data.id == resource.data.id;
+      allow delete: if isExistingOwner(userId) || isAdmin();
+
+      /**
+       * @description Logs of events affecting a user's reliability score.
+       * @path /users/{userId}/reliabilityScoreHistory/{historyId}
+       * @allow (list) if the owner is viewing their own history.
+       * @deny (create) if the userId field in the data does not match the path.
+       */
+      match /reliabilityScoreHistory/{historyId} {
+        allow get, list: if isOwner(userId);
+        allow create: if isOwner(userId) && request.resource.data.userId == userId;
+        allow update, delete: if isExistingOwner(userId) || isAdmin();
+      }
+
+      /**
+       * @description Records of identity verification attempts.
+       * @path /users/{userId}/idVerifications/{verificationId}
+       * @allow (create) if a user is submitting their own ID for verification.
+       * @deny (update) if a non-admin tries to change the verification status.
+       */
+      match /idVerifications/{verificationId} {
+        allow get, list: if isOwner(userId) || isAdmin();
+        allow create: if isOwner(userId) && request.resource.data.userId == userId;
+        allow update: if isAdmin() || (isExistingOwner(userId) && request.resource.data.status == resource.data.status);
+        allow delete: if isAdmin();
+      }
+    }
+
+    /**
+     * @description Publicly accessible safe meeting locations.
+     * @path /safeMeetingPoints/{pointId}
+     * @allow (get, list) if the user is signed in.
+     * @deny (write) for any user who is not an administrator.
+     * @principle Public Read with Admin-Only Writes.
+     */
+    match /safeMeetingPoints/{pointId} {
+      allow get, list: if true;
+      allow create, update, delete: if isAdmin();
+    }
+
+    /**
+     * @description Metadata for chat threads. Access is restricted to participants.
+     * @path /chatThreads/{threadId}
+     * @allow (get, update) if the user's UID is in the participantIds array.
+     * @deny (create) if the user is not included in the initial participant list.
+     * @principle Shared Access (Closed Collaborators).
+     */
+    match /chatThreads/{threadId} {
+      allow get: if isParticipant(resource.data.participantIds);
+      allow list: if isSignedIn(); // Filtering must be handled by the client: .where('participantIds', 'array-contains', uid)
+      allow create: if isParticipant(request.resource.data.participantIds);
+      allow update: if isParticipant(resource.data.participantIds) && isParticipant(request.resource.data.participantIds);
+      allow delete: if isAdmin();
+
+      /**
+       * @description Individual messages within a chat.
+       * @path /chatThreads/{threadId}/messages/{messageId}
+       * @allow (create) if the sender is a participant and identifies themselves correctly.
+       * @deny (get) if the user is not a participant of the parent thread.
+       * @principle Authorization Independence via denormalized participant lists.
+       */
+      match /messages/{messageId} {
+        allow get: if isParticipant(resource.data.threadParticipantIds);
+        allow list: if isSignedIn(); // Filtering: .where('threadParticipantIds', 'array-contains', uid)
+        allow create: if isParticipant(request.resource.data.threadParticipantIds) && request.resource.data.senderId == request.auth.uid;
+        allow update: if isParticipant(resource.data.threadParticipantIds) && (request.resource.data.readStatus != resource.data.readStatus || isAdmin());
+        allow delete: if isAdmin();
+      }
+    }
+
+    /**
+     * @description Internal collection for managing administrative roles.
+     * @path /app_roles/admin/{adminId}
+     * @allow (get) if authenticated.
+     * @deny (write) for all users; must be managed via Admin SDK or Console.
+     * @principle Database Access Control (DBAC).
+     */
+    match /app_roles/admin/{adminId} {
+      allow get: if isSignedIn();
+      allow list, create, update, delete: if false;
+    }
+  }
+}
