@@ -1,3 +1,4 @@
+
 import { Navigation } from "@/components/Navigation";
 import { ListingCard } from "@/components/ListingCard";
 import { Button } from "@/components/ui/button";
@@ -13,7 +14,16 @@ import {
   SlidersHorizontal,
   ChevronRight,
   ShieldCheck,
-  Zap
+  Zap,
+  Shirt,
+  Footprints,
+  Package,
+  Hammer,
+  Baby,
+  Flower2,
+  Newspaper,
+  Shapes,
+  Tv
 } from "lucide-react";
 import Link from "next/link";
 
@@ -21,16 +31,25 @@ const CATEGORIES = [
   { name: "Vehicles", icon: Car },
   { name: "Electronics", icon: Smartphone },
   { name: "Real Estate", icon: Home },
+  { name: "Clothing", icon: Shirt },
+  { name: "Sneakers", icon: Footprints },
   { name: "Jewelry", icon: Watch },
   { name: "Sports", icon: Bike },
   { name: "Photography", icon: Camera },
+  { name: "Home & Garden", icon: Flower2 },
+  { name: "Building Materials", icon: Hammer },
+  { name: "Baby Clothing", icon: Baby },
+  { name: "Classifieds", icon: Newspaper },
+  { name: "Hobbies", icon: Shapes },
+  { name: "Entertainment", icon: Tv },
+  { name: "Misc", icon: Package },
 ];
 
 const FEATURED_LISTINGS = [
   {
     id: "1",
     title: "Mountain Bike XT-400",
-    price: 450,
+    price: 4500,
     location: "Downtown, Metro City",
     imageUrl: "https://picsum.photos/seed/bike/600/400",
     sellerName: "Alex Rivera",
@@ -41,7 +60,7 @@ const FEATURED_LISTINGS = [
   {
     id: "2",
     title: "Canon EOS R5 Mirrorless",
-    price: 2800,
+    price: 48000,
     location: "South Park, Queens",
     imageUrl: "https://picsum.photos/seed/camera/600/400",
     sellerName: "Studio Pix",
@@ -53,7 +72,7 @@ const FEATURED_LISTINGS = [
   {
     id: "3",
     title: "Vintage Luxury Watch",
-    price: 1200,
+    price: 22000,
     location: "Harbor View",
     imageUrl: "https://picsum.photos/seed/watch/600/400",
     sellerName: "Collector John",
@@ -63,7 +82,7 @@ const FEATURED_LISTINGS = [
   {
     id: "4",
     title: "Modern Minimalist Sofa",
-    price: 850,
+    price: 12500,
     location: "West End",
     imageUrl: "https://picsum.photos/seed/sofa/600/400",
     sellerName: "Furniture House",
@@ -74,7 +93,7 @@ const FEATURED_LISTINGS = [
   {
     id: "5",
     title: "Wireless ANC Headphones",
-    price: 320,
+    price: 5200,
     location: "Tech Hub",
     imageUrl: "https://picsum.photos/seed/headphones/600/400",
     sellerName: "Gadget Galore",
@@ -84,7 +103,7 @@ const FEATURED_LISTINGS = [
   {
     id: "6",
     title: "Gaming Laptop Pro 16",
-    price: 1500,
+    price: 25000,
     location: "Central District",
     imageUrl: "https://picsum.photos/seed/laptop/600/400",
     sellerName: "PC Masters",
@@ -117,7 +136,7 @@ export default function LandingPage() {
             </h1>
             <p className="text-lg lg:text-xl text-primary-foreground/90 mb-8 max-w-xl leading-relaxed">
               Every user is verified. Every transaction is secured. Join the community where trust comes standard. 
-              <span className="font-bold"> 8-10% flat commission, zero scams.</span>
+              <span className="font-bold"> Secure payments, zero scams.</span>
             </p>
             <div className="flex flex-col sm:flex-row gap-4">
               <Button size="lg" className="bg-accent text-accent-foreground hover:bg-accent/90 font-bold px-8">
@@ -140,19 +159,19 @@ export default function LandingPage() {
               View All <ChevronRight className="w-4 h-4" />
             </Link>
           </div>
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 xl:grid-cols-6 gap-4">
             {CATEGORIES.map((cat) => {
               const Icon = cat.icon;
               return (
                 <Link 
                   key={cat.name} 
-                  href={`/category/${cat.name.toLowerCase()}`}
+                  href={`/category/${cat.name.toLowerCase().replace(/ & /g, '-').replace(/ /g, '-')}`}
                   className="bg-white p-6 rounded-2xl border border-transparent shadow-sm hover:border-primary/20 hover:shadow-md transition-all flex flex-col items-center text-center group"
                 >
                   <div className="w-12 h-12 bg-secondary rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
                     <Icon className="w-6 h-6 text-primary" />
                   </div>
-                  <span className="font-semibold text-sm text-foreground">{cat.name}</span>
+                  <span className="font-semibold text-xs text-foreground line-clamp-1">{cat.name}</span>
                 </Link>
               );
             })}
