@@ -1,3 +1,4 @@
+
 {
   "entities": {
     "UserProfile": {
@@ -18,6 +19,10 @@
           "type": "string",
           "description": "User's email address, used for communication and login.",
           "format": "email"
+        },
+        "phone": {
+          "type": "string",
+          "description": "User's phone number for OTP verification."
         },
         "firstName": {
           "type": "string",
@@ -74,31 +79,6 @@
         "totalSalesCount",
         "reliabilityScore",
         "registrationDate"
-      ]
-    },
-    "Category": {
-      "$schema": "http://json-schema.org/draft-07/schema#",
-      "title": "Category",
-      "type": "object",
-      "description": "Defines a category for product listings.",
-      "properties": {
-        "id": {
-          "type": "string",
-          "description": "Unique identifier for the Category."
-        },
-        "name": {
-          "type": "string",
-          "description": "The name of the category."
-        },
-        "description": {
-          "type": "string",
-          "description": "A brief description of the category."
-        }
-      },
-      "required": [
-        "id",
-        "name",
-        "description"
       ]
     },
     "ProductListing": {
@@ -162,32 +142,20 @@
         },
         "status": {
           "type": "string",
-          "description": "Current status (e.g., 'available', 'sold', 'auction_active')."
+          "enum": ["available", "sold", "auction_active"],
+          "description": "Current status of the listing."
         },
         "isAuction": {
           "type": "boolean",
           "description": "Indicates if the listing is an auction."
         },
-        "startingBid": {
-          "type": "number",
-          "description": "The initial bid amount for auctions."
-        },
-        "auctionEndDate": {
-          "type": "string",
-          "description": "The date and time when the auction ends.",
-          "format": "date-time"
+        "isBoosted": {
+          "type": "boolean",
+          "description": "Indicates if the listing is boosted (monetization)."
         },
         "viewCount": {
           "type": "number",
           "description": "The number of views."
-        },
-        "isBoosted": {
-          "type": "boolean",
-          "description": "Indicates if the listing is boosted."
-        },
-        "negotiable": {
-          "type": "boolean",
-          "description": "Indicates if the price is negotiable."
         }
       },
       "required": [
@@ -200,152 +168,16 @@
         "price",
         "currency",
         "imageUrls",
-        "listingLocationLatitude",
-        "listingLocationLongitude",
         "postedDate",
         "status",
         "isAuction",
-        "viewCount",
         "isBoosted",
-        "negotiable"
+        "viewCount"
       ]
-    },
-    "Transaction": {
-      "$schema": "http://json-schema.org/draft-07/schema#",
-      "title": "Transaction",
-      "type": "object",
-      "properties": {
-        "id": { "type": "string" },
-        "buyerId": { "type": "string" },
-        "sellerId": { "type": "string" },
-        "listingId": { "type": "string" },
-        "finalAmount": { "type": "number" },
-        "transactionDate": { "type": "string", "format": "date-time" },
-        "status": { "type": "string" }
-      },
-      "required": ["id", "buyerId", "sellerId", "listingId", "finalAmount", "transactionDate", "status"]
-    },
-    "Review": {
-      "$schema": "http://json-schema.org/draft-07/schema#",
-      "title": "Review",
-      "type": "object",
-      "properties": {
-        "id": { "type": "string" },
-        "transactionId": { "type": "string" },
-        "reviewerId": { "type": "string" },
-        "sellerId": { "type": "string" },
-        "rating": { "type": "number" },
-        "comment": { "type": "string" },
-        "reviewDate": { "type": "string", "format": "date-time" }
-      },
-      "required": ["id", "transactionId", "reviewerId", "sellerId", "rating", "comment", "reviewDate"]
-    },
-    "Bid": {
-      "$schema": "http://json-schema.org/draft-07/schema#",
-      "title": "Bid",
-      "type": "object",
-      "properties": {
-        "id": { "type": "string" },
-        "listingId": { "type": "string" },
-        "bidderId": { "type": "string" },
-        "bidAmount": { "type": "number" },
-        "bidDate": { "type": "string", "format": "date-time" }
-      },
-      "required": ["id", "listingId", "bidderId", "bidAmount", "bidDate"]
-    },
-    "Conversation": {
-      "$schema": "http://json-schema.org/draft-07/schema#",
-      "title": "Conversation",
-      "type": "object",
-      "properties": {
-        "id": { "type": "string" },
-        "listingId": { "type": "string" },
-        "user1Id": { "type": "string" },
-        "user2Id": { "type": "string" },
-        "createdDate": { "type": "string", "format": "date-time" },
-        "lastMessageDate": { "type": "string", "format": "date-time" }
-      },
-      "required": ["id", "user1Id", "user2Id", "createdDate", "lastMessageDate"]
-    },
-    "Message": {
-      "$schema": "http://json-schema.org/draft-07/schema#",
-      "title": "Message",
-      "type": "object",
-      "properties": {
-        "id": { "type": "string" },
-        "conversationId": { "type": "string" },
-        "senderId": { "type": "string" },
-        "content": { "type": "string" },
-        "sentDate": { "type": "string", "format": "date-time" },
-        "isRead": { "type": "boolean" },
-        "isFlaggedForScam": { "type": "boolean" }
-      },
-      "required": ["id", "conversationId", "senderId", "content", "sentDate", "isRead", "isFlaggedForScam"]
-    },
-    "MeetingPointSuggestion": {
-      "$schema": "http://json-schema.org/draft-07/schema#",
-      "title": "MeetingPointSuggestion",
-      "type": "object",
-      "properties": {
-        "id": { "type": "string" },
-        "conversationId": { "type": "string" },
-        "suggestedByUserId": { "type": "string" },
-        "latitude": { "type": "number" },
-        "longitude": { "type": "number" },
-        "name": { "type": "string" },
-        "address": { "type": "string" },
-        "status": { "type": "string" },
-        "suggestionDate": { "type": "string", "format": "date-time" }
-      },
-      "required": ["id", "conversationId", "suggestedByUserId", "latitude", "longitude", "name", "address", "status", "suggestionDate"]
-    },
-    "Report": {
-      "$schema": "http://json-schema.org/draft-07/schema#",
-      "title": "Report",
-      "type": "object",
-      "properties": {
-        "id": { "type": "string" },
-        "reporterId": { "type": "string" },
-        "reportedEntityId": { "type": "string" },
-        "reportedEntityType": { "type": "string" },
-        "reason": { "type": "string" },
-        "details": { "type": "string" },
-        "reportDate": { "type": "string", "format": "date-time" },
-        "status": { "type": "string" }
-      },
-      "required": ["id", "reporterId", "reportedEntityId", "reportedEntityType", "reason", "details", "reportDate", "status"]
-    },
-    "UserBlock": {
-      "$schema": "http://json-schema.org/draft-07/schema#",
-      "title": "UserBlock",
-      "type": "object",
-      "properties": {
-        "id": { "type": "string" },
-        "blockerId": { "type": "string" },
-        "blockedId": { "type": "string" },
-        "blockDate": { "type": "string", "format": "date-time" }
-      },
-      "required": ["id", "blockerId", "blockedId", "blockDate"]
-    },
-    "ListingBoost": {
-      "$schema": "http://json-schema.org/draft-07/schema#",
-      "title": "ListingBoost",
-      "type": "object",
-      "properties": {
-        "id": { "type": "string" },
-        "listingId": { "type": "string" },
-        "boosterId": { "type": "string" },
-        "startDate": { "type": "string", "format": "date-time" },
-        "endDate": { "type": "string", "format": "date-time" },
-        "paymentTransactionRef": { "type": "string" },
-        "boostType": { "type": "string" },
-        "cost": { "type": "number" }
-      },
-      "required": ["id", "listingId", "boosterId", "startDate", "endDate", "paymentTransactionRef", "boostType", "cost"]
     }
   },
   "auth": {
-    "providers": ["password", "anonymous"]
+    "providers": ["password", "anonymous", "phone"]
   },
   "firestore": {
     "structure": [
@@ -358,99 +190,11 @@
         }
       },
       {
-        "path": "/categories/{categoryId}",
-        "definition": {
-          "entityName": "Category",
-          "schema": { "$ref": "#/backend/entities/Category" },
-          "description": "Global product categories."
-        }
-      },
-      {
         "path": "/publicListings/{listingId}",
         "definition": {
           "entityName": "ProductListing",
           "schema": { "$ref": "#/backend/entities/ProductListing" },
-          "description": "Active product listings."
-        }
-      },
-      {
-        "path": "/userProfiles/{userId}/draftListings/{listingId}",
-        "definition": {
-          "entityName": "ProductListing",
-          "schema": { "$ref": "#/backend/entities/ProductListing" },
-          "description": "Private draft listings."
-        }
-      },
-      {
-        "path": "/publicListings/{listingId}/bids/{bidId}",
-        "definition": {
-          "entityName": "Bid",
-          "schema": { "$ref": "#/backend/entities/Bid" },
-          "description": "Auction bids."
-        }
-      },
-      {
-        "path": "/conversations/{conversationId}",
-        "definition": {
-          "entityName": "Conversation",
-          "schema": { "$ref": "#/backend/entities/Conversation" },
-          "description": "Messaging threads."
-        }
-      },
-      {
-        "path": "/conversations/{conversationId}/messages/{messageId}",
-        "definition": {
-          "entityName": "Message",
-          "schema": { "$ref": "#/backend/entities/Message" },
-          "description": "Chat messages."
-        }
-      },
-      {
-        "path": "/conversations/{conversationId}/meetingPointSuggestions/{suggestionId}",
-        "definition": {
-          "entityName": "MeetingPointSuggestion",
-          "schema": { "$ref": "#/backend/entities/MeetingPointSuggestion" },
-          "description": "Suggested meeting points."
-        }
-      },
-      {
-        "path": "/transactions/{transactionId}",
-        "definition": {
-          "entityName": "Transaction",
-          "schema": { "$ref": "#/backend/entities/Transaction" },
-          "description": "Purchase records."
-        }
-      },
-      {
-        "path": "/userProfiles/{sellerId}/reviews/{reviewId}",
-        "definition": {
-          "entityName": "Review",
-          "schema": { "$ref": "#/backend/entities/Review" },
-          "description": "Buyer reviews."
-        }
-      },
-      {
-        "path": "/reports/{reportId}",
-        "definition": {
-          "entityName": "Report",
-          "schema": { "$ref": "#/backend/entities/Report" },
-          "description": "User-submitted reports."
-        }
-      },
-      {
-        "path": "/userProfiles/{blockerId}/blockedUsers/{blockedId}",
-        "definition": {
-          "entityName": "UserBlock",
-          "schema": { "$ref": "#/backend/entities/UserBlock" },
-          "description": "Blocked users."
-        }
-      },
-      {
-        "path": "/userProfiles/{boosterId}/listingBoosts/{boostId}",
-        "definition": {
-          "entityName": "ListingBoost",
-          "schema": { "$ref": "#/backend/entities/ListingBoost" },
-          "description": "Listing promotion records."
+          "description": "Active and sold product listings."
         }
       }
     ]

@@ -18,20 +18,26 @@ import {
   Star,
   Info,
   Gavel,
-  Trophy,
   Calendar,
   HandCoins,
-  Map as MapIcon,
   ChevronRight,
-  Shield
+  Shield,
+  ShoppingCart,
+  Phone
 } from "lucide-react";
 import Image from "next/image";
 import { VerifiedBadge } from "@/components/VerifiedBadge";
-import Link from "next/link";
 import { toast } from "@/hooks/use-toast";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+} from "@/components/ui/carousel";
 
 const SAFE_ZONES = [
   { id: "sz1", name: "Central Police Station", distance: "1.2 km", address: "123 Law Ave" },
@@ -55,23 +61,41 @@ export default function ListingDetailPage() {
   const [selectedTime, setSelectedTime] = useState("");
   const [isBookingOpen, setIsBookingOpen] = useState(false);
 
+  // Mocked data for a rich item view
   const listing = {
     id,
     title: "Mountain Bike XT-400",
     price: 4500,
     description: "In excellent condition. Recently serviced with brand new tires. Perfect for trail riding and weekend adventures. Includes specialized helmet and bike lock.",
     location: "Downtown, Metro City",
-    imageUrl: "https://picsum.photos/seed/bike/800/600",
-    sellerName: "Alex Rivera",
-    sellerRating: 4.9,
-    sellerReliability: 96,
-    isVerified: true,
+    distance: "5.2 km",
+    imageUrls: [
+      "https://picsum.photos/seed/bike/800/600",
+      "https://picsum.photos/seed/bike-2/800/600",
+      "https://picsum.photos/seed/bike-3/800/600"
+    ],
+    seller: {
+      id: "u123",
+      name: "Alex Rivera",
+      rating: 4.9,
+      reliability: 96,
+      memberSince: "Jan 2023",
+      isVerified: true,
+      phoneVerified: true,
+    },
     isAuction: id === "a1" || id === "a2" || id === "a3" || false,
     postedDate: "2 days ago",
     category: "Sports",
     currentBid: 4200,
     bidCount: 12,
     timeLeft: "5h 12m"
+  };
+
+  const handleBuyNow = () => {
+    toast({
+      title: "Secure Checkout",
+      description: "Redirecting to escrow payment gateway. Funds are protected until you confirm delivery.",
+    });
   };
 
   const handlePlaceBid = () => {
@@ -94,125 +118,101 @@ export default function ListingDetailPage() {
   const handleSendBookingRequest = () => {
     toast({
       title: "Request Sent!",
-      description: `Meeting request sent to ${listing.sellerName} for ${selectedLocation} at ${selectedTime}.`,
+      description: `Meeting request sent to ${listing.seller.name}.`,
     });
     setIsBookingOpen(false);
-    // In a real app, this would update Firestore
     setTimeout(() => router.push('/messages'), 1500);
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-[#EEF1F3]">
       <Navigation />
       <main className="container mx-auto px-4 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
+          {/* Photos Section */}
           <div className="space-y-4">
-            <div className="relative aspect-square rounded-3xl overflow-hidden border bg-white shadow-sm">
-              <Image 
-                src={listing.imageUrl} 
-                alt={listing.title} 
-                fill 
-                className="object-cover"
-                data-ai-hint="product detail"
-              />
-            </div>
-            <div className="grid grid-cols-4 gap-4">
-              {[1, 2, 3, 4].map((i) => (
-                <div key={i} className="relative aspect-square rounded-xl overflow-hidden border bg-white cursor-pointer hover:opacity-80 transition-opacity">
-                  <Image src={`https://picsum.photos/seed/bike-${i}/200/200`} alt="thumb" fill className="object-cover" />
-                </div>
-              ))}
-            </div>
+            <Carousel className="w-full">
+              <CarouselContent>
+                {listing.imageUrls.map((url, i) => (
+                  <CarouselItem key={i}>
+                    <div className="relative aspect-square rounded-3xl overflow-hidden border bg-white shadow-md">
+                      <Image 
+                        src={url} 
+                        alt={`${listing.title} image ${i + 1}`} 
+                        fill 
+                        className="object-cover"
+                        data-ai-hint="product image"
+                      />
+                    </div>
+                  </CarouselItem>
+                ))}
+              </CarouselContent>
+              <CarouselPrevious className="left-4" />
+              <CarouselNext className="right-4" />
+            </Carousel>
           </div>
 
+          {/* Details Section */}
           <div className="space-y-6">
             <div className="flex justify-between items-start">
               <div>
                 <div className="flex gap-2 mb-2">
-                  <Badge variant="outline">{listing.category}</Badge>
+                  <Badge variant="outline" className="bg-white">{listing.category}</Badge>
                   {listing.isAuction && (
                     <Badge className="bg-destructive text-destructive-foreground animate-pulse">
                       Live Auction
                     </Badge>
                   )}
                 </div>
-                <h1 className="text-3xl font-bold font-headline">{listing.title}</h1>
-                <p className="text-muted-foreground flex items-center gap-1 text-sm mt-1">
-                  <MapPin className="w-4 h-4" /> {listing.location} • Posted {listing.postedDate}
-                </p>
+                <h1 className="text-3xl font-bold font-headline text-[#225BC3]">{listing.title}</h1>
+                <div className="flex items-center gap-4 mt-1">
+                  <p className="text-muted-foreground flex items-center gap-1 text-sm">
+                    <MapPin className="w-4 h-4 text-primary" /> {listing.location}
+                  </p>
+                  <Badge variant="secondary" className="bg-primary/10 text-primary">
+                    {listing.distance} away
+                  </Badge>
+                  <p className="text-xs text-muted-foreground">Posted {listing.postedDate}</p>
+                </div>
               </div>
               <div className="flex gap-2">
-                <Button variant="ghost" size="icon" className="rounded-full">
+                <Button variant="ghost" size="icon" className="rounded-full bg-white shadow-sm">
                   <Share2 className="w-5 h-5" />
                 </Button>
-                <Button variant="ghost" size="icon" className="rounded-full">
+                <Button variant="ghost" size="icon" className="rounded-full bg-white shadow-sm text-destructive">
                   <Flag className="w-5 h-5" />
                 </Button>
               </div>
             </div>
 
-            {listing.isAuction ? (
-              <Card className="rounded-3xl border shadow-lg overflow-hidden bg-white">
-                <CardHeader className="bg-primary/5 pb-4">
-                  <div className="flex justify-between items-center">
-                    <CardTitle className="text-lg flex items-center gap-2 text-primary">
-                      <Gavel className="w-5 h-5" />
-                      Bidding Panel
-                    </CardTitle>
-                    <div className="flex items-center gap-1.5 text-destructive font-bold text-sm">
-                      <Clock className="w-4 h-4" />
-                      Ends in: {listing.timeLeft}
-                    </div>
-                  </div>
-                </CardHeader>
-                <CardContent className="pt-6 space-y-6">
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="bg-background p-4 rounded-2xl border flex flex-col items-center">
-                      <span className="text-[10px] text-muted-foreground uppercase font-bold tracking-widest">Current Bid</span>
-                      <span className="text-2xl font-bold text-primary">R {listing.currentBid.toLocaleString()}</span>
-                    </div>
-                    <div className="bg-background p-4 rounded-2xl border flex flex-col items-center">
-                      <span className="text-[10px] text-muted-foreground uppercase font-bold tracking-widest">Bids Placed</span>
-                      <span className="text-2xl font-bold">{listing.bidCount}</span>
-                    </div>
-                  </div>
-
-                  <div className="space-y-4">
-                    <div className="flex gap-2">
-                      <div className="relative flex-1">
-                        <span className="absolute left-4 top-1/2 -translate-y-1/2 font-bold text-muted-foreground">R</span>
-                        <Input 
-                          type="number" 
-                          placeholder="Enter higher bid..." 
-                          className="pl-8 h-12 rounded-xl text-lg font-bold"
-                          value={bidAmount}
-                          onChange={(e) => setBidAmount(e.target.value)}
-                        />
-                      </div>
-                      <Button className="h-12 px-8 rounded-xl bg-primary text-white font-bold" onClick={handlePlaceBid}>
-                        Place Bid
-                      </Button>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ) : (
-              <div className="bg-white p-6 rounded-2xl border shadow-sm space-y-4">
+            {/* Action Card */}
+            <Card className="rounded-3xl border-none shadow-xl overflow-hidden bg-white">
+              <CardContent className="p-8 space-y-6">
                 <div className="flex justify-between items-center">
-                  <span className="text-3xl font-bold text-primary">R {listing.price.toLocaleString()}</span>
-                  <Badge className="bg-green-500/10 text-green-600 border-green-200">Available</Badge>
+                  <span className="text-4xl font-extrabold text-[#225BC3]">R {listing.price.toLocaleString()}</span>
+                  <Badge className="bg-green-500/10 text-green-600 border-green-200 py-1 px-3">
+                    Verified Listing
+                  </Badge>
                 </div>
+
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <Button className="w-full bg-primary text-white font-bold h-12 rounded-xl">
-                    <MessageSquare className="w-5 h-5 mr-2" /> Chat
+                  <Button className="w-full bg-[#225BC3] text-white font-bold h-14 rounded-2xl shadow-lg hover:shadow-xl transition-all" onClick={() => router.push('/messages')}>
+                    <MessageSquare className="w-5 h-5 mr-2" /> Chat with Seller
                   </Button>
-                  <Button variant="outline" className="w-full border-primary text-primary font-bold h-12 rounded-xl">
+                  <Button variant="outline" className="w-full border-primary text-primary font-bold h-14 rounded-2xl hover:bg-primary/5">
                     <HandCoins className="w-5 h-5 mr-2" /> Make Offer
+                  </Button>
+                  
+                  <Button 
+                    className="w-full sm:col-span-2 bg-[#34CBED] text-white font-bold h-14 rounded-2xl shadow-lg hover:shadow-xl transition-all mt-2"
+                    onClick={handleBuyNow}
+                  >
+                    <ShoppingCart className="w-5 h-5 mr-2" /> Buy Now (Secure Escrow)
                   </Button>
                   
                   <Dialog open={isBookingOpen} onOpenChange={setIsBookingOpen}>
                     <DialogTrigger asChild>
-                      <Button variant="secondary" className="w-full sm:col-span-2 bg-accent text-accent-foreground font-bold h-12 rounded-xl">
+                      <Button variant="ghost" className="w-full sm:col-span-2 text-primary font-bold h-12 rounded-xl hover:bg-primary/5">
                         <Calendar className="w-5 h-5 mr-2" /> Book Meeting
                       </Button>
                     </DialogTrigger>
@@ -220,16 +220,15 @@ export default function ListingDetailPage() {
                       <DialogHeader>
                         <DialogTitle className="flex items-center gap-2">
                           <ShieldCheck className="w-6 h-6 text-primary" />
-                          {bookingStep === 1 ? "Choose Safe Location" : "Select Time"}
+                          {bookingStep === 1 ? "Select Safe Zone" : "Choose Time"}
                         </DialogTitle>
                       </DialogHeader>
-                      
                       <div className="py-4">
                         {bookingStep === 1 ? (
                           <div className="space-y-4">
                             <RadioGroup value={selectedLocation} onValueChange={setSelectedLocation}>
                               {SAFE_ZONES.map((zone) => (
-                                <div key={zone.id} className="flex items-center space-x-2 border p-4 rounded-2xl hover:bg-secondary/50 cursor-pointer transition-colors">
+                                <div key={zone.id} className="flex items-center space-x-2 border p-4 rounded-2xl hover:bg-secondary/50 cursor-pointer transition-colors bg-white">
                                   <RadioGroupItem value={zone.name} id={zone.id} />
                                   <Label htmlFor={zone.id} className="flex-1 cursor-pointer">
                                     <div className="flex justify-between items-center">
@@ -241,24 +240,19 @@ export default function ListingDetailPage() {
                                 </div>
                               ))}
                             </RadioGroup>
-                            <div className="flex gap-2">
-                              <Button variant="ghost" className="flex-1 rounded-xl text-primary h-11">
-                                <MapIcon className="w-4 h-4 mr-2" /> View Map
-                              </Button>
-                              <Button 
-                                className="flex-1 rounded-xl bg-primary h-11" 
-                                disabled={!selectedLocation}
-                                onClick={() => setBookingStep(2)}
-                              >
-                                Continue <ChevronRight className="w-4 h-4 ml-1" />
-                              </Button>
-                            </div>
+                            <Button 
+                              className="w-full rounded-xl bg-primary h-12 font-bold" 
+                              disabled={!selectedLocation}
+                              onClick={() => setBookingStep(2)}
+                            >
+                              Continue
+                            </Button>
                           </div>
                         ) : (
                           <div className="space-y-4">
                             <RadioGroup value={selectedTime} onValueChange={setSelectedTime}>
                               {TIME_SLOTS.map((slot) => (
-                                <div key={slot.id} className="flex items-center space-x-2 border p-4 rounded-2xl hover:bg-secondary/50 cursor-pointer transition-colors">
+                                <div key={slot.id} className="flex items-center space-x-2 border p-4 rounded-2xl hover:bg-secondary/50 cursor-pointer transition-colors bg-white">
                                   <RadioGroupItem value={slot.label} id={slot.id} />
                                   <Label htmlFor={slot.id} className="flex-1 cursor-pointer font-bold">
                                     {slot.label}
@@ -266,34 +260,31 @@ export default function ListingDetailPage() {
                                 </div>
                               ))}
                             </RadioGroup>
-                            <div className="flex gap-2">
-                              <Button variant="ghost" className="flex-1 rounded-xl" onClick={() => setBookingStep(1)}>
-                                Back
-                              </Button>
-                              <Button 
-                                className="flex-1 rounded-xl bg-primary h-11" 
-                                disabled={!selectedTime}
-                                onClick={handleSendBookingRequest}
-                              >
-                                Send Request
-                              </Button>
-                            </div>
+                            <Button 
+                              className="w-full rounded-xl bg-primary h-12 font-bold" 
+                              disabled={!selectedTime}
+                              onClick={handleSendBookingRequest}
+                            >
+                              Send Request
+                            </Button>
                           </div>
                         )}
                       </div>
                     </DialogContent>
                   </Dialog>
                 </div>
-                <p className="text-xs text-center text-muted-foreground flex items-center justify-center gap-1">
+                
+                <p className="text-[10px] text-center text-muted-foreground flex items-center justify-center gap-1 bg-slate-50 py-2 rounded-lg border">
                   <ShieldCheck className="w-3 h-3 text-primary" />
-                  Secure Escrow Protection Enabled
+                  Buyer Protection: Funds held until confirmation
                 </p>
-              </div>
-            )}
+              </CardContent>
+            </Card>
 
-            <Card className="rounded-2xl border bg-white shadow-sm">
+            {/* Description */}
+            <Card className="rounded-2xl border-none shadow-sm bg-white">
               <CardContent className="p-6 space-y-4">
-                <h3 className="font-bold flex items-center gap-2 text-primary">
+                <h3 className="font-bold flex items-center gap-2 text-[#225BC3]">
                   <Info className="w-4 h-4" />
                   Description
                 </h3>
@@ -303,35 +294,47 @@ export default function ListingDetailPage() {
               </CardContent>
             </Card>
 
-            <Card className="rounded-2xl border bg-secondary/30 shadow-none">
+            {/* Seller Info */}
+            <Card className="rounded-2xl border-none shadow-md bg-white">
               <CardContent className="p-6">
-                <div className="flex items-center justify-between mb-4">
-                  <div className="flex items-center gap-3">
-                    <div className="relative w-12 h-12 rounded-full overflow-hidden border">
+                <div className="flex items-center justify-between mb-6">
+                  <div className="flex items-center gap-4">
+                    <div className="relative w-16 h-16 rounded-full overflow-hidden border-2 border-primary/20">
                       <Image src="https://picsum.photos/seed/user1/100/100" alt="seller" fill />
                     </div>
                     <div>
                       <div className="flex items-center gap-2">
-                        <span className="font-bold">{listing.sellerName}</span>
-                        {listing.isVerified && <VerifiedBadge />}
+                        <span className="font-bold text-lg">{listing.seller.name}</span>
+                        {listing.seller.isVerified && <VerifiedBadge />}
                       </div>
-                      <div className="flex items-center gap-1 text-yellow-500 text-xs">
-                        <Star className="w-3 h-3 fill-current" />
-                        <span className="font-bold">{listing.sellerRating}</span>
-                        <span className="text-muted-foreground ml-1">(42 reviews)</span>
+                      <div className="flex items-center gap-4 mt-1">
+                        <div className="flex items-center gap-1 text-yellow-500 text-xs font-bold">
+                          <Star className="w-3 h-3 fill-current" />
+                          {listing.seller.rating}
+                        </div>
+                        <span className="text-[10px] text-muted-foreground uppercase font-bold tracking-tight">Member since {listing.seller.memberSince}</span>
                       </div>
                     </div>
                   </div>
+                  <Button variant="outline" size="sm" className="rounded-full border-primary text-primary" onClick={() => router.push(`/profile/${listing.seller.id}`)}>
+                    View Profile
+                  </Button>
                 </div>
                 
-                <div className="grid grid-cols-2 gap-4 border-t pt-4">
+                <div className="grid grid-cols-3 gap-2 border-t pt-6">
                   <div className="text-center">
-                    <p className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider">Reliability Score</p>
-                    <p className="text-xl font-bold text-primary">{listing.sellerReliability}%</p>
+                    <p className="text-[9px] text-muted-foreground uppercase font-bold mb-1">Reliability</p>
+                    <p className="text-xl font-black text-primary">{listing.seller.reliability}%</p>
+                  </div>
+                  <div className="text-center border-x">
+                    <p className="text-[9px] text-muted-foreground uppercase font-bold mb-1">Phone</p>
+                    <div className="flex justify-center text-green-600">
+                      <ShieldCheck className="w-5 h-5" />
+                    </div>
                   </div>
                   <div className="text-center">
-                    <p className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider">Deals Completed</p>
-                    <p className="text-xl font-bold">128</p>
+                    <p className="text-[9px] text-muted-foreground uppercase font-bold mb-1">Sales</p>
+                    <p className="text-xl font-black">128</p>
                   </div>
                 </div>
               </CardContent>
