@@ -21,8 +21,8 @@ const SellerDemandInsightsInputSchema = z.object({
     .describe('Recent search terms used by the seller, if available, for personalized insights.'),
   sellerLocation: z
     .object({
-      latitude: z.number().describe('The latitude of the seller''s primary location.'),
-      longitude: z.number().describe('The longitude of the seller''s primary location.'),
+      latitude: z.number().describe("The latitude of the seller's primary location."),
+      longitude: z.number().describe("The longitude of the seller's primary location."),
     })
     .optional()
     .describe('The geographic location of the seller, used to identify local market trends.'),
