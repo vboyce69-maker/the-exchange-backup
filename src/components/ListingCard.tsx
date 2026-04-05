@@ -1,3 +1,4 @@
+"use client";
 
 import Image from "next/image";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
@@ -60,7 +61,7 @@ export function ListingCard({
           <div className="flex justify-between items-start mb-1">
             <h3 className="font-semibold text-lg leading-tight line-clamp-1">{title}</h3>
             <span className="font-bold text-primary text-xl">
-              ${price.toLocaleString()}
+              R {price.toLocaleString()}
             </span>
           </div>
           <div className="flex items-center gap-1 text-muted-foreground text-sm mb-3">
