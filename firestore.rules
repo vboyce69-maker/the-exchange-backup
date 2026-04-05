@@ -1,213 +1,212 @@
-/**
- * LocalBid Exchange - Firestore Security Rules
- *
- * Core Philosophy:
- * This ruleset implements a robust, owner-centric security model designed for a local marketplace.
- * It leverages "Authorization Independence" by ensuring that every document contains the 
- * necessary metadata (e.g., sellerId, buyerId, participantIds) to make access decisions 
- * without performing expensive cross-document lookups (get() calls).
- *
- * Data Structure:
- * - Public Discovery: Top-level collections like /products, /auctions, and /users (profiles) 
- *   are publicly readable to facilitate search and discovery.
- * - Private Transactions: /transactions and /conversations are restricted to the 
- *   specific participants (buyer/seller or sender/receiver).
- * - User-Owned Branches: Collections like /blockedUsers are nested under the user's 
- *   ID to enforce strict path-based ownership.
- *
- * Key Security Decisions:
- * - Denormalization: Seller IDs and Participant IDs are mirrored within documents to 
- *   ensure high-performance, single-read authorization.
- * - Prototyping Flexibility: While authorization is strictly enforced based on identity, 
- *   the specific schema (data types and shapes) is not strictly validated to allow 
- *   for rapid iterative development of marketplace features.
- * - Relational Integrity: On creation, documents must correctly link themselves to 
- *   the authenticated user's ID to prevent identity spoofing.
- */
-
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
+    /**
+     * LOCALBID EXCHANGE SECURITY RULES
+     *
+     * CORE PHILOSOPHY:
+     * This ruleset implements a robust, owner-centric authorization model designed for a local marketplace. 
+     * It prioritizes "Authorization Independence" by ensuring that most security decisions can be made 
+     * using only the document's data and the user's authentication state, minimizing the need for 
+     * expensive cross-document lookups (get() calls).
+     *
+     * DATA STRUCTURE:
+     * - Top-level collections: userProfiles, categories, publicListings, conversations, transactions, reports, roles_admin.
+     * - Nested collections: Draft listings, bids, messages, and meeting suggestions are stored as subcollections 
+     *   to maintain a strict hierarchy and simplify ownership logic.
+     *
+     * KEY SECURITY DECISIONS:
+     * 1. RELATIONAL INTEGRITY: We enforce that internal 'ID' or 'ownerID' fields match the Firestore 
+     *    path parameters during creation to prevent data spoofing.
+     * 2. STRUCTURAL SEGREGATION: Private drafts are kept in user-specific subcollections, 
+     *    while active listings are moved to a global public collection for easier discovery.
+     * 3. SHARED COLLABORATION: Conversations and bidding use denormalized membership maps or 
+     *    ID fields (e.g., user1Id, user2Id) to allow multi-party access without complex queries.
+     * 4. PROTOTYPING FLEXIBILITY: While access is strictly controlled, we do not enforce 
+     *    strict data types or schema shapes (beyond relational IDs) to allow for rapid development.
+     */
+
     // --- Helper Functions ---
 
-    /** Checks if the user is authenticated. */
     function isSignedIn() {
       return request.auth != null;
     }
 
-    /** Checks if the authenticated user's UID matches the provided userId. */
     function isOwner(userId) {
       return isSignedIn() && request.auth.uid == userId;
     }
 
-    /** Checks if the document belongs to the user via a field (e.g., sellerId, buyerId). */
-    function isFieldOwner(fieldName) {
-      return isSignedIn() && resource.data[fieldName] == request.auth.uid;
-    }
-
-    /** Validates that the incoming document data sets the owner field to the current user. */
-    function isIncomingFieldOwner(fieldName) {
-      return isSignedIn() && request.resource.data[fieldName] == request.auth.uid;
-    }
-
-    /** Combined check for update/delete to ensure existence and ownership. */
-    function isExistingFieldOwner(fieldName) {
-      return resource != null && isFieldOwner(fieldName);
-    }
-    
-    /** Checks if user is an admin via a dedicated roles collection. */
     function isAdmin() {
       return isSignedIn() && exists(/databases/$(database)/documents/roles_admin/$(request.auth.uid));
     }
 
-    // --- Collection Rules ---
+    // Helper for update/delete to ensure document exists and user owns it
+    function isExistingOwner(userId) {
+      return resource != null && isOwner(userId);
+    }
+
+    // --- Rules ---
 
     /**
-     * @description Public profile information. Users can manage their own data.
-     * @path /users/{userId}
-     * @allow (get, list) if true; (create) if auth matches path; (update) if auth matches path and ID is immutable.
-     * @deny (write) if unauthorized or trying to modify someone else's profile.
-     * @principle Path-based ownership for writes with public read access.
+     * @description Rules for global admin marker collection. Only readable by signed-in users; writes are strictly prohibited.
+     * @path /roles_admin/{userId}
+     * @allow (get) if any authenticated user is checking roles.
+     * @deny (write) No user can grant themselves admin privileges via the client.
+     * @principle System-level role management.
      */
-    match /users/{userId} {
-      allow get, list: if true;
+    match /roles_admin/{userId} {
+      allow get: if isSignedIn();
+      allow list: if isAdmin();
+      allow create, update, delete: if false; 
+    }
+
+    /**
+     * @description Manages user profiles. Owners can manage their data; others can view public profiles.
+     * @path /userProfiles/{userId}
+     * @allow (create) If authenticated UID matches document path and internal ID field.
+     * @deny (update) If user tries to change another user's profile.
+     * @principle Self-creation and ownership for core user data.
+     */
+    match /userProfiles/{userId} {
+      allow get, list: if isSignedIn();
       allow create: if isOwner(userId) && request.resource.data.id == userId;
-      allow update: if isExistingFieldOwner('id') && userId == request.auth.uid && request.resource.data.id == resource.data.id;
-      allow delete: if false; // Profiles are typically not deleted by users in this app.
+      allow update: if isExistingOwner(userId) && request.resource.data.id == resource.data.id;
+      allow delete: if isExistingOwner(userId) || isAdmin();
     }
 
     /**
-     * @description Marketplace products. Publicly viewable, editable only by the seller.
-     * @path /products/{productId}
-     * @allow (get, list) if true; (create) if sellerId is sender; (update, delete) if user is seller.
-     * @deny (write) if sellerId mismatch.
-     * @principle Field-based ownership for decentralized authorization.
+     * @description Global product categories. Read-only for public; write-only for admins.
+     * @path /categories/{categoryId}
+     * @allow (get/list) Publicly readable.
+     * @deny (create/update/delete) If not an administrator.
+     * @principle Global reference data protection.
      */
-    match /products/{productId} {
-      allow get, list: if true;
-      allow create: if isIncomingFieldOwner('sellerId');
-      allow update, delete: if isExistingFieldOwner('sellerId') && request.resource.data.sellerId == resource.data.sellerId;
+    match /categories/{categoryId} {
+      allow read: if true;
+      allow create, update, delete: if isAdmin();
     }
 
     /**
-     * @description Auction metadata. Publicly viewable, managed by the product seller.
-     * @path /auctions/{auctionId}
-     * @allow (get, list) if true; (create) if denormalized sellerId matches; (update) if user is seller.
-     * @deny (write) if sellerId mismatch.
-     * @principle Denormalization of sellerId enables owner-validation on auctions.
+     * @description Publicly visible product listings. Owner-managed writes.
+     * @path /publicListings/{listingId}
+     * @allow (create) If sellerId in data matches the authenticated user.
+     * @deny (update) If the sellerId is changed or updated by someone else.
+     * @principle Public consumption with owner-only modifications.
      */
-    match /auctions/{auctionId} {
-      allow get, list: if true;
-      allow create: if isIncomingFieldOwner('sellerId');
-      allow update, delete: if isExistingFieldOwner('sellerId') && request.resource.data.sellerId == resource.data.sellerId;
+    match /publicListings/{listingId} {
+      allow read: if true;
+      allow create: if isSignedIn() && request.resource.data.sellerId == request.auth.uid;
+      allow update: if isExistingOwner(resource.data.sellerId) && request.resource.data.sellerId == resource.data.sellerId;
+      allow delete: if isExistingOwner(resource.data.sellerId) || isAdmin();
 
       /**
-       * @description Bids on an auction. Readable by bidder and seller.
-       * @path /auctions/{auctionId}/bids/{bidId}
-       * @allow (get, list) if user is bidder or seller; (create) if user is bidder.
-       * @deny (read) if user is a third party.
-       * @principle Restricts financial bidding data to relevant parties.
+       * @description Bids for auction items. Visible to the seller and the bidder.
+       * @path /publicListings/{listingId}/bids/{bidId}
+       * @allow (get/list) If user is the bidder or the seller of the parent listing.
+       * @deny (create) If bidderId doesn't match the current user.
+       * @principle Shared access based on denormalized relationship IDs.
        */
       match /bids/{bidId} {
-        allow get, list: if isFieldOwner('bidderId') || isFieldOwner('sellerId');
-        allow create: if isIncomingFieldOwner('bidderId');
-        allow update, delete: if false; // Bids are immutable for integrity.
+        allow get, list: if isSignedIn() && (isOwner(resource.data.bidderId) || isOwner(resource.data.listingSellerId));
+        allow create: if isSignedIn() && request.resource.data.bidderId == request.auth.uid;
+        allow update: if isExistingOwner(resource.data.bidderId) && request.resource.data.bidderId == resource.data.bidderId;
+        allow delete: if isExistingOwner(resource.data.bidderId) || isAdmin();
       }
     }
 
     /**
-     * @description Private transaction records between a buyer and a seller.
-     * @path /transactions/{transactionId}
-     * @allow (get, list, update) if user is buyerId or sellerId.
-     * @deny (get, list) if user is not a participant.
-     * @principle Multi-party access control via denormalized relationship fields.
+     * @description Private user-specific subcollections (Drafts, Blocks, Boosts).
+     * @path /userProfiles/{userId}/[subcollection]
+     * @allow (all) Only if the authenticated user matches the parent userId.
+     * @deny (all) Any attempt to access another user's private subcollections.
+     * @principle Subcollection ownership for private user-scoped data.
      */
-    match /transactions/{transactionId} {
-      allow get, list: if isFieldOwner('buyerId') || isFieldOwner('sellerId');
-      allow create: if isIncomingFieldOwner('buyerId') || isIncomingFieldOwner('sellerId');
-      allow update: if (isExistingFieldOwner('buyerId') || isExistingFieldOwner('sellerId')) && request.resource.data.buyerId == resource.data.buyerId && request.resource.data.sellerId == resource.data.sellerId;
-      allow delete: if false; // Transactions must be preserved for audit.
+    match /userProfiles/{userId}/draftListings/{listingId} {
+      allow read, write: if isOwner(userId);
+    }
+
+    match /userProfiles/{userId}/blockedUsers/{blockedId} {
+      allow read, write: if isOwner(userId);
+    }
+
+    match /userProfiles/{userId}/listingBoosts/{boostId} {
+      allow read, write: if isOwner(userId);
     }
 
     /**
-     * @description Seller reviews. Publicly readable, managed by the reviewer.
-     * @path /users/{sellerId}/reviews/{reviewId}
-     * @allow (get, list) if true; (create) if reviewerId is current user.
-     * @deny (update) if reviewerId mismatch.
-     * @principle Public reputation system with reviewer-only write access.
+     * @description Reviews posted on a seller's profile.
+     * @path /userProfiles/{sellerId}/reviews/{reviewId}
+     * @allow (read) Publicly readable.
+     * @deny (create) If the reviewerId in the data doesn't match the sender.
+     * @principle Public feedback with verified reviewer ownership.
      */
-    match /users/{sellerId}/reviews/{reviewId} {
-      allow get, list: if true;
-      allow create: if isIncomingFieldOwner('reviewerId');
-      allow update, delete: if isExistingFieldOwner('reviewerId');
+    match /userProfiles/{sellerId}/reviews/{reviewId} {
+      allow read: if true;
+      allow create: if isSignedIn() && request.resource.data.reviewerId == request.auth.uid;
+      allow update: if isExistingOwner(resource.data.reviewerId) && request.resource.data.reviewerId == resource.data.reviewerId;
+      allow delete: if isExistingOwner(resource.data.reviewerId) || isAdmin();
     }
 
     /**
-     * @description Conversation threads. Restricted to participants.
+     * @description Messaging threads between two users.
      * @path /conversations/{conversationId}
-     * @allow (get, list) if user UID is in participantIds array.
-     * @deny (get) if user not in participantIds.
-     * @principle Array-based membership for shared access.
+     * @allow (get/list/update) If user is either user1Id or user2Id.
+     * @deny (create) If the user is not participating in the conversation.
+     * @principle Collaborative access for shared communications.
      */
     match /conversations/{conversationId} {
-      allow get, list: if isSignedIn() && request.auth.uid in resource.data.participantIds;
-      allow create: if isSignedIn() && request.auth.uid in request.resource.data.participantIds;
-      allow update: if isSignedIn() && request.auth.uid in resource.data.participantIds;
-      allow delete: if false;
+      allow read: if isSignedIn() && (isOwner(resource.data.user1Id) || isOwner(resource.data.user2Id));
+      allow create: if isSignedIn() && (request.resource.data.user1Id == request.auth.uid || request.resource.data.user2Id == request.auth.uid);
+      allow update: if isSignedIn() && (isOwner(resource.data.user1Id) || isOwner(resource.data.user2Id));
+      allow delete: if isAdmin();
 
       /**
-       * @description Messages within a conversation. Restricted to sender and receiver.
-       * @path /conversations/{conversationId}/messages/{messageId}
-       * @allow (get, list) if user is sender or receiver. (create) if user is sender.
-       * @deny (list) if user is not in the message participants.
-       * @principle Granular message security based on denormalized sender/receiver IDs.
+       * @description Messages and Meeting Suggestions within a conversation.
+       * @path /conversations/{conversationId}/[subcollection]
+       * @allow (read) If user is part of the conversation (via denormalized participant map).
+       * @deny (create) If user is not a participant.
+       * @principle Denormalized membership check for performant subcollection access.
        */
       match /messages/{messageId} {
-        allow get, list: if isFieldOwner('senderId') || isFieldOwner('receiverId');
-        allow create: if isIncomingFieldOwner('senderId');
-        allow update: if isExistingFieldOwner('receiverId'); // To allow 'isRead' updates by receiver.
-        allow delete: if false;
+        allow read: if isSignedIn() && request.auth.uid in resource.data.conversationParticipants.keys();
+        allow create: if isSignedIn() && request.auth.uid in request.resource.data.conversationParticipants.keys();
+        allow update, delete: if false; // Messages are usually immutable or admin-deleted
+      }
+
+      match /meetingPointSuggestions/{suggestionId} {
+        allow read: if isSignedIn() && request.auth.uid in resource.data.conversationParticipants.keys();
+        allow create: if isSignedIn() && request.auth.uid in request.resource.data.conversationParticipants.keys();
+        allow update: if isSignedIn() && request.auth.uid in resource.data.conversationParticipants.keys();
+        allow delete: if isAdmin();
       }
     }
 
     /**
-     * @description Abuse reports. Readable by reporter or admins.
-     * @path /reports/{reportId}
-     * @allow (create, get) if user is reporter; (list) if admin.
-     * @deny (get) if trying to read someone else's report.
-     * @principle User-submitted data with administrative oversight.
+     * @description Purchase transactions.
+     * @path /transactions/{transactionId}
+     * @allow (get/list) If user is the buyerId or sellerId.
+     * @deny (write) If user is not one of the parties; typically handled by system/admin.
+     * @principle Multi-party ownership for financial records.
      */
-    match /reports/{reportId} {
-      allow get: if isFieldOwner('reporterId') || isAdmin();
-      allow list: if isAdmin();
-      allow create: if isIncomingFieldOwner('reporterId');
-      allow update: if isAdmin();
+    match /transactions/{transactionId} {
+      allow get, list: if isSignedIn() && (isOwner(resource.data.buyerId) || isOwner(resource.data.sellerId));
+      allow create, update: if isSignedIn() && (request.resource.data.buyerId == request.auth.uid || request.resource.data.sellerId == request.auth.uid);
       allow delete: if isAdmin();
     }
 
     /**
-     * @description Personal block lists. Only accessible by the blocking user.
-     * @path /users/{blockerId}/blockedUsers/{blockedId}
-     * @allow (all) if auth matches blockerId.
-     * @deny (all) if auth does not match blockerId.
-     * @principle Path-based isolation for private user settings.
+     * @description User reports for moderation.
+     * @path /reports/{reportId}
+     * @allow (get) If user is the reporter or an admin.
+     * @deny (list) For non-admins to prevent bulk report viewing.
+     * @principle Reporter ownership with restricted administrative visibility.
      */
-    match /users/{blockerId}/blockedUsers/{blockedId} {
-      allow get, list, create, update, delete: if isOwner(blockerId);
-    }
-
-    /**
-     * @description Paid boosts for product visibility. Managed by the seller.
-     * @path /products/{productId}/listingBoosts/{boostId}
-     * @allow (get, list) if true; (create, update) if user is boosterId.
-     * @deny (write) if boosterId mismatch.
-     * @principle Ownership validation on commercial features.
-     */
-    match /products/{productId}/listingBoosts/{boostId} {
-      allow get, list: if true;
-      allow create: if isIncomingFieldOwner('boosterId');
-      allow update: if isExistingFieldOwner('boosterId');
+    match /reports/{reportId} {
+      allow get: if isExistingOwner(resource.data.reporterId) || isAdmin();
+      allow list: if isAdmin();
+      allow create: if isSignedIn() && request.resource.data.reporterId == request.auth.uid;
+      allow update: if isExistingOwner(resource.data.reporterId) && request.resource.data.reporterId == resource.data.reporterId;
       allow delete: if isAdmin();
     }
   }

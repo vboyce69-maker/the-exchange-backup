@@ -1,57 +1,64 @@
 {
   "entities": {
-    "User": {
+    "UserProfile": {
       "$schema": "http://json-schema.org/draft-07/schema#",
-      "title": "User",
+      "title": "UserProfile",
       "type": "object",
-      "description": "Represents a user account within the LocalBid Exchange app, including their profile information and aggregated statistics as a seller.",
+      "description": "Represents a user within the LocalBid Exchange platform, storing their profile information, verification status, and aggregated performance metrics as a seller.",
       "properties": {
         "id": {
           "type": "string",
-          "description": "Unique identifier for the User entity."
+          "description": "Unique identifier for the UserProfile entity."
         },
         "username": {
           "type": "string",
-          "description": "The public display name of the user."
+          "description": "Unique username chosen by the user."
         },
         "email": {
           "type": "string",
-          "description": "The email address of the user. Used for identification, not direct authentication storage.",
+          "description": "User's email address, used for communication and login. (Assumes external authentication system handles password and detailed authentication flow.)",
           "format": "email"
+        },
+        "firstName": {
+          "type": "string",
+          "description": "User's first name."
+        },
+        "lastName": {
+          "type": "string",
+          "description": "User's last name."
+        },
+        "bio": {
+          "type": "string",
+          "description": "A short biographical description provided by the user."
         },
         "profileImageUrl": {
           "type": "string",
           "description": "URL to the user's profile picture.",
           "format": "uri"
         },
-        "locationCoords": {
-          "type": "boolean",
-          "description": "Geographical coordinates representing the user's general location, used for item discovery and meeting suggestions.",
-          "format": "object",
-          "items": {
-            "type": "string"
-          }
+        "locationLatitude": {
+          "type": "number",
+          "description": "The latitude coordinate of the user's primary location, used for local discovery."
+        },
+        "locationLongitude": {
+          "type": "number",
+          "description": "The longitude coordinate of the user's primary location, used for local discovery."
         },
         "isIdVerified": {
           "type": "boolean",
           "description": "Indicates if the user has completed the ID verification process to earn a 'Verified' badge."
         },
-        "totalSalesMade": {
+        "totalSalesCount": {
           "type": "number",
-          "description": "Aggregated count of successful sales made by this user as a seller."
+          "description": "The total number of successful sales made by this user as a seller."
         },
-        "averageSellerRating": {
+        "reliabilityScore": {
           "type": "number",
-          "description": "Aggregated average rating received by this user as a seller from buyer reviews."
+          "description": "An aggregate score reflecting the seller's reliability, derived from buyer reviews (e.g., 1-5)."
         },
-        "createdAt": {
+        "registrationDate": {
           "type": "string",
-          "description": "Timestamp when the user account was created.",
-          "format": "date-time"
-        },
-        "updatedAt": {
-          "type": "string",
-          "description": "Timestamp when the user account was last updated.",
+          "description": "The date and time when the user registered on the platform.",
           "format": "date-time"
         }
       },
@@ -59,23 +66,58 @@
         "id",
         "username",
         "email",
-        "locationCoords",
-        "createdAt"
+        "firstName",
+        "lastName",
+        "locationLatitude",
+        "locationLongitude",
+        "isIdVerified",
+        "totalSalesCount",
+        "reliabilityScore",
+        "registrationDate"
       ]
     },
-    "Product": {
+    "Category": {
       "$schema": "http://json-schema.org/draft-07/schema#",
-      "title": "Product",
+      "title": "Category",
       "type": "object",
-      "description": "Represents an item listed for sale on the LocalBid Exchange app, either as a direct sale or an auction.",
+      "description": "Defines a category for product listings, enabling organization and discovery.",
       "properties": {
         "id": {
           "type": "string",
-          "description": "Unique identifier for the Product entity."
+          "description": "Unique identifier for the Category entity."
+        },
+        "name": {
+          "type": "string",
+          "description": "The name of the category (e.g., 'Electronics', 'Furniture', 'Apparel')."
+        },
+        "description": {
+          "type": "string",
+          "description": "A brief description of what items fall under this category."
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "description"
+      ]
+    },
+    "ProductListing": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "ProductListing",
+      "type": "object",
+      "description": "Represents an item listed for sale or auction on the platform by a seller.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the ProductListing entity."
         },
         "sellerId": {
           "type": "string",
-          "description": "Reference to the User who is selling this product. (Relationship: User 1:N Product)"
+          "description": "Reference to the UserProfile of the seller who listed this product. (Relationship: UserProfile 1:N ProductListing)"
+        },
+        "categoryId": {
+          "type": "string",
+          "description": "Reference to the Category this product belongs to. (Relationship: Category 1:N ProductListing)"
         },
         "title": {
           "type": "string",
@@ -87,259 +129,157 @@
         },
         "price": {
           "type": "number",
-          "description": "The fixed price for a direct sale item. Null if the product is part of an auction."
+          "description": "The asking price for direct sale, if not an auction."
         },
-        "category": {
+        "currency": {
           "type": "string",
-          "description": "The category the product belongs to (e.g., 'Electronics', 'Clothing', 'Home Goods')."
+          "description": "The currency code for the price (e.g., 'USD', 'EUR')."
         },
-        "images": {
+        "imageUrls": {
           "type": "array",
-          "description": "An array of URLs to images of the product.",
+          "description": "An array of URLs pointing to images of the product.",
           "items": {
             "type": "string"
           }
         },
-        "condition": {
+        "listingLocationLatitude": {
+          "type": "number",
+          "description": "The latitude coordinate of the product's location, used for proximity search."
+        },
+        "listingLocationLongitude": {
+          "type": "number",
+          "description": "The longitude coordinate of the product's location, used for proximity search."
+        },
+        "postedDate": {
           "type": "string",
-          "description": "The condition of the product (e.g., 'New', 'Used - Like New', 'Used - Good')."
-        },
-        "locationCoords": {
-          "type": "boolean",
-          "description": "Geographical coordinates representing the general location of the product, used for proximity searches.",
-          "format": "object",
-          "items": {
-            "type": "string"
-          }
+          "description": "The date and time when the product was listed.",
+          "format": "date-time"
         },
         "status": {
           "type": "string",
-          "description": "The current status of the product listing (e.g., 'available', 'sold', 'auction_active', 'auction_ended', 'removed')."
+          "description": "The current status of the listing (e.g., 'available', 'sold', 'auction_active', 'auction_ended', 'draft')."
+        },
+        "isAuction": {
+          "type": "boolean",
+          "description": "Indicates if the listing is an auction item."
+        },
+        "startingBid": {
+          "type": "number",
+          "description": "The initial bid amount for auction items."
+        },
+        "auctionEndDate": {
+          "type": "string",
+          "description": "The date and time when the auction for this item will end.",
+          "format": "date-time"
+        },
+        "currentHighestBidId": {
+          "type": "string",
+          "description": "Reference to the current highest Bid for this auction. (Relationship: ProductListing 1:1 Bid)",
+          "format": "uuid"
+        },
+        "viewCount": {
+          "type": "number",
+          "description": "The number of times this listing has been viewed, used for demand analysis."
         },
         "isBoosted": {
           "type": "boolean",
-          "description": "Indicates if the listing has been paid to be boosted for increased visibility."
+          "description": "Indicates if the listing has been boosted for increased visibility."
         },
-        "auctionId": {
+        "boostEndDate": {
           "type": "string",
-          "description": "Reference to the Auction entity if this product is being sold via auction. (Relationship: Product 1:1 Auction)"
-        },
-        "createdAt": {
-          "type": "string",
-          "description": "Timestamp when the product listing was created.",
+          "description": "The date and time when the listing's boost will expire.",
           "format": "date-time"
         },
-        "updatedAt": {
-          "type": "string",
-          "description": "Timestamp when the product listing was last updated.",
-          "format": "date-time"
+        "negotiable": {
+          "type": "boolean",
+          "description": "Indicates if the listed price is open to negotiation."
         }
       },
       "required": [
         "id",
         "sellerId",
+        "categoryId",
         "title",
         "description",
-        "category",
-        "images",
-        "condition",
-        "locationCoords",
+        "price",
+        "currency",
+        "imageUrls",
+        "listingLocationLatitude",
+        "listingLocationLongitude",
+        "postedDate",
         "status",
-        "createdAt"
-      ]
-    },
-    "Auction": {
-      "$schema": "http://json-schema.org/draft-07/schema#",
-      "title": "Auction",
-      "type": "object",
-      "description": "Represents the details of an auction for a specific product, allowing users to place bids over a period.",
-      "properties": {
-        "id": {
-          "type": "string",
-          "description": "Unique identifier for the Auction entity."
-        },
-        "productId": {
-          "type": "string",
-          "description": "Reference to the Product being sold in this auction. (Relationship: Product 1:1 Auction)"
-        },
-        "startingBid": {
-          "type": "number",
-          "description": "The initial minimum bid amount for the auction."
-        },
-        "currentHighestBid": {
-          "type": "number",
-          "description": "The current highest bid placed on the auction."
-        },
-        "highestBidderId": {
-          "type": "string",
-          "description": "Reference to the User who placed the current highest bid. Null if no bids have been placed. (Relationship: User 1:N Bid)"
-        },
-        "startTime": {
-          "type": "string",
-          "description": "The date and time when the auction officially started.",
-          "format": "date-time"
-        },
-        "endTime": {
-          "type": "string",
-          "description": "The date and time when the auction is scheduled to end.",
-          "format": "date-time"
-        },
-        "status": {
-          "type": "string",
-          "description": "The current status of the auction (e.g., 'scheduled', 'active', 'ended', 'cancelled')."
-        },
-        "createdAt": {
-          "type": "string",
-          "description": "Timestamp when the auction record was created.",
-          "format": "date-time"
-        },
-        "updatedAt": {
-          "type": "string",
-          "description": "Timestamp when the auction record was last updated.",
-          "format": "date-time"
-        }
-      },
-      "required": [
-        "id",
-        "productId",
-        "startingBid",
-        "currentHighestBid",
-        "startTime",
-        "endTime",
-        "status",
-        "createdAt"
-      ]
-    },
-    "Bid": {
-      "$schema": "http://json-schema.org/draft-07/schema#",
-      "title": "Bid",
-      "type": "object",
-      "description": "Represents a single bid placed by a user on an auction item.",
-      "properties": {
-        "id": {
-          "type": "string",
-          "description": "Unique identifier for the Bid entity."
-        },
-        "auctionId": {
-          "type": "string",
-          "description": "Reference to the Auction this bid is for. (Relationship: Auction 1:N Bid)"
-        },
-        "bidderId": {
-          "type": "string",
-          "description": "Reference to the User who placed this bid. (Relationship: User 1:N Bid)"
-        },
-        "amount": {
-          "type": "number",
-          "description": "The amount of the bid."
-        },
-        "bidTime": {
-          "type": "string",
-          "description": "Timestamp when the bid was placed.",
-          "format": "date-time"
-        }
-      },
-      "required": [
-        "id",
-        "auctionId",
-        "bidderId",
-        "amount",
-        "bidTime"
+        "isAuction",
+        "viewCount",
+        "isBoosted",
+        "negotiable"
       ]
     },
     "Transaction": {
       "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "Transaction",
       "type": "object",
-      "description": "Represents a completed or in-progress purchase of a product, including commission and meeting details.",
+      "description": "Records the details of a completed or pending purchase, including commission and payment status.",
       "properties": {
         "id": {
           "type": "string",
           "description": "Unique identifier for the Transaction entity."
         },
-        "productId": {
-          "type": "string",
-          "description": "Reference to the Product involved in this transaction. (Relationship: Product 1:1 Transaction)"
-        },
         "buyerId": {
           "type": "string",
-          "description": "Reference to the User who bought the product. (Relationship: User 1:N Transaction)"
+          "description": "Reference to the UserProfile of the buyer. (Relationship: UserProfile 1:N Transaction)"
         },
         "sellerId": {
           "type": "string",
-          "description": "Reference to the User who sold the product. (Relationship: User 1:N Transaction)"
+          "description": "Reference to the UserProfile of the seller. (Relationship: UserProfile 1:N Transaction)"
         },
-        "finalPrice": {
+        "listingId": {
+          "type": "string",
+          "description": "Reference to the ProductListing involved in this transaction. (Relationship: ProductListing 1:N Transaction)"
+        },
+        "finalAmount": {
           "type": "number",
-          "description": "The total amount paid by the buyer, including the commission."
+          "description": "The final amount agreed upon for the transaction before commission."
+        },
+        "commissionPercentage": {
+          "type": "number",
+          "description": "The percentage commission applied to this transaction (e.g., 0.08 for 8%)."
         },
         "commissionAmount": {
           "type": "number",
-          "description": "The commission amount deducted from the seller's payout or added to the buyer's cost, typically 8-10%."
-        },
-        "commissionRate": {
-          "type": "number",
-          "description": "The percentage rate of commission applied to this transaction (e.g., 0.08 for 8%)."
+          "description": "The calculated commission amount for this transaction."
         },
         "transactionDate": {
           "type": "string",
-          "description": "Timestamp when the transaction was completed or confirmed.",
+          "description": "The date and time when the transaction was finalized.",
           "format": "date-time"
         },
         "status": {
           "type": "string",
-          "description": "The current status of the transaction (e.g., 'pending_payment', 'paid_escrow', 'funds_released', 'completed', 'cancelled')."
-        },
-        "meetingPointAddress": {
-          "type": "string",
-          "description": "A descriptive address or name of the agreed-upon meeting point for item exchange."
-        },
-        "meetingPointCoords": {
-          "type": "boolean",
-          "description": "Geographical coordinates for the agreed-upon meeting point.",
-          "format": "object",
-          "items": {
-            "type": "string"
-          }
-        },
-        "suggestedMeetingPointBy": {
-          "type": "string",
-          "description": "Indicates who suggested the meeting point (e.g., 'buyer', 'seller', 'system')."
+          "description": "The current status of the transaction (e.g., 'pending', 'completed', 'cancelled', 'escrow_held')."
         },
         "paymentGatewayTransactionId": {
           "type": "string",
           "description": "Reference ID from the external payment gateway for this transaction."
-        },
-        "createdAt": {
-          "type": "string",
-          "description": "Timestamp when the transaction record was created.",
-          "format": "date-time"
-        },
-        "updatedAt": {
-          "type": "string",
-          "description": "Timestamp when the transaction record was last updated.",
-          "format": "date-time"
         }
       },
       "required": [
         "id",
-        "productId",
         "buyerId",
         "sellerId",
-        "finalPrice",
+        "listingId",
+        "finalAmount",
+        "commissionPercentage",
         "commissionAmount",
-        "commissionRate",
         "transactionDate",
         "status",
-        "meetingPointAddress",
-        "meetingPointCoords",
-        "createdAt"
+        "paymentGatewayTransactionId"
       ]
     },
     "Review": {
       "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "Review",
       "type": "object",
-      "description": "Represents a buyer's review and rating given to a seller after a transaction.",
+      "description": "Stores a buyer's rating and feedback for a seller following a transaction.",
       "properties": {
         "id": {
           "type": "string",
@@ -347,44 +287,122 @@
         },
         "transactionId": {
           "type": "string",
-          "description": "Reference to the Transaction this review is associated with. (Relationship: Transaction 1:N Review)"
-        },
-        "sellerId": {
-          "type": "string",
-          "description": "Reference to the User who is being reviewed (the seller). (Relationship: User 1:N Review)"
+          "description": "Reference to the Transaction this review is associated with. (Relationship: Transaction 1:1 Review)"
         },
         "reviewerId": {
           "type": "string",
-          "description": "Reference to the User who submitted the review (the buyer). (Relationship: User 1:N Review)"
+          "description": "Reference to the UserProfile of the buyer who wrote the review. (Relationship: UserProfile 1:N Review)"
+        },
+        "sellerId": {
+          "type": "string",
+          "description": "Reference to the UserProfile of the seller being reviewed. (Relationship: UserProfile 1:N Review)"
         },
         "rating": {
           "type": "number",
-          "description": "The rating given to the seller (e.g., 1 to 5 stars)."
+          "description": "The numerical rating given by the buyer (e.g., 1-5 stars)."
         },
         "comment": {
           "type": "string",
-          "description": "The textual comment provided by the reviewer."
+          "description": "Textual feedback provided by the buyer."
         },
-        "createdAt": {
+        "reviewDate": {
           "type": "string",
-          "description": "Timestamp when the review was created.",
+          "description": "The date and time when the review was posted.",
           "format": "date-time"
         }
       },
       "required": [
         "id",
         "transactionId",
-        "sellerId",
         "reviewerId",
+        "sellerId",
         "rating",
-        "createdAt"
+        "comment",
+        "reviewDate"
+      ]
+    },
+    "Bid": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Bid",
+      "type": "object",
+      "description": "Represents a bid placed by a user on an auction listing.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the Bid entity."
+        },
+        "listingId": {
+          "type": "string",
+          "description": "Reference to the ProductListing (auction) that this bid is for. (Relationship: ProductListing 1:N Bid)"
+        },
+        "bidderId": {
+          "type": "string",
+          "description": "Reference to the UserProfile of the user who placed the bid. (Relationship: UserProfile 1:N Bid)"
+        },
+        "bidAmount": {
+          "type": "number",
+          "description": "The amount of money offered in this bid."
+        },
+        "bidDate": {
+          "type": "string",
+          "description": "The date and time when the bid was placed.",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "listingId",
+        "bidderId",
+        "bidAmount",
+        "bidDate"
+      ]
+    },
+    "Conversation": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Conversation",
+      "type": "object",
+      "description": "Manages direct messaging threads between two users, often related to a specific product listing.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the Conversation entity."
+        },
+        "listingId": {
+          "type": "string",
+          "description": "Reference to the ProductListing this conversation is about. (Relationship: ProductListing 1:N Conversation)"
+        },
+        "user1Id": {
+          "type": "string",
+          "description": "Reference to the UserProfile of the first participant in the conversation. (Relationship: UserProfile 1:N Conversation)"
+        },
+        "user2Id": {
+          "type": "string",
+          "description": "Reference to the UserProfile of the second participant in the conversation. (Relationship: UserProfile 1:N Conversation)"
+        },
+        "createdDate": {
+          "type": "string",
+          "description": "The date and time when the conversation was initiated.",
+          "format": "date-time"
+        },
+        "lastMessageDate": {
+          "type": "string",
+          "description": "The date and time of the most recent message in this conversation.",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "user1Id",
+        "user2Id",
+        "createdDate",
+        "lastMessageDate"
       ]
     },
     "Message": {
       "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "Message",
       "type": "object",
-      "description": "Represents an in-app message exchanged between users, potentially related to a product listing.",
+      "description": "Represents a single message sent within an in-app conversation.",
       "properties": {
         "id": {
           "type": "string",
@@ -392,58 +410,101 @@
         },
         "conversationId": {
           "type": "string",
-          "description": "Identifier for the conversation thread this message belongs to. This helps group messages between two users about a specific context."
+          "description": "Reference to the Conversation this message belongs to. (Relationship: Conversation 1:N Message)"
         },
         "senderId": {
           "type": "string",
-          "description": "Reference to the User who sent the message. (Relationship: User 1:N Message)"
-        },
-        "receiverId": {
-          "type": "string",
-          "description": "Reference to the User who received the message. (Relationship: User 1:N Message)"
-        },
-        "productId": {
-          "type": "string",
-          "description": "Optional reference to the Product the message is about. (Relationship: Product 1:N Message)"
+          "description": "Reference to the UserProfile of the sender of this message. (Relationship: UserProfile 1:N Message)"
         },
         "content": {
           "type": "string",
-          "description": "The actual text content of the message."
+          "description": "The textual content of the message."
         },
-        "timestamp": {
+        "sentDate": {
           "type": "string",
-          "description": "Timestamp when the message was sent.",
+          "description": "The date and time when the message was sent.",
           "format": "date-time"
         },
         "isRead": {
           "type": "boolean",
-          "description": "Indicates if the receiver has read the message."
+          "description": "Indicates if the recipient has read the message."
         },
-        "isSuspicious": {
+        "isFlaggedForScam": {
           "type": "boolean",
-          "description": "Flag indicating if the message was flagged as suspicious by the anti-scam AI filter."
-        },
-        "suspicionReason": {
-          "type": "string",
-          "description": "Optional description of why the message was flagged as suspicious (e.g., 'contains suspicious link')."
+          "description": "Indicates if the message has been flagged by AI filters for suspicious content."
         }
       },
       "required": [
         "id",
         "conversationId",
         "senderId",
-        "receiverId",
         "content",
-        "timestamp",
+        "sentDate",
         "isRead",
-        "isSuspicious"
+        "isFlaggedForScam"
+      ]
+    },
+    "MeetingPointSuggestion": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "MeetingPointSuggestion",
+      "type": "object",
+      "description": "Stores details about a suggested public meeting point for buyers and sellers.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the MeetingPointSuggestion entity."
+        },
+        "conversationId": {
+          "type": "string",
+          "description": "Reference to the Conversation where this meeting point was suggested. (Relationship: Conversation 1:N MeetingPointSuggestion)"
+        },
+        "suggestedByUserId": {
+          "type": "string",
+          "description": "Reference to the UserProfile of the user who made the suggestion. (Relationship: UserProfile 1:N MeetingPointSuggestion)"
+        },
+        "latitude": {
+          "type": "number",
+          "description": "The latitude coordinate of the suggested meeting point."
+        },
+        "longitude": {
+          "type": "number",
+          "description": "The longitude coordinate of the suggested meeting point."
+        },
+        "name": {
+          "type": "string",
+          "description": "The name of the public place (e.g., 'Central Park Library')."
+        },
+        "address": {
+          "type": "string",
+          "description": "The full address of the suggested meeting point."
+        },
+        "status": {
+          "type": "string",
+          "description": "The current status of the suggestion (e.g., 'pending', 'accepted', 'rejected')."
+        },
+        "suggestionDate": {
+          "type": "string",
+          "description": "The date and time when the meeting point was suggested.",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "conversationId",
+        "suggestedByUserId",
+        "latitude",
+        "longitude",
+        "name",
+        "address",
+        "status",
+        "suggestionDate"
       ]
     },
     "Report": {
       "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "Report",
       "type": "object",
-      "description": "Represents a report filed by a user against another user or a product listing for suspicious or inappropriate content.",
+      "description": "Records a user's report against another user, listing, or message for inappropriate content or suspicious activity.",
       "properties": {
         "id": {
           "type": "string",
@@ -451,69 +512,66 @@
         },
         "reporterId": {
           "type": "string",
-          "description": "Reference to the User who filed the report. (Relationship: User 1:N Report)"
+          "description": "Reference to the UserProfile of the user who submitted the report. (Relationship: UserProfile 1:N Report)"
         },
-        "reportedUserId": {
+        "reportedEntityId": {
           "type": "string",
-          "description": "Optional reference to the User who is being reported. (Relationship: User 1:N Report)"
+          "description": "The ID of the entity (UserProfile, ProductListing, or Message) being reported."
         },
-        "reportedProductId": {
+        "reportedEntityType": {
           "type": "string",
-          "description": "Optional reference to the Product listing that is being reported. (Relationship: Product 1:N Report)"
+          "description": "The type of entity being reported (e.g., 'UserProfile', 'ProductListing', 'Message')."
         },
-        "reportType": {
+        "reason": {
           "type": "string",
-          "description": "The type of issue being reported (e.g., 'scam', 'inappropriate_content', 'spam', 'fraudulent_listing')."
+          "description": "A categorized reason for the report (e.g., 'Scam', 'Inappropriate Content', 'Harassment')."
         },
-        "description": {
+        "details": {
           "type": "string",
-          "description": "A detailed description of the reported issue."
+          "description": "Detailed description of the issue provided by the reporter."
+        },
+        "reportDate": {
+          "type": "string",
+          "description": "The date and time when the report was submitted.",
+          "format": "date-time"
         },
         "status": {
           "type": "string",
           "description": "The current status of the report (e.g., 'pending', 'reviewed', 'resolved', 'dismissed')."
-        },
-        "createdAt": {
-          "type": "string",
-          "description": "Timestamp when the report was filed.",
-          "format": "date-time"
-        },
-        "updatedAt": {
-          "type": "string",
-          "description": "Timestamp when the report was last updated.",
-          "format": "date-time"
         }
       },
       "required": [
         "id",
         "reporterId",
-        "reportType",
-        "description",
-        "status",
-        "createdAt"
+        "reportedEntityId",
+        "reportedEntityType",
+        "reason",
+        "details",
+        "reportDate",
+        "status"
       ]
     },
-    "BlockedUser": {
+    "UserBlock": {
       "$schema": "http://json-schema.org/draft-07/schema#",
-      "title": "BlockedUser",
+      "title": "UserBlock",
       "type": "object",
-      "description": "Represents a record of one user blocking another user.",
+      "description": "Records when one user blocks another to prevent further interaction.",
       "properties": {
         "id": {
           "type": "string",
-          "description": "Unique identifier for the BlockedUser relationship entity."
+          "description": "Unique identifier for the UserBlock entity."
         },
         "blockerId": {
           "type": "string",
-          "description": "Reference to the User who initiated the block. (Relationship: User 1:N BlockedUser)"
+          "description": "Reference to the UserProfile of the user who initiated the block. (Relationship: UserProfile 1:N UserBlock)"
         },
         "blockedId": {
           "type": "string",
-          "description": "Reference to the User who has been blocked. (Relationship: User 1:N BlockedUser)"
+          "description": "Reference to the UserProfile of the user who was blocked. (Relationship: UserProfile 1:N UserBlock)"
         },
-        "createdAt": {
+        "blockDate": {
           "type": "string",
-          "description": "Timestamp when the block was initiated.",
+          "description": "The date and time when the block was initiated.",
           "format": "date-time"
         }
       },
@@ -521,70 +579,59 @@
         "id",
         "blockerId",
         "blockedId",
-        "createdAt"
+        "blockDate"
       ]
     },
     "ListingBoost": {
       "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "ListingBoost",
       "type": "object",
-      "description": "Represents a paid boost applied to a product listing to increase its visibility and reach.",
+      "description": "Details about a paid promotion applied to a product listing to increase its visibility.",
       "properties": {
         "id": {
           "type": "string",
           "description": "Unique identifier for the ListingBoost entity."
         },
-        "productId": {
+        "listingId": {
           "type": "string",
-          "description": "Reference to the Product listing that is being boosted. (Relationship: Product 1:N ListingBoost)"
+          "description": "Reference to the ProductListing that is being boosted. (Relationship: ProductListing 1:N ListingBoost)"
         },
         "boosterId": {
           "type": "string",
-          "description": "Reference to the User (seller) who paid for this boost. (Relationship: User 1:N ListingBoost)"
+          "description": "Reference to the UserProfile of the seller who purchased the boost. (Relationship: UserProfile 1:N ListingBoost)"
+        },
+        "startDate": {
+          "type": "string",
+          "description": "The date and time when the boost period began.",
+          "format": "date-time"
+        },
+        "endDate": {
+          "type": "string",
+          "description": "The date and time when the boost period will end.",
+          "format": "date-time"
+        },
+        "paymentTransactionRef": {
+          "type": "string",
+          "description": "Reference to the payment transaction associated with this boost purchase."
         },
         "boostType": {
           "type": "string",
-          "description": "The type of boost applied (e.g., 'basic', 'premium', 'homepage_spotlight')."
-        },
-        "durationHours": {
-          "type": "number",
-          "description": "The duration of the boost in hours."
-        },
-        "startTime": {
-          "type": "string",
-          "description": "The date and time when the boost became active.",
-          "format": "date-time"
-        },
-        "endTime": {
-          "type": "string",
-          "description": "The date and time when the boost is scheduled to expire.",
-          "format": "date-time"
+          "description": "The type or tier of boost purchased (e.g., 'Standard', 'Premium')."
         },
         "cost": {
           "type": "number",
-          "description": "The monetary cost of applying this boost."
-        },
-        "status": {
-          "type": "string",
-          "description": "The current status of the boost (e.g., 'active', 'expired', 'cancelled')."
-        },
-        "createdAt": {
-          "type": "string",
-          "description": "Timestamp when the boost record was created.",
-          "format": "date-time"
+          "description": "The cost incurred for this listing boost."
         }
       },
       "required": [
         "id",
-        "productId",
+        "listingId",
         "boosterId",
+        "startDate",
+        "endDate",
+        "paymentTransactionRef",
         "boostType",
-        "durationHours",
-        "startTime",
-        "endTime",
-        "cost",
-        "status",
-        "createdAt"
+        "cost"
       ]
     }
   },
@@ -597,81 +644,89 @@
   "firestore": {
     "structure": [
       {
-        "path": "/users/{userId}",
+        "path": "/userProfiles/{userId}",
         "definition": {
-          "entityName": "User",
+          "entityName": "UserProfile",
           "schema": {
-            "$ref": "#/backend/entities/User"
+            "$ref": "#/backend/entities/UserProfile"
           },
-          "description": "Stores user profile information. Access is restricted to the user themselves for modification, but public for viewing general profile details. The 'id' field matches the {userId} wildcard for path-based authorization."
-        }
-      },
-      {
-        "path": "/products/{productId}",
-        "definition": {
-          "entityName": "Product",
-          "schema": {
-            "$ref": "#/backend/entities/Product"
-          },
-          "description": "Stores details for product listings available for sale. These documents are publicly readable for discovery. Write access is restricted to the 'sellerId' specified within the document, ensuring Authorization Independence without hierarchical dependencies."
-        }
-      },
-      {
-        "path": "/auctions/{auctionId}",
-        "definition": {
-          "entityName": "Auction",
-          "schema": {
-            "$ref": "#/backend/entities/Auction"
-          },
-          "description": "Stores details for auction listings. These are publicly readable. Write access (e.g., updating status, end time) is restricted to the 'sellerId' of the associated product, which must be denormalized into this document as 'sellerId' for Authorization Independence. Includes denormalized 'sellerId' for authorization independence."
-        }
-      },
-      {
-        "path": "/auctions/{auctionId}/bids/{bidId}",
-        "definition": {
-          "entityName": "Bid",
-          "schema": {
-            "$ref": "#/backend/entities/Bid"
-          },
-          "description": "Stores individual bids placed on an auction. Readable by the 'bidderId' (from the document) and the 'sellerId' (denormalized from the parent Auction document) to ensure Authorization Independence for bid visibility. Bids are typically immutable after creation. Includes denormalized 'sellerId' (of the auction) for authorization independence.",
+          "description": "Stores individual user profile information. Accessible by the user whose ID matches `userId` in the path, or by administrators. Other users can read public profile fields. The document's 'id' field must match the 'userId' path parameter for integrity.",
           "params": [
             {
-              "name": "auctionId",
-              "description": "The unique identifier for the parent Auction."
-            },
-            {
-              "name": "bidId",
-              "description": "The unique identifier for the Bid."
+              "name": "userId",
+              "description": "The unique ID of the user profile, corresponding to the authenticated user's UID."
             }
           ]
         }
       },
       {
-        "path": "/transactions/{transactionId}",
+        "path": "/categories/{categoryId}",
         "definition": {
-          "entityName": "Transaction",
+          "entityName": "Category",
           "schema": {
-            "$ref": "#/backend/entities/Transaction"
+            "$ref": "#/backend/entities/Category"
           },
-          "description": "Stores details of completed or in-progress product purchases. Access is restricted to the 'buyerId' or 'sellerId' within the document, enabling Authorization Independence without hierarchical lookups."
+          "description": "A global, read-only collection of product categories. Accessible by all users for browsing and filtering listings. Only administrators can create, update, or delete categories.",
+          "params": [
+            {
+              "name": "categoryId",
+              "description": "The unique ID of the product category."
+            }
+          ]
         }
       },
       {
-        "path": "/users/{sellerId}/reviews/{reviewId}",
+        "path": "/publicListings/{listingId}",
         "definition": {
-          "entityName": "Review",
+          "entityName": "ProductListing",
           "schema": {
-            "$ref": "#/backend/entities/Review"
+            "$ref": "#/backend/entities/ProductListing"
           },
-          "description": "Stores buyer reviews for sellers. Reviews are publicly readable (for seller profiles) but write/update access is restricted to the 'reviewerId' within the document. The 'sellerId' in the path facilitates querying all reviews for a specific seller.",
+          "description": "Stores product listings that are currently 'available' or 'auction_active'. Publicly readable. Includes denormalized 'sellerId' for direct authorization checks for the listing owner. When a draft is published, it moves to this collection.",
           "params": [
             {
-              "name": "sellerId",
-              "description": "The unique identifier of the User who is being reviewed."
+              "name": "listingId",
+              "description": "The unique ID of the product listing."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/userProfiles/{userId}/draftListings/{listingId}",
+        "definition": {
+          "entityName": "ProductListing",
+          "schema": {
+            "$ref": "#/backend/entities/ProductListing"
+          },
+          "description": "Stores product listings in 'draft' status, private to the seller. Accessible only by the seller whose ID matches `userId` in the path. The document's 'sellerId' field must match the `userId` path parameter. Supports authorization independence for draft management.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique ID of the seller, corresponding to `request.auth.uid`."
             },
             {
-              "name": "reviewId",
-              "description": "The unique identifier for the Review."
+              "name": "listingId",
+              "description": "The unique ID of the draft product listing."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/publicListings/{listingId}/bids/{bidId}",
+        "definition": {
+          "entityName": "Bid",
+          "schema": {
+            "$ref": "#/backend/entities/Bid"
+          },
+          "description": "Contains bids for a specific auction listing. Includes denormalized 'bidderId' for bid ownership and 'listingSellerId' (from the parent listing) for authorization independence, allowing the listing seller to view bids without a 'get()' call. Only the `bidderId` can create or modify their own bid. The `listingSellerId` can read all bids on their listing.",
+          "params": [
+            {
+              "name": "listingId",
+              "description": "The unique ID of the auction product listing this bid is for."
+            },
+            {
+              "name": "bidId",
+              "description": "The unique ID of the bid."
             }
           ]
         }
@@ -681,13 +736,13 @@
         "definition": {
           "entityName": "Conversation",
           "schema": {
-            "$ref": "#/backend/entities/Message"
+            "$ref": "#/backend/entities/Conversation"
           },
-          "description": "Represents a unique conversation thread between users. This document primarily exists to group messages and stores key metadata like 'participantIds' (an array of user UIDs) to grant read/write access to all messages within this conversation to its participants. Note: this is an implicit 'Conversation' entity, reusing the 'Message' schema for its relationship, but logically represents the conversation metadata.",
+          "description": "Manages direct messaging threads. Includes denormalized 'user1Id' and 'user2Id' as participants (effectively a membership map) for direct authorization checks. Only `user1Id` or `user2Id` can read/write the conversation. Supports listing a user's conversations via a query on these fields.",
           "params": [
             {
               "name": "conversationId",
-              "description": "The unique identifier for the conversation thread."
+              "description": "The unique ID of the conversation."
             }
           ]
         }
@@ -699,15 +754,71 @@
           "schema": {
             "$ref": "#/backend/entities/Message"
           },
-          "description": "Stores individual messages within a conversation. Access is restricted to the 'senderId' or 'receiverId' within the document, ensuring Authorization Independence for message access without requiring a get() on the parent Conversation document.",
+          "description": "Individual messages within a conversation. Includes denormalized 'senderId' and a 'conversationParticipants' map (containing `user1Id` and `user2Id` from the parent conversation) for authorization independence. Only a participant of the parent conversation or the sender can read/write.",
           "params": [
             {
               "name": "conversationId",
-              "description": "The unique identifier for the parent Conversation."
+              "description": "The unique ID of the parent conversation."
             },
             {
               "name": "messageId",
-              "description": "The unique identifier for the Message."
+              "description": "The unique ID of the message."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/conversations/{conversationId}/meetingPointSuggestions/{suggestionId}",
+        "definition": {
+          "entityName": "MeetingPointSuggestion",
+          "schema": {
+            "$ref": "#/backend/entities/MeetingPointSuggestion"
+          },
+          "description": "Suggested meeting points related to a conversation. Includes denormalized 'suggestedByUserId' and a 'conversationParticipants' map for authorization independence, allowing access to any participant of the parent conversation.",
+          "params": [
+            {
+              "name": "conversationId",
+              "description": "The unique ID of the parent conversation."
+            },
+            {
+              "name": "suggestionId",
+              "description": "The unique ID of the meeting point suggestion."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/transactions/{transactionId}",
+        "definition": {
+          "entityName": "Transaction",
+          "schema": {
+            "$ref": "#/backend/entities/Transaction"
+          },
+          "description": "Records purchase transactions. Includes denormalized 'buyerId' and 'sellerId' for authorization independence, allowing both parties to access their own transactions. Supports efficient listing of a user's transactions via 'buyerId' or 'sellerId' queries.",
+          "params": [
+            {
+              "name": "transactionId",
+              "description": "The unique ID of the transaction."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/userProfiles/{sellerId}/reviews/{reviewId}",
+        "definition": {
+          "entityName": "Review",
+          "schema": {
+            "$ref": "#/backend/entities/Review"
+          },
+          "description": "Stores buyer reviews for sellers. Path-based ownership by `sellerId` allows sellers to easily view all reviews on their profile. Includes denormalized 'reviewerId' for authorization independence, allowing the reviewer to manage their own review. 'transactionId' is denormalized for context.",
+          "params": [
+            {
+              "name": "sellerId",
+              "description": "The unique ID of the user (seller) being reviewed."
+            },
+            {
+              "name": "reviewId",
+              "description": "The unique ID of the review."
             }
           ]
         }
@@ -719,50 +830,72 @@
           "schema": {
             "$ref": "#/backend/entities/Report"
           },
-          "description": "Stores reports filed by users. Access is restricted to the 'reporterId' within the document for the creator, and administrators (via DBAC pattern) for review and resolution."
-        }
-      },
-      {
-        "path": "/users/{blockerId}/blockedUsers/{blockedId}",
-        "definition": {
-          "entityName": "BlockedUser",
-          "schema": {
-            "$ref": "#/backend/entities/BlockedUser"
-          },
-          "description": "Records users blocked by another user. Access is strictly controlled by the 'blockerId' in the path, ensuring only the blocking user can manage their blocked list.",
+          "description": "Centralized collection for user-submitted reports of inappropriate content or activity. Includes denormalized 'reporterId' for the reporting user's ownership and 'reportedEntityId'/'reportedEntityType' for context. Reporters can read/update their own reports; administrators have full access.",
           "params": [
             {
-              "name": "blockerId",
-              "description": "The unique identifier of the User who initiated the block."
-            },
-            {
-              "name": "blockedId",
-              "description": "The unique identifier of the User who has been blocked."
+              "name": "reportId",
+              "description": "The unique ID of the report."
             }
           ]
         }
       },
       {
-        "path": "/products/{productId}/listingBoosts/{boostId}",
+        "path": "/userProfiles/{blockerId}/blockedUsers/{blockedId}",
+        "definition": {
+          "entityName": "UserBlock",
+          "schema": {
+            "$ref": "#/backend/entities/UserBlock"
+          },
+          "description": "Records when a user blocks another. Path-based ownership by `blockerId` ensures only the blocking user can manage their blocked list, achieving authorization independence.",
+          "params": [
+            {
+              "name": "blockerId",
+              "description": "The unique ID of the user who initiated the block."
+            },
+            {
+              "name": "blockedId",
+              "description": "The unique ID of the user who was blocked."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/userProfiles/{boosterId}/listingBoosts/{boostId}",
         "definition": {
           "entityName": "ListingBoost",
           "schema": {
             "$ref": "#/backend/entities/ListingBoost"
           },
-          "description": "Stores details about paid listing boosts for products. Access is restricted to the 'boosterId' (which is the seller) within the document, ensuring Authorization Independence for managing boosts. The 'productId' in the path links boosts directly to their respective product.",
+          "description": "Details about paid promotions for listings. Path-based ownership by `boosterId` ensures only the purchasing seller can manage their boosts, achieving authorization independence. `listingId` is denormalized for contextual lookup.",
           "params": [
             {
-              "name": "productId",
-              "description": "The unique identifier for the parent Product listing."
+              "name": "boosterId",
+              "description": "The unique ID of the user (seller) who purchased the boost."
             },
             {
               "name": "boostId",
-              "description": "The unique identifier for the ListingBoost."
+              "description": "The unique ID of the listing boost record."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/roles_admin/{userId}",
+        "definition": {
+          "entityName": "AdminRole",
+          "schema": {
+            "$ref": "#/backend/entities/UserProfile"
+          },
+          "description": "A dedicated collection for Database Access Control (DBAC) to signify administrator roles. The presence of a document for a `userId` in this collection grants administrative privileges. This design allows for simple `exists()` checks in security rules to determine admin status, promoting authorization independence.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique ID of a user with administrator privileges."
             }
           ]
         }
       }
     ],
-    "reasoning": "The Firestore structure for LocalBid Exchange prioritizes Authorization Independence and Structural Segregation to ensure robust security rules and efficient queries. \n\n**Authorization Independence:**\nCritical authorization contexts are denormalized into the documents themselves, eliminating the need for `get()` calls in security rules for authorization checks. For example:\n*   The `Product` document directly contains `sellerId`, allowing rules to check `resource.data.sellerId == request.auth.uid` for ownership without querying the user's profile or parent collection.\n*   `Auction` documents will include a denormalized `sellerId` (derived from the associated product's seller) to allow the seller to manage their auctions directly. Similarly, `Bid` documents will denormalize the `sellerId` of the auction, enabling sellers to view bids on their auctions without a `get()` to the parent `Auction` document.\n*   `Transaction` documents include both `buyerId` and `sellerId`, enabling both parties to access their respective transactions independently.\n*   For `Message` entities, the `senderId` and `receiverId` are directly within each message document. This allows security rules to explicitly verify if the `request.auth.uid` is either the sender or receiver, granting access to the message within its conversation, without requiring a `get()` to the parent `Conversation` document or other user profiles.\n\n**Structural Segregation and QAPs (Queryable Authorization Patterns):**\n\n*   **Publicly Discoverable Collections:** Collections like `/products` and `/auctions` are top-level. This design allows for broad, public `list` operations (QAPs) for discovery, enabling buyers to browse and filter items by category, location, and status. Security rules for these collections can permit `read: true` globally, with `write` access restricted to the item's `sellerId` (which is denormalized within the document).\n*   **User-Owned Data:** Private or user-specific data, such as a user's blocked list, follows a path-based ownership model, e.g., `/users/{blockerId}/blockedUsers/{blockedId}`. This makes rules simple: `allow read, write: if request.auth.uid == blockerId;` and supports QAPs for listing a user's blocked accounts.\n*   **Reviews for Sellers:** Reviews are structured under the seller's profile (`/users/{sellerId}/reviews/{reviewId}`). This design facilitates easy querying of all reviews for a specific seller's profile, while the `reviewerId` within the `Review` document ensures authorization independence for the reviewer to manage their own reviews.\n*   **Conversations and Messages:** `Conversations` are top-level to group messages. `conversations/{conversationId}` documents explicitly contain `participantIds`. Messages are then subcollections `/conversations/{conversationId}/messages/{messageId}`. Access to messages relies on `senderId` and `receiverId` being present in each `Message` document, making `list` operations for messages within a conversation robust for participants (QAPs are supported by client-side queries for `senderId` or `receiverId` and rule validation). \n\n**Global Roles (DBAC):**\n*   Administrative roles, if implemented beyond `reporterId` specific to reports, would be handled via dedicated collections (e.g., `/roles_admin/{uid}`) to enable DBAC, allowing rules to check `exists(/roles_admin/$(request.auth.uid))` without using custom claims, as mandated."
+    "reasoning": "The Firestore structure prioritizes Authorization Independence and Query Accessibility (QAPs) by applying a combination of path-based ownership, structural segregation, and strategic denormalization. Each collection is designed to maintain a homogeneous security posture, simplifying security rules and ensuring atomic operations.\n\n1.  **Authorization Independence (Strategy A):**\n    *   `UserProfile`, `UserBlock`, `ListingBoost`: These entities are directly owned by a user, and their documents reside within a subcollection under `/userProfiles/{userId}/`. The `userId` in the path directly corresponds to `request.auth.uid`, making authorization checks immediate without requiring a `get()` call to a parent or other document.\n    *   `ProductListing` (drafts): Draft listings are stored under `/userProfiles/{userId}/draftListings/{listingId}`. The `sellerId` field in the document will match the `userId` in the path, providing robust ownership verification.\n    *   `Conversation`, `Message`, `MeetingPointSuggestion`: For collaborative entities like conversations, the `Conversation` document includes `user1Id` and `user2Id` directly. For subcollections (`Message`, `MeetingPointSuggestion`), a `conversationParticipants` map (`{user1Id: true, user2Id: true}`) is denormalized into each document. This allows rules to check `request.auth.uid in resource.data.conversationParticipants` or directly against `senderId` or `suggestedByUserId` without fetching the parent `Conversation` document.\n    *   `Bid`: Each `Bid` document includes `bidderId` (the owner of the bid) and denormalized `listingSellerId` (the owner of the auction). This enables rules to grant access to either the bidder or the listing seller without a `get()` call.\n    *   `Transaction`, `Review`, `Report`: These entities include `buyerId` and `sellerId` (for `Transaction`), `reviewerId` and `sellerId` (for `Review`), or `reporterId` (for `Report`) directly within the document. This makes authorization checks self-contained.\n\n2.  **QAPs (Strategy B & C):**\n    *   **Structural Segregation for Listings (Strategy B):** Product listings are segregated into `/publicListings/{listingId}` for `available` or `auction_active` items and `/userProfiles/{userId}/draftListings/{listingId}` for `draft` items. This ensures that public queries for listings don't need to filter out private drafts, and security rules for public listings are simpler (e.g., `allow read: if resource.data.status in ['available', 'auction_active'];`). Drafts are strictly private by virtue of their path.\n    *   **Path-Based Ownership (Strategy C):** Entities like `UserProfile`, `UserBlock`, `ListingBoost`, and `DraftListings` use `/userProfiles/{userId}/<subcollection>/` patterns. This allows users to easily list their own data using a simple `collection('userProfiles', request.auth.uid, 'subcollection').get()` equivalent, satisfying QAPs for user-specific data.\n    *   **Membership Maps for Collaboration (Strategy C):** For `Conversations` and their subcollections, the `user1Id`/`user2Id` (or `conversationParticipants` map) enables efficient queries for a user's conversations (`where('user1Id', '==', request.auth.uid)` or `where('user2Id', '==', request.auth.uid)`).\n    *   **Direct Denormalization for Global Collections (Strategy A & C):** `Transactions` and `Reports` are global collections but contain `buyerId`/`sellerId` or `reporterId`. This allows efficient listing of a user's transactions or reports via simple `where` queries on these denormalized fields, which satisfy QAPs for these shared collections without filtering issues in rules.\n    *   **Global, Read-Only Data:** `Categories` is a top-level collection that is publicly readable, perfectly supporting QAPs as all data is intended to be accessible.\n\nThis design minimizes complex rule logic by leveraging explicit data structures and denormalized authorization fields, making the system more secure, debuggable, and performant for common query patterns."
   }
 }
