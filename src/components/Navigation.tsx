@@ -71,10 +71,12 @@ export function Navigation() {
               Verify ID
             </Button>
           </Link>
-          <Button variant="outline" size="sm" className="hidden sm:flex border-primary text-primary hover:bg-primary/5 font-bold">
-            <PlusCircle className="w-4 h-4 mr-2" />
-            List Item
-          </Button>
+          <Link href="/create">
+            <Button variant="outline" size="sm" className="hidden sm:flex border-primary text-primary hover:bg-primary/5 font-bold">
+              <PlusCircle className="w-4 h-4 mr-2" />
+              List Item
+            </Button>
+          </Link>
           <Button size="icon" variant="ghost" className="rounded-full">
             <User className="w-5 h-5 text-muted-foreground" />
           </Button>
