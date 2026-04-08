@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState } from "react";
+import { useMemo } from "react";
 import { useParams } from "next/navigation";
 import { Navigation } from "@/components/Navigation";
 import { ListingCard } from "@/components/ListingCard";
@@ -12,23 +12,12 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { 
   Star, 
-  MapPin, 
-  Calendar, 
   ShieldCheck, 
-  Flag, 
-  MessageSquare,
-  Package,
-  CheckCircle2,
-  Clock,
-  ExternalLink,
+  MessageSquare, 
   Shield,
-  Zap,
-  TrendingUp,
-  Award,
-  AlertTriangle,
-  ChevronRight,
-  Info,
-  Scale
+  Loader2,
+  Package,
+  Info
 } from "lucide-react";
 import { VerifiedBadge } from "@/components/VerifiedBadge";
 import {
@@ -36,34 +25,51 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import { useDoc, useCollection, useFirestore, useMemoFirebase } from "@/firebase";
+import { doc, collection, query, where } from "firebase/firestore";
 
 export default function UserProfilePage() {
   const { id } = useParams();
+  const db = useFirestore();
 
-  const user = {
-    id,
-    name: "Alex Rivera",
-    bio: "Avid mountain biker and tech enthusiast. Selling quality gear I no longer use.",
-    location: "Metro City, GP",
-    rating: 4.9,
-    reviewsCount: 42,
-    reliability: 96,
-    memberSince: "January 2023",
-    isVerified: true,
-    salesCount: 128,
-    activeListings: [
-      {
-        id: "1",
-        title: "Mountain Bike XT-400",
-        price: 4500,
-        location: "Metro City",
-        imageUrl: "https://picsum.photos/seed/bike/600/400",
-        sellerName: "Alex Rivera",
-        sellerRating: 4.9,
-        isVerified: true,
-      }
-    ],
-    soldHistory: []
+  // Fetch real profile data
+  const profileRef = useMemoFirebase(() => {
+    if (!id || id === 'me') return null;
+    return doc(db, "userProfiles", id as string);
+  }, [db, id]);
+
+  const { data: profile, isLoading: isProfileLoading } = useDoc(profileRef);
+
+  // Fetch listings for this user
+  const userListingsQuery = useMemoFirebase(() => {
+    if (!id || id === 'me') return null;
+    return query(collection(db, "publicListings"), where("sellerId", "==", id));
+  }, [db, id]);
+
+  const { data: listings, isLoading: isListingsLoading } = useCollection(userListingsQuery);
+
+  if (isProfileLoading) {
+    return (
+      <div className="min-h-screen bg-[#EEF1F3]">
+        <Navigation />
+        <div className="flex flex-col items-center justify-center py-32">
+          <Loader2 className="w-10 h-10 animate-spin text-[#225BC3] mb-4" />
+          <p className="text-muted-foreground font-black uppercase text-[10px] tracking-widest">Loading Profile...</p>
+        </div>
+      </div>
+    );
+  }
+
+  const user = profile || {
+    id: "anonymous",
+    firstName: "Anonymous",
+    lastName: "User",
+    bio: "This profile information is not available.",
+    locationName: "Unknown",
+    reliabilityScore: 50,
+    registrationDate: new Date().toISOString(),
+    isIdVerified: false,
+    profileImageUrl: `https://picsum.photos/seed/${id}/200/200`
   };
 
   return (
@@ -78,19 +84,25 @@ export default function UserProfilePage() {
                 <div className="relative mb-8">
                   <div className="w-36 h-36 rounded-[3rem] overflow-hidden border-4 border-white shadow-2xl relative">
                     <Avatar className="w-full h-full">
-                      <AvatarImage src="https://picsum.photos/seed/user1/200/200" />
-                      <AvatarFallback>AR</AvatarFallback>
+                      <AvatarImage src={user.profileImageUrl} />
+                      <AvatarFallback>{user.firstName?.[0] || "U"}</AvatarFallback>
                     </Avatar>
                   </div>
-                  <div className="absolute -bottom-2 -right-2 bg-white p-1 rounded-2xl shadow-xl">
-                      <ShieldCheck className="w-12 h-12 text-[#34CBED] fill-white" />
-                  </div>
+                  {user.isIdVerified && (
+                    <div className="absolute -bottom-2 -right-2 bg-white p-1 rounded-2xl shadow-xl">
+                        <ShieldCheck className="w-12 h-12 text-[#34CBED] fill-white" />
+                    </div>
+                  )}
                 </div>
                 
-                <h1 className="text-4xl font-black text-[#225BC3] mb-2 leading-none">{user.name}</h1>
+                <h1 className="text-4xl font-black text-[#225BC3] mb-2 leading-none">
+                  {user.firstName} {user.lastName}
+                </h1>
                 <div className="flex items-center gap-2 mb-6">
-                   <VerifiedBadge />
-                   <span className="text-muted-foreground font-bold text-xs">Member since {user.memberSince}</span>
+                   {user.isIdVerified && <VerifiedBadge />}
+                   <span className="text-muted-foreground font-bold text-xs uppercase tracking-widest">
+                     Member since {new Date(user.registrationDate).getFullYear()}
+                   </span>
                 </div>
                 
                 <p className="text-muted-foreground text-sm font-medium leading-relaxed mb-8 px-4 italic">
@@ -135,11 +147,13 @@ export default function UserProfilePage() {
                    <div className="relative w-32 h-32 flex items-center justify-center mb-4">
                       <svg className="w-full h-full transform -rotate-90">
                         <circle cx="64" cy="64" r="58" stroke="currentColor" strokeWidth="8" fill="transparent" className="text-slate-100" />
-                        <circle cx="64" cy="64" r="58" stroke="currentColor" strokeWidth="8" fill="transparent" strokeDasharray={364.4} strokeDashoffset={364.4 * (1 - user.reliability / 100)} className="text-[#34CBED]" />
+                        <circle cx="64" cy="64" r="58" stroke="currentColor" strokeWidth="8" fill="transparent" strokeDasharray={364.4} strokeDashoffset={364.4 * (1 - (user.reliabilityScore || 50) / 100)} className="text-[#34CBED]" />
                       </svg>
-                      <span className="absolute text-4xl font-black text-[#225BC3]">{user.reliability}%</span>
+                      <span className="absolute text-4xl font-black text-[#225BC3]">{user.reliabilityScore || 50}%</span>
                    </div>
-                   <Badge className="bg-[#34CBED] text-white font-black border-none px-4 py-1">Trusted Seller</Badge>
+                   <Badge className="bg-[#34CBED] text-white font-black border-none px-4 py-1">
+                     {user.reliabilityScore > 80 ? "Trusted Seller" : "New Seller"}
+                   </Badge>
                 </div>
               </div>
             </Card>
@@ -152,11 +166,34 @@ export default function UserProfilePage() {
                 <TabsTrigger value="active" className="rounded-2xl px-10 h-full data-[state=active]:bg-[#225BC3] data-[state=active]:text-white font-black uppercase text-xs">Items For Sale</TabsTrigger>
               </TabsList>
               <TabsContent value="active" className="mt-10">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                  {user.activeListings.map(listing => (
-                    <ListingCard key={listing.id} {...listing} />
-                  ))}
-                </div>
+                {isListingsLoading ? (
+                  <div className="flex justify-center py-20">
+                    <Loader2 className="w-8 h-8 animate-spin text-[#225BC3]" />
+                  </div>
+                ) : listings && listings.length > 0 ? (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    {listings.map(listing => (
+                      <ListingCard 
+                        key={listing.id} 
+                        id={listing.id}
+                        title={listing.title}
+                        price={listing.price}
+                        location={listing.location || "Local"}
+                        imageUrl={listing.imageUrls?.[0]}
+                        sellerName={`${user.firstName} ${user.lastName}`}
+                        sellerRating={4.9}
+                        isVerified={user.isIdVerified}
+                        isAuction={listing.isAuction}
+                        auctionEndDate={listing.auctionEndDate}
+                      />
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-20 bg-white rounded-[3rem] shadow-sm">
+                    <Package className="w-12 h-12 text-slate-200 mx-auto mb-4" />
+                    <p className="font-black text-[#225BC3] uppercase tracking-widest">No active listings</p>
+                  </div>
+                )}
               </TabsContent>
             </Tabs>
           </div>

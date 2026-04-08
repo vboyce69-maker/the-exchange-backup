@@ -5,7 +5,6 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { 
-  Search, 
   PlusCircle, 
   MessageSquare, 
   User, 
@@ -13,9 +12,7 @@ import {
   Gavel,
   ShieldCheck,
   Home,
-  Menu,
   LogOut,
-  Settings,
   UserCircle,
   Scale
 } from "lucide-react";
@@ -28,9 +25,11 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { useUser } from "@/firebase";
 
 export function Navigation() {
   const pathname = usePathname();
+  const { user } = useUser();
 
   const navItems = [
     { name: "Browse", href: "/", icon: Home },
@@ -81,7 +80,11 @@ export function Navigation() {
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button size="icon" variant="ghost" className="rounded-2xl h-11 w-11 bg-slate-50 overflow-hidden border border-slate-100">
-                <User className="w-5 h-5 text-[#225BC3]" />
+                {user?.photoURL ? (
+                  <img src={user.photoURL} alt="user" className="w-full h-full object-cover" />
+                ) : (
+                  <User className="w-5 h-5 text-[#225BC3]" />
+                )}
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-64 rounded-[2rem] p-3 shadow-2xl border-none ring-1 ring-black/5 mt-2 bg-white">
@@ -102,7 +105,7 @@ export function Navigation() {
               </div>
 
               <DropdownMenuItem className="rounded-xl p-3 font-bold gap-3 focus:bg-[#225BC3]/5 focus:text-[#225BC3] cursor-pointer" asChild>
-                <Link href="/profile/me">
+                <Link href={user ? `/profile/${user.uid}` : "/verify"}>
                   <UserCircle className="w-4 h-4" />
                   My Profile
                 </Link>

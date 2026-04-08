@@ -57,7 +57,7 @@ export default function MessagesPage() {
   const [isEscrowActive, setIsEscrowActive] = useState(true);
   
   const [meetingRequest, setMeetingRequest] = useState({
-    status: 'pending',
+    status: 'pending', // 'pending', 'accepted', 'way', 'arrived', 'completed'
     location: "Shell Garage Main Road",
     time: "Tomorrow 13:00",
     requester: "Alex Rivera",
@@ -78,6 +78,11 @@ export default function MessagesPage() {
     setMessages([...messages, { id: Date.now().toString(), senderId: "buyer", text: inputValue, timestamp: "Now" }]);
     setInputValue("");
     setIsSending(false);
+  };
+
+  const updateStatus = (nextStatus: string) => {
+    setMeetingRequest({...meetingRequest, status: nextStatus});
+    toast({ title: "Status Updated", description: `You are now marked as ${nextStatus.replace('-', ' ')}.` });
   };
 
   return (
@@ -130,9 +135,44 @@ export default function MessagesPage() {
                   </div>
                   <p className="text-[9px] text-muted-foreground font-bold italic">"The platform cannot guarantee user safety during meetups. Users are responsible for their own travel and decisions."</p>
                   <div className="flex gap-3">
-                    <Button className="flex-1 bg-[#225BC3] text-white font-bold rounded-2xl h-12" onClick={() => setMeetingRequest({...meetingRequest, status: 'accepted'})}>Accept</Button>
-                    <Button variant="outline" className="flex-1 rounded-2xl h-12" onClick={() => setMeetingRequest({...meetingRequest, status: 'none'})}>Decline</Button>
+                    <Button className="flex-1 bg-[#225BC3] text-white font-bold rounded-2xl h-12" onClick={() => updateStatus('accepted')}>Accept</Button>
+                    <Button variant="outline" className="flex-1 rounded-2xl h-12" onClick={() => updateStatus('declined')}>Decline</Button>
                   </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {meetingRequest.status !== 'pending' && meetingRequest.status !== 'declined' && (
+              <Card className="border-none shadow-xl bg-white rounded-3xl overflow-hidden ring-1 ring-slate-100">
+                <div className="p-5 flex items-center justify-between border-b">
+                   <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-lg bg-green-100 flex items-center justify-center text-green-600"><CheckCircle2 className="w-5 h-5" /></div>
+                      <span className="font-black text-[#225BC3] text-xs uppercase tracking-widest">Live Meetup Tracker</span>
+                   </div>
+                   <Badge variant="outline" className="text-[8px] uppercase">{meetingRequest.status}</Badge>
+                </div>
+                <CardContent className="p-6 space-y-6">
+                   <div className="flex justify-between items-center text-center">
+                      <div className="flex flex-col items-center gap-2">
+                        <div className={cn("w-12 h-12 rounded-full flex items-center justify-center", meetingRequest.status === 'way' || meetingRequest.status === 'arrived' ? "bg-green-500 text-white" : "bg-slate-100 text-slate-400")}>
+                          <NavIcon className="w-6 h-6" />
+                        </div>
+                        <span className="text-[9px] font-black uppercase">On the way</span>
+                      </div>
+                      <div className="flex-1 h-0.5 bg-slate-100 mx-4" />
+                      <div className="flex flex-col items-center gap-2">
+                        <div className={cn("w-12 h-12 rounded-full flex items-center justify-center", meetingRequest.status === 'arrived' || meetingRequest.status === 'completed' ? "bg-green-500 text-white" : "bg-slate-100 text-slate-400")}>
+                          <MapPin className="w-6 h-6" />
+                        </div>
+                        <span className="text-[9px] font-black uppercase">Arrived</span>
+                      </div>
+                   </div>
+
+                   <div className="flex gap-2">
+                      {meetingRequest.status === 'accepted' && <Button className="w-full bg-[#225BC3] rounded-xl h-12 font-bold" onClick={() => updateStatus('way')}>I'm on my way</Button>}
+                      {meetingRequest.status === 'way' && <Button className="w-full bg-[#34CBED] rounded-xl h-12 font-bold" onClick={() => updateStatus('arrived')}>I have arrived</Button>}
+                      {meetingRequest.status === 'arrived' && <Button className="w-full bg-green-600 rounded-xl h-12 font-bold" onClick={() => { updateStatus('completed'); setShowFeedback(true); }}>Deal Completed</Button>}
+                   </div>
                 </CardContent>
               </Card>
             )}
@@ -154,6 +194,30 @@ export default function MessagesPage() {
           </div>
         </div>
       </main>
+
+      <Dialog open={showFeedback} onOpenChange={setShowFeedback}>
+        <DialogContent className="rounded-[3rem] border-none p-10">
+          <DialogHeader>
+            <DialogTitle className="text-2xl font-black text-[#225BC3]">How was the trade?</DialogTitle>
+            <DialogDescription className="font-bold">Your feedback affects the seller's reliability score.</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-6">
+            <div className="flex items-center space-x-3 p-4 rounded-2xl bg-slate-50 border-2 border-transparent hover:border-[#225BC3] cursor-pointer">
+              <Checkbox id="smooth" />
+              <label htmlFor="smooth" className="text-sm font-bold cursor-pointer">Smooth trade</label>
+            </div>
+            <div className="flex items-center space-x-3 p-4 rounded-2xl bg-slate-50 border-2 border-transparent hover:border-[#225BC3] cursor-pointer">
+              <Checkbox id="match" />
+              <label htmlFor="match" className="text-sm font-bold cursor-pointer">Item matched description</label>
+            </div>
+            <div className="flex items-center space-x-3 p-4 rounded-2xl bg-slate-50 border-2 border-transparent hover:border-[#225BC3] cursor-pointer">
+              <Checkbox id="friendly" />
+              <label htmlFor="friendly" className="text-sm font-bold cursor-pointer">Seller was friendly</label>
+            </div>
+          </div>
+          <Button className="w-full h-14 bg-[#225BC3] font-black rounded-2xl" onClick={() => setShowFeedback(false)}>Submit Feedback</Button>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
