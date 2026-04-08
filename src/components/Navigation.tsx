@@ -16,7 +16,8 @@ import {
   Menu,
   LogOut,
   Settings,
-  UserCircle
+  UserCircle,
+  Scale
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
@@ -121,6 +122,12 @@ export function Navigation() {
                     </Link>
                   );
                 })}
+                <Link href="/legal">
+                   <div className="flex items-center gap-4 p-4 rounded-2xl font-bold text-muted-foreground hover:bg-muted transition-all">
+                    <Scale className="w-5 h-5" />
+                    Compliance & ECTA
+                  </div>
+                </Link>
                 <Link href="/create">
                   <div className="flex items-center gap-4 p-4 rounded-2xl font-bold bg-accent text-white mt-4 shadow-lg shadow-accent/20">
                     <PlusCircle className="w-5 h-5" />
@@ -153,9 +160,11 @@ export function Navigation() {
                   Get Verified
                 </Link>
               </DropdownMenuItem>
-              <DropdownMenuItem className="rounded-xl p-3 font-bold gap-3 focus:bg-accent/5 focus:text-accent cursor-pointer">
-                <Settings className="w-4 h-4" />
-                Settings
+              <DropdownMenuItem className="rounded-xl p-3 font-bold gap-3 focus:bg-accent/5 focus:text-accent cursor-pointer" asChild>
+                 <Link href="/legal">
+                  <Scale className="w-4 h-4" />
+                  Legal Hub
+                </Link>
               </DropdownMenuItem>
               <DropdownMenuSeparator className="bg-muted/50" />
               <DropdownMenuItem className="rounded-xl p-3 font-bold gap-3 text-destructive focus:bg-destructive/5 focus:text-destructive cursor-pointer">

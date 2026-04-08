@@ -17,10 +17,13 @@ import {
   ScanFace,
   RefreshCw,
   UserCheck,
-  XCircle
+  XCircle,
+  Eye,
+  Lock
 } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Progress } from "@/components/ui/progress";
+import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "@/hooks/use-toast";
 import Image from "next/image";
 import { verifyIdentity, VerifyIdentityOutput } from "@/ai/flows/verify-identity-flow";
@@ -32,6 +35,7 @@ export default function VerificationPage() {
   const [idPhoto, setIdPhoto] = useState<string | null>(null);
   const [selfie, setSelfie] = useState<string | null>(null);
   const [verificationResult, setVerificationResult] = useState<VerifyIdentityOutput | null>(null);
+  const [popiaConsent, setPopiaConsent] = useState(false);
   
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -86,13 +90,12 @@ export default function VerificationPage() {
   };
 
   const handleIdUpload = () => {
-    // Simulate ID upload with placeholder
     setIdPhoto(`https://picsum.photos/seed/id-doc/600/400`);
     toast({ title: "ID Uploaded", description: "Document captured successfully." });
   };
 
   const runVerification = async () => {
-    if (!idPhoto || !selfie) return;
+    if (!idPhoto || !selfie || !popiaConsent) return;
     setIsProcessing(true);
     try {
       const result = await verifyIdentity({
@@ -103,13 +106,10 @@ export default function VerificationPage() {
       setVerificationResult(result);
       if (result.isVerified) {
         setStep(5);
-        toast({ title: "Verified!", description: "Identity confirmed by AI biometrics." });
       } else {
-        setStep(4); // Show failure/retry step
-        toast({ variant: "destructive", title: "Verification Failed", description: result.reason });
+        setStep(4);
       }
     } catch (error) {
-      console.error(error);
       toast({ variant: "destructive", title: "Process Error", description: "Something went wrong during AI analysis." });
     } finally {
       setIsProcessing(false);
@@ -168,7 +168,7 @@ export default function VerificationPage() {
                     </div>
                   </div>
                   <Button 
-                    className="w-full bg-[#225BC3] hover:bg-[#225BC3]/90 text-white font-black h-16 rounded-2xl shadow-xl shadow-[#225BC3]/20" 
+                    className="w-full bg-[#225BC3] hover:bg-[#225BC3]/90 text-white font-black h-16 rounded-2xl shadow-xl" 
                     onClick={() => setStep(2)}
                     disabled={!fullName || !idNumber}
                   >
@@ -242,20 +242,26 @@ export default function VerificationPage() {
                     )}
                   </div>
 
-                  {hasCameraPermission === false && (
-                    <Alert variant="destructive" className="rounded-2xl border-none bg-red-50 text-red-800">
-                      <AlertCircle className="h-4 w-4" />
-                      <AlertTitle className="font-black uppercase text-[10px]">Permission Required</AlertTitle>
-                      <AlertDescription className="text-xs font-bold">Please enable camera access in your browser settings to proceed.</AlertDescription>
-                    </Alert>
-                  )}
+                  <div className="p-4 bg-[#225BC3]/5 rounded-2xl border border-[#225BC3]/10 space-y-4">
+                    <div className="flex items-start space-x-3">
+                      <Checkbox 
+                        id="popia" 
+                        className="mt-1" 
+                        checked={popiaConsent}
+                        onCheckedChange={(checked) => setPopiaConsent(checked === true)}
+                      />
+                      <label htmlFor="popia" className="text-[10px] font-bold text-[#225BC3] leading-relaxed cursor-pointer">
+                        POPIA CONSENT: I hereby consent to the processing of my biometric data and ID information for the sole purpose of identity verification on The Exchange. I understand this data is encrypted and handled in accordance with the Protection of Personal Information Act (2013).
+                      </label>
+                    </div>
+                  </div>
 
                   <div className="flex flex-col gap-3">
                     {!selfie ? (
                       <Button 
                         className="w-full h-16 bg-[#34CBED] hover:bg-[#34CBED]/90 text-white font-black rounded-2xl shadow-xl"
                         onClick={captureSelfie}
-                        disabled={hasCameraPermission === false}
+                        disabled={hasCameraPermission === false || !popiaConsent}
                       >
                         <Camera className="w-5 h-5 mr-2" /> Capture Biometrics
                       </Button>
@@ -263,18 +269,14 @@ export default function VerificationPage() {
                       <Button 
                         className="w-full h-16 bg-[#225BC3] text-white font-black rounded-2xl shadow-xl"
                         onClick={runVerification}
-                        disabled={isProcessing}
+                        disabled={isProcessing || !popiaConsent}
                       >
                         {isProcessing ? (
-                          <>
-                            <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-                            AI Analyzing Identity...
-                          </>
+                          <Loader2 className="w-5 h-5 animate-spin" />
                         ) : (
-                          <>
-                            <UserCheck className="w-5 h-5 mr-2" /> Submit Verification
-                          </>
+                          <UserCheck className="w-5 h-5 mr-2" />
                         )}
+                        {isProcessing ? "AI Analyzing Identity..." : "Submit Verification"}
                       </Button>
                     )}
                   </div>
@@ -286,22 +288,11 @@ export default function VerificationPage() {
                   <div className="inline-flex items-center justify-center w-20 h-20 bg-red-100 rounded-[2rem] mb-6">
                     <XCircle className="w-10 h-10 text-red-600" />
                   </div>
-                  <div className="space-y-2">
-                    <h2 className="text-3xl font-black text-slate-900">Verification Failed</h2>
-                    <p className="text-sm text-muted-foreground font-medium px-4">
-                      {verificationResult?.reason || "Our AI could not verify your identity. This usually happens due to poor lighting or blurry photos."}
-                    </p>
-                  </div>
-                  <Button 
-                    variant="outline"
-                    className="w-full h-16 rounded-2xl border-2 border-[#225BC3] text-[#225BC3] font-black"
-                    onClick={() => {
-                      setSelfie(null);
-                      setStep(3);
-                    }}
-                  >
-                    Retry Biometric Scan
-                  </Button>
+                  <h2 className="text-3xl font-black text-slate-900">Verification Failed</h2>
+                  <p className="text-sm text-muted-foreground font-medium px-4">
+                    {verificationResult?.reason || "Our AI could not verify your identity. Please ensure clear lighting and that your face matches your ID."}
+                  </p>
+                  <Button variant="outline" className="w-full h-16 rounded-2xl border-2 border-[#225BC3]" onClick={() => setStep(1)}>Retry Process</Button>
                 </div>
               )}
 
@@ -310,32 +301,20 @@ export default function VerificationPage() {
                   <div className="inline-flex items-center justify-center w-20 h-20 bg-green-100 rounded-[2rem] mb-6">
                     <CheckCircle2 className="w-10 h-10 text-green-600" />
                   </div>
-                  <div className="space-y-2">
-                    <h2 className="text-3xl font-black text-slate-900">Verification Complete</h2>
-                    <p className="text-sm text-muted-foreground font-medium px-4">
-                      Welcome to the Inner Circle. You have earned the "Verified" status and your reliability score has been boosted.
-                    </p>
-                  </div>
-                  <div className="bg-green-50 p-6 rounded-[2rem] border border-green-100 space-y-2">
-                    <p className="text-[10px] font-black text-green-800 uppercase tracking-widest flex items-center justify-center gap-1">
-                      <ShieldCheck className="w-4 h-4" /> Identity Authenticated
-                    </p>
-                    <p className="text-xs font-bold text-green-700">Reliability Score: +20 Points</p>
-                  </div>
-                  <Button 
-                    className="w-full h-16 bg-[#225BC3] text-white font-black rounded-2xl shadow-xl" 
-                    onClick={() => window.location.href = '/'}
-                  >
-                    Return to The Exchange
-                  </Button>
+                  <h2 className="text-3xl font-black text-slate-900">Verification Complete</h2>
+                  <p className="text-sm text-muted-foreground font-medium px-4">
+                    Your identity has been authenticated. You now carry the "Verified Person" badge and your reliability score has increased.
+                  </p>
+                  <Button className="w-full h-16 bg-[#225BC3] text-white font-black rounded-2xl shadow-xl" onClick={() => window.location.href = '/'}>Return to The Exchange</Button>
                 </div>
               )}
             </CardContent>
           </Card>
           
-          <p className="text-center mt-8 text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center justify-center gap-2">
-            <ShieldCheck className="w-4 h-4" /> Bank-Grade Encryption Active
-          </p>
+          <div className="mt-8 flex items-center justify-center gap-6 opacity-40 grayscale">
+             <div className="flex items-center gap-1 text-[8px] font-black uppercase tracking-widest"><Lock className="w-3 h-3" /> POPIA Compliant</div>
+             <div className="flex items-center gap-1 text-[8px] font-black uppercase tracking-widest"><Eye className="w-3 h-3" /> Encrypted Storage</div>
+          </div>
         </div>
       </main>
     </div>

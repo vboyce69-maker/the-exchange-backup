@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Checkbox } from "@/components/ui/checkbox";
 import { 
   Select, 
   SelectContent, 
@@ -26,7 +27,8 @@ import {
   Package,
   Gavel,
   TrendingUp,
-  Info
+  Info,
+  Scale
 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import Image from "next/image";
@@ -61,6 +63,7 @@ export default function CreateListingPage() {
   const [location, setLocation] = useState<{ lat: number; lng: number; name: string } | null>(null);
   const [isAuction, setIsAuction] = useState(false);
   const [auctionDuration, setAuctionDuration] = useState("3");
+  const [cpaConsent, setCpaConsent] = useState(false);
 
   // AI Suggestions
   const [aiSuggestion, setAiSuggestion] = useState<string | null>(null);
@@ -129,6 +132,11 @@ export default function CreateListingPage() {
       return;
     }
 
+    if (!cpaConsent) {
+      toast({ variant: "destructive", title: "Compliance Required", description: "Please accept the seller declaration." });
+      return;
+    }
+
     if (images.length === 0) {
       toast({ variant: "destructive", title: "Photos Required", description: "Add at least one photo of your item." });
       return;
@@ -157,6 +165,7 @@ export default function CreateListingPage() {
       viewCount: 0,
       isBoosted: false,
       negotiable: !isAuction,
+      cpaDeclaration: true,
     };
 
     const listingsCol = collection(db, "publicListings");
@@ -311,7 +320,7 @@ export default function CreateListingPage() {
                   </Button>
                 </div>
 
-                <div className="pt-6 border-t space-y-4">
+                <div className="pt-6 border-t space-y-6">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
                       <div className={cn(
@@ -365,13 +374,23 @@ export default function CreateListingPage() {
                             ))}
                           </SelectContent>
                         </Select>
-                        <p className="text-[10px] text-muted-foreground font-medium flex items-center gap-1">
-                          <Info className="w-3 h-3" />
-                          Auction will end on {new Date(new Date().getTime() + parseInt(auctionDuration) * 24 * 60 * 60 * 1000).toLocaleDateString()}
-                        </p>
                       </div>
                     </div>
                   )}
+
+                  <div className="p-5 bg-[#225BC3]/5 rounded-[2rem] border border-[#225BC3]/10 space-y-4">
+                    <div className="flex items-start space-x-3">
+                      <Checkbox 
+                        id="cpa" 
+                        className="mt-1" 
+                        checked={cpaConsent}
+                        onCheckedChange={(checked) => setCpaConsent(checked === true)}
+                      />
+                      <label htmlFor="cpa" className="text-[10px] font-bold text-[#225BC3] leading-relaxed cursor-pointer">
+                        CPA DECLARATION: I warrant that I am the legal owner of this item and that all descriptions are true. I acknowledge that I am liable under the Consumer Protection Act (2008) for any misrepresentation or failure to provide an item of merchantable quality.
+                      </label>
+                    </div>
+                  </div>
                 </div>
               </CardContent>
             </Card>
