@@ -6,32 +6,30 @@ import { useParams, useRouter } from "next/navigation";
 import { Navigation } from "@/components/Navigation";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
+import { Card, CardContent } from "@/components/ui/card";
 import { 
   MapPin, 
   ShieldCheck, 
   MessageSquare, 
-  Share2, 
-  Flag, 
   Clock,
   Star,
   Info,
-  Gavel,
   Calendar,
   HandCoins,
   ChevronRight,
-  Shield,
   ShoppingCart,
-  Phone,
-  Navigation as NavIcon
+  CreditCard,
+  Building2,
+  SmartphoneNfc,
+  Lock
 } from "lucide-react";
 import Image from "next/image";
 import { VerifiedBadge } from "@/components/VerifiedBadge";
 import { toast } from "@/hooks/use-toast";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
+import { cn } from "@/lib/utils";
 import {
   Carousel,
   CarouselContent,
@@ -47,12 +45,10 @@ const SAFE_ZONES = [
   { id: "sz4", name: "Starbucks Waterfront", type: "Coffee Shop", distance: "1.5 km", address: "101 Brew Blvd" },
 ];
 
-const TIME_SLOTS = [
-  { id: "t1", day: "Today", label: "15:00" },
-  { id: "t2", day: "Today", label: "17:30" },
-  { id: "t3", day: "Tomorrow", label: "10:00" },
-  { id: "t4", day: "Tomorrow", label: "13:00" },
-  { id: "t5", day: "Tomorrow", label: "18:00" },
+const PAYMENT_METHODS = [
+  { id: "card", name: "Credit/Debit Card", icon: CreditCard, description: "Visa, Mastercard, American Express" },
+  { id: "capitec", name: "Capitec Pay", icon: SmartphoneNfc, description: "Fastest bank checkout in SA" },
+  { id: "eft", name: "Instant EFT (Ozow)", icon: Building2, description: "Directly from your bank account" },
 ];
 
 export default function ListingDetailPage() {
@@ -62,6 +58,9 @@ export default function ListingDetailPage() {
   const [selectedLocation, setSelectedLocation] = useState("");
   const [selectedTime, setSelectedTime] = useState("");
   const [isBookingOpen, setIsBookingOpen] = useState(false);
+  const [isPaymentOpen, setIsPaymentOpen] = useState(false);
+  const [paymentMethod, setPaymentMethod] = useState("card");
+  const [isPaying, setIsPaying] = useState(false);
 
   const listing = {
     id,
@@ -84,15 +83,26 @@ export default function ListingDetailPage() {
       isVerified: true,
       phoneVerified: true,
     },
-    isAuction: id === "a1" || id === "a2" || id === "a3" || false,
-    postedDate: "2 days ago",
     category: "Sports",
+  };
+
+  const handlePayment = () => {
+    setIsPaying(true);
+    setTimeout(() => {
+      setIsPaying(false);
+      setIsPaymentOpen(false);
+      toast({
+        title: "Funds Held in Escrow",
+        description: "Payment secured via Paystack. Funds will be released only after you confirm the meetup.",
+      });
+      router.push('/messages');
+    }, 2000);
   };
 
   const handleSendBookingRequest = () => {
     toast({
       title: "Request Sent!",
-      description: `Meeting request sent to ${listing.seller.name}. Successful deals: +10 pts.`,
+      description: `Meeting request sent to ${listing.seller.name}.`,
     });
     setIsBookingOpen(false);
     setTimeout(() => router.push('/messages'), 1000);
@@ -110,12 +120,7 @@ export default function ListingDetailPage() {
                 {listing.imageUrls.map((url, i) => (
                   <CarouselItem key={i}>
                     <div className="relative aspect-square rounded-[2rem] overflow-hidden border-4 border-white bg-white shadow-xl">
-                      <Image 
-                        src={url} 
-                        alt={listing.title} 
-                        fill 
-                        className="object-cover"
-                      />
+                      <Image src={url} alt={listing.title} fill className="object-cover" />
                     </div>
                   </CarouselItem>
                 ))}
@@ -144,126 +149,118 @@ export default function ListingDetailPage() {
               </div>
             </div>
 
-            {/* Price & Action Card */}
             <Card className="rounded-[2.5rem] border-none shadow-2xl overflow-hidden bg-white ring-1 ring-[#225BC3]/5">
               <CardContent className="p-8 space-y-6">
                 <div className="flex justify-between items-center">
                   <span className="text-5xl font-black text-[#225BC3]">R {listing.price.toLocaleString()}</span>
-                  <div className="text-right">
-                    <VerifiedBadge />
-                    <p className="text-[10px] text-muted-foreground font-bold mt-1 uppercase">Price is Negotiable</p>
-                  </div>
+                  <VerifiedBadge />
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <Button className="w-full bg-[#225BC3] text-white font-bold h-14 rounded-2xl shadow-lg" onClick={() => router.push('/messages')}>
-                    <MessageSquare className="w-5 h-5 mr-2" /> Chat with Seller
+                    <MessageSquare className="w-5 h-5 mr-2" /> Chat
                   </Button>
                   <Button variant="outline" className="w-full border-[#225BC3] text-[#225BC3] font-bold h-14 rounded-2xl hover:bg-[#225BC3]/5">
-                    <HandCoins className="w-5 h-5 mr-2" /> Make Offer
+                    <HandCoins className="w-5 h-5 mr-2" /> Offer
                   </Button>
                   
-                  {/* KILLER FEATURE: COMMITMENT BOOKING */}
-                  <Dialog open={isBookingOpen} onOpenChange={(open) => {
-                    setIsBookingOpen(open);
-                    if (!open) setBookingStep(1);
-                  }}>
+                  <Dialog open={isBookingOpen} onOpenChange={(open) => { setIsBookingOpen(open); if (!open) setBookingStep(1); }}>
                     <DialogTrigger asChild>
-                      <Button className="w-full sm:col-span-2 bg-[#34CBED] text-white font-bold h-14 rounded-2xl shadow-lg hover:shadow-[#34CBED]/20 transition-all">
+                      <Button className="w-full sm:col-span-2 border-[#34CBED] text-[#34CBED] variant-outline border-2 bg-white font-bold h-14 rounded-2xl">
                         <Calendar className="w-5 h-5 mr-2" /> Book a Safe Meetup
                       </Button>
                     </DialogTrigger>
-                    <DialogContent className="sm:max-w-[425px] rounded-[2.5rem] border-none p-8 shadow-2xl">
-                      <DialogHeader>
-                        <DialogTitle className="text-2xl font-black text-[#225BC3] flex items-center gap-2">
-                          <ShieldCheck className="w-8 h-8 text-[#34CBED]" />
-                          {bookingStep === 1 ? "Choose Location" : "Select Date & Time"}
-                        </DialogTitle>
+                    <DialogContent className="sm:max-w-[425px] rounded-[2.5rem] border-none p-8">
+                       <DialogHeader>
+                        <DialogTitle className="text-2xl font-black text-[#225BC3]">Choose Location</DialogTitle>
+                        <DialogDescription className="font-bold">Select a public safe zone.</DialogDescription>
                       </DialogHeader>
-                      
-                      <div className="py-6">
-                        {bookingStep === 1 ? (
-                          <div className="space-y-4">
-                            <p className="text-sm text-muted-foreground mb-4">Select an approved public meeting place. Manual addresses are disabled for safety.</p>
-                            <RadioGroup value={selectedLocation} onValueChange={setSelectedLocation} className="gap-3">
-                              {SAFE_ZONES.map((zone) => (
-                                <div key={zone.id} className="relative">
-                                  <RadioGroupItem value={zone.name} id={zone.id} className="sr-only" />
-                                  <Label 
-                                    htmlFor={zone.id} 
-                                    className={cn(
-                                      "flex flex-col gap-1 p-4 rounded-2xl border-2 transition-all cursor-pointer",
-                                      selectedLocation === zone.name ? "border-[#34CBED] bg-blue-50/50" : "border-slate-100 bg-white hover:border-slate-200"
-                                    )}
-                                  >
-                                    <div className="flex justify-between items-center">
-                                      <span className="font-black text-[#225BC3]">{zone.name}</span>
-                                      <Badge variant="outline" className="text-[9px] font-black uppercase tracking-widest border-[#34CBED] text-[#34CBED]">{zone.distance}</Badge>
-                                    </div>
-                                    <p className="text-[10px] text-muted-foreground font-bold uppercase">{zone.type} • {zone.address}</p>
-                                  </Label>
-                                </div>
-                              ))}
-                            </RadioGroup>
-                            <div className="pt-4 space-y-3">
-                              <Button variant="outline" className="w-full rounded-2xl h-12 border-slate-200 font-bold">
-                                <NavIcon className="w-4 h-4 mr-2" /> View Map
-                              </Button>
-                              <Button 
-                                className="w-full rounded-2xl bg-[#225BC3] h-14 font-black shadow-lg" 
-                                disabled={!selectedLocation}
-                                onClick={() => setBookingStep(2)}
-                              >
-                                Continue <ChevronRight className="w-4 h-4 ml-1" />
-                              </Button>
-                            </div>
+                      <div className="space-y-4 py-4">
+                        {SAFE_ZONES.map(z => (
+                          <div key={z.id} className="p-4 border-2 border-slate-100 rounded-2xl hover:border-[#34CBED] cursor-pointer" onClick={() => { setSelectedLocation(z.name); setBookingStep(2); }}>
+                            <div className="flex justify-between font-black text-[#225BC3] text-sm"><span>{z.name}</span><span className="text-[#34CBED]">{z.distance}</span></div>
+                            <p className="text-[10px] uppercase font-bold text-muted-foreground">{z.address}</p>
                           </div>
-                        ) : (
-                          <div className="space-y-6">
-                            <div className="grid grid-cols-2 gap-4">
-                              {['Today', 'Tomorrow'].map((day) => (
-                                <div key={day} className="space-y-3">
-                                  <h4 className="text-[10px] font-black uppercase text-muted-foreground px-2">{day}</h4>
-                                  <RadioGroup value={selectedTime} onValueChange={setSelectedTime} className="gap-2">
-                                    {TIME_SLOTS.filter(s => s.day === day).map((slot) => (
-                                      <div key={slot.id} className="relative">
-                                        <RadioGroupItem value={`${slot.day} ${slot.label}`} id={slot.id} className="sr-only" />
-                                        <Label 
-                                          htmlFor={slot.id} 
-                                          className={cn(
-                                            "flex items-center justify-center p-3 rounded-xl border-2 transition-all cursor-pointer font-bold text-sm",
-                                            selectedTime === `${slot.day} ${slot.label}` ? "border-[#34CBED] bg-blue-50/50 text-[#225BC3]" : "border-slate-100 bg-white hover:border-slate-200"
-                                          )}
-                                        >
-                                          {slot.label}
-                                        </Label>
-                                      </div>
-                                    ))}
-                                  </RadioGroup>
-                                </div>
-                              ))}
-                            </div>
-                            <Button 
-                              className="w-full rounded-2xl bg-[#225BC3] h-14 font-black shadow-xl" 
-                              disabled={!selectedTime}
-                              onClick={handleSendBookingRequest}
-                            >
-                              Send Request
-                            </Button>
-                          </div>
-                        )}
+                        ))}
                       </div>
                     </DialogContent>
                   </Dialog>
 
-                  <Button className="w-full sm:col-span-2 bg-green-600 text-white font-bold h-14 rounded-2xl shadow-lg mt-2">
-                    <ShoppingCart className="w-5 h-5 mr-2" /> Buy Now (Secure Escrow)
-                  </Button>
+                  {/* BUY WITH PROTECTION FLOW */}
+                  <Dialog open={isPaymentOpen} onOpenChange={setIsPaymentOpen}>
+                    <DialogTrigger asChild>
+                      <Button className="w-full sm:col-span-2 bg-[#FF8C00] hover:bg-[#FF8C00]/90 text-white font-black h-16 rounded-2xl shadow-xl mt-2 text-lg">
+                        <ShoppingCart className="w-6 h-6 mr-2" /> Buy with Protection
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent className="sm:max-w-[450px] rounded-[2.5rem] border-none p-0 overflow-hidden shadow-2xl">
+                      <div className="bg-[#225BC3] p-8 text-white">
+                        <h2 className="text-2xl font-black flex items-center gap-2">
+                          <Lock className="w-6 h-6 text-[#34CBED]" />
+                          Secure Checkout
+                        </h2>
+                        <p className="text-white/60 text-xs font-bold mt-1 uppercase tracking-widest">Powered by Paystack & Peach Payments</p>
+                      </div>
+                      <div className="p-8 space-y-6">
+                        <div className="flex justify-between items-center bg-slate-50 p-6 rounded-3xl border border-slate-100">
+                          <div>
+                            <span className="text-[10px] font-black text-[#225BC3] uppercase block">Amount to Hold</span>
+                            <span className="text-2xl font-black text-[#225BC3]">R {listing.price.toLocaleString()}</span>
+                          </div>
+                          <ShieldCheck className="w-10 h-10 text-green-500" />
+                        </div>
+
+                        <div className="space-y-3">
+                          <Label className="font-black text-[10px] uppercase tracking-widest text-muted-foreground ml-2">Choose Payment Method</Label>
+                          <RadioGroup value={paymentMethod} onValueChange={setPaymentMethod} className="gap-3">
+                            {PAYMENT_METHODS.map((method) => {
+                              const Icon = method.icon;
+                              return (
+                                <div key={method.id} className="relative">
+                                  <RadioGroupItem value={method.id} id={method.id} className="sr-only" />
+                                  <Label 
+                                    htmlFor={method.id} 
+                                    className={cn(
+                                      "flex items-center gap-4 p-4 rounded-2xl border-2 transition-all cursor-pointer",
+                                      paymentMethod === method.id ? "border-[#225BC3] bg-blue-50/30" : "border-slate-100 bg-white hover:border-slate-200"
+                                    )}
+                                  >
+                                    <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center transition-colors", paymentMethod === method.id ? "bg-[#225BC3] text-white" : "bg-slate-100 text-slate-400")}>
+                                      <Icon className="w-5 h-5" />
+                                    </div>
+                                    <div className="flex-1">
+                                      <p className="font-black text-[#225BC3] text-sm">{method.name}</p>
+                                      <p className="text-[10px] font-bold text-muted-foreground">{method.description}</p>
+                                    </div>
+                                  </Label>
+                                </div>
+                              );
+                            })}
+                          </RadioGroup>
+                        </div>
+
+                        <div className="bg-green-50 p-4 rounded-2xl border border-green-100 flex gap-3">
+                          <ShieldCheck className="w-5 h-5 text-green-600 shrink-0" />
+                          <p className="text-[10px] text-green-800 leading-relaxed font-bold">
+                            Funds are held securely in a platform vault. The seller only receives payment once you confirm the deal during your meetup.
+                          </p>
+                        </div>
+
+                        <Button 
+                          className="w-full h-16 bg-[#225BC3] text-white font-black rounded-2xl shadow-xl hover:scale-[1.01] transition-transform" 
+                          onClick={handlePayment}
+                          disabled={isPaying}
+                        >
+                          {isPaying ? "Processing..." : `Pay R ${listing.price.toLocaleString()}`}
+                        </Button>
+                      </div>
+                    </DialogContent>
+                  </Dialog>
                 </div>
                 
                 <div className="flex items-center justify-center gap-2 bg-slate-50 py-3 rounded-2xl border border-slate-100">
                   <ShieldCheck className="w-4 h-4 text-[#34CBED]" />
-                  <span className="text-[10px] font-bold text-[#225BC3] uppercase tracking-wider">Buyer Protection: Funds held until delivery</span>
+                  <span className="text-[10px] font-bold text-[#225BC3] uppercase tracking-wider">Buyer Protection Active</span>
                 </div>
               </CardContent>
             </Card>
@@ -279,7 +276,7 @@ export default function ListingDetailPage() {
                     <div>
                       <div className="flex items-center gap-2">
                         <span className="font-black text-lg text-[#225BC3]">{listing.seller.name}</span>
-                        {listing.seller.isVerified && <VerifiedBadge />}
+                        <VerifiedBadge />
                       </div>
                       <div className="flex items-center gap-3 mt-1">
                         <div className="flex items-center gap-1 text-yellow-500 text-xs font-black">
@@ -309,18 +306,6 @@ export default function ListingDetailPage() {
                     <p className="text-xs font-black text-[#225BC3]">128</p>
                   </div>
                 </div>
-              </CardContent>
-            </Card>
-
-            <Card className="rounded-[2rem] border-none shadow-md bg-white p-6 ring-1 ring-slate-50">
-              <CardContent className="p-0 space-y-4">
-                <h3 className="font-black flex items-center gap-2 text-[#225BC3] uppercase text-xs tracking-widest">
-                  <Info className="w-4 h-4 text-[#34CBED]" />
-                  Product Description
-                </h3>
-                <p className="text-muted-foreground text-sm leading-relaxed font-medium">
-                  {listing.description}
-                </p>
               </CardContent>
             </Card>
           </div>
