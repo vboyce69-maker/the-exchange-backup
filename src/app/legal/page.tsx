@@ -3,7 +3,7 @@
 
 import { Navigation } from "@/components/Navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ShieldCheck, Scale, Lock, Eye, Gavel } from "lucide-react";
+import { ShieldCheck, Scale, Lock, Eye, Gavel, AlertTriangle, FileText } from "lucide-react";
 
 export default function LegalHub() {
   return (
@@ -12,11 +12,11 @@ export default function LegalHub() {
       <main className="container mx-auto px-4 py-12">
         <div className="max-w-4xl mx-auto space-y-12">
           <div className="text-center space-y-4">
-            <h1 className="text-4xl font-black text-[#225BC3] tracking-tighter">Legal & Compliance Hub</h1>
-            <p className="text-muted-foreground font-medium uppercase text-[10px] tracking-widest">South African Regulatory Framework</p>
+            <h1 className="text-4xl font-black text-[#225BC3] tracking-tighter uppercase">Legal & Compliance Hub</h1>
+            <p className="text-muted-foreground font-medium uppercase text-[10px] tracking-widest">South African Regulatory Framework (CPA, POPIA, ECTA)</p>
           </div>
 
-          {/* ECTA SECTION 43 DISCLOSURES */}
+          {/* E-COMMERCE BUSINESS DISCLOSURE (ECTA SECTION 43) */}
           <Card className="rounded-[2.5rem] border-none shadow-xl bg-white overflow-hidden ring-1 ring-slate-100">
             <CardHeader className="bg-[#225BC3] p-8 text-white">
               <CardTitle className="flex items-center gap-3">
@@ -46,57 +46,66 @@ export default function LegalHub() {
                     <p className="font-bold text-slate-700">compliance@theexchange.co.za</p>
                   </div>
                   <div>
-                    <p className="font-black text-[#225BC3] uppercase text-[10px] tracking-widest mb-1">Membership</p>
-                    <p className="font-bold text-slate-700">The Direct Selling Association of SA</p>
+                    <p className="font-black text-[#225BC3] uppercase text-[10px] tracking-widest mb-1">Complaints & Disputes</p>
+                    <p className="font-bold text-slate-700">resolutions@theexchange.co.za</p>
                   </div>
                 </div>
               </div>
             </CardContent>
           </Card>
 
-          {/* CPA & POPIA SUMMARY */}
+          {/* MARKETPLACE ROLE & LIABILITY */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             <Card className="rounded-[2.5rem] border-none shadow-xl bg-white p-8">
               <div className="flex items-center gap-3 mb-6">
-                <div className="w-12 h-12 bg-green-50 rounded-2xl flex items-center justify-center text-green-600">
-                  <Eye className="w-6 h-6" />
+                <div className="w-12 h-12 bg-blue-50 rounded-2xl flex items-center justify-center text-[#225BC3]">
+                  <Scale className="w-6 h-6" />
                 </div>
-                <h3 className="font-black text-xl text-[#225BC3]">POPIA Privacy</h3>
+                <h3 className="font-black text-xl text-[#225BC3]">Marketplace Role</h3>
               </div>
               <p className="text-slate-600 leading-relaxed font-medium text-sm mb-4">
-                We are committed to the Protection of Personal Information Act. Your biometric data and ID documents are encrypted and used solely for identity verification. We do not sell your personal data to third parties.
+                This app is a marketplace platform that connects independent buyers and sellers. Unless we clearly say otherwise, we do not own, inspect, store, or deliver listed items, and we do not act as the seller of goods.
               </p>
-              <ul className="space-y-2 text-[11px] font-bold text-[#225BC3] uppercase tracking-wide">
-                <li className="flex items-center gap-2"><ShieldCheck className="w-4 h-4" /> End-to-end Encryption</li>
-                <li className="flex items-center gap-2"><ShieldCheck className="w-4 h-4" /> Condition 4: Purpose Specification</li>
-                <li className="flex items-center gap-2"><ShieldCheck className="w-4 h-4" /> Right to Rectification</li>
-              </ul>
+              <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wide">Limitation of Liability</p>
+                <p className="text-[10px] text-slate-400 mt-1">To the maximum extent permitted by law, the platform is not liable for losses arising from user listings, conduct, meetups, or third-party failures.</p>
+              </div>
             </Card>
 
             <Card className="rounded-[2.5rem] border-none shadow-xl bg-white p-8">
               <div className="flex items-center gap-3 mb-6">
                 <div className="w-12 h-12 bg-orange-50 rounded-2xl flex items-center justify-center text-orange-600">
-                  <Scale className="w-6 h-6" />
+                  <AlertTriangle className="w-6 h-6" />
                 </div>
-                <h3 className="font-black text-xl text-[#225BC3]">CPA Rights</h3>
+                <h3 className="font-black text-xl text-[#225BC3]">No Platform Warranty</h3>
               </div>
               <p className="text-slate-600 leading-relaxed font-medium text-sm mb-4">
-                In line with the Consumer Protection Act, sellers are required to provide accurate descriptions. The Exchange provides an escrow-style hold to protect your right to a quality item or a full refund.
+                Listings are created by users. To the fullest extent permitted by law, the platform does not give warranties about the quality, safety, legality, authenticity, or fitness of items.
               </p>
-              <ul className="space-y-2 text-[11px] font-bold text-[#225BC3] uppercase tracking-wide">
-                <li className="flex items-center gap-2"><ShieldCheck className="w-4 h-4" /> Implied Warranty of Quality</li>
-                <li className="flex items-center gap-2"><ShieldCheck className="w-4 h-4" /> Right to Fair Disclosure</li>
-                <li className="flex items-center gap-2"><ShieldCheck className="w-4 h-4" /> Secure Dispute Resolution</li>
-              </ul>
+              <div className="p-4 bg-orange-50/50 rounded-2xl border border-orange-100">
+                <p className="text-[10px] font-bold text-orange-700 uppercase tracking-wide">Prohibited Items</p>
+                <p className="text-[10px] text-orange-600 mt-1">Stolen, counterfeit, unlawful, or dangerous goods are strictly prohibited and will be reported to SAPS.</p>
+              </div>
             </Card>
           </div>
 
-          <div className="bg-[#225BC3]/5 p-8 rounded-[2.5rem] border border-[#225BC3]/10">
-             <h4 className="font-black text-[#225BC3] uppercase text-xs tracking-widest mb-2">Platform Disclaimer</h4>
-             <p className="text-xs text-muted-foreground font-medium leading-relaxed">
-               The Exchange acts as an intermediary platform facilitator under the ECTA. While we provide safety tools like biometric verification and secure safe-zones, we do not take title to the goods sold between users. Users are encouraged to meet in designated Safe Zones and verify items before releasing funds.
-             </p>
-          </div>
+          {/* POPIA PRIVACY SUMMARY */}
+          <Card className="rounded-[2.5rem] border-none shadow-xl bg-white p-8">
+             <div className="flex items-center gap-3 mb-6">
+                <div className="w-12 h-12 bg-green-50 rounded-2xl flex items-center justify-center text-green-600">
+                  <Lock className="w-6 h-6" />
+                </div>
+                <h3 className="font-black text-xl text-[#225BC3]">POPIA Privacy Notice</h3>
+              </div>
+              <p className="text-slate-600 leading-relaxed font-medium text-sm mb-6">
+                We collect and process personal information (name, contact, location, biometrics) to operate the marketplace, support transactions, prevent fraud, and comply with legal obligations under the Protection of Personal Information Act.
+              </p>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="flex items-center gap-2 text-[10px] font-black text-green-700 uppercase"><ShieldCheck className="w-4 h-4"/> Purpose Specification</div>
+                <div className="flex items-center gap-2 text-[10px] font-black text-green-700 uppercase"><ShieldCheck className="w-4 h-4"/> Data Minimisation</div>
+                <div className="flex items-center gap-2 text-[10px] font-black text-green-700 uppercase"><ShieldCheck className="w-4 h-4"/> Security Safeguards</div>
+              </div>
+          </Card>
         </div>
       </main>
     </div>

@@ -27,7 +27,9 @@ import {
   History,
   FileText,
   Truck,
-  ArrowLeft
+  ArrowLeft,
+  AlertTriangle,
+  Scale
 } from "lucide-react";
 import Image from "next/image";
 import { VerifiedBadge } from "@/components/VerifiedBadge";
@@ -48,12 +50,6 @@ const SAFE_ZONES = [
   { id: "sz1", name: "Central Police Station", type: "Security", distance: "1.2 km", address: "123 Law Ave" },
   { id: "sz2", name: "Mall Entrance A", type: "Shopping", distance: "2.0 km", address: "456 Retail Way" },
   { id: "sz3", name: "Shell Garage Main Road", type: "Petrol Station", distance: "0.8 km", address: "789 Petrol St" },
-];
-
-const BID_HISTORY = [
-  { user: "Sarah K.", amount: 4800, time: "2 mins ago" },
-  { user: "John D.", amount: 4700, time: "1 hour ago" },
-  { user: "Mike T.", amount: 4500, time: "5 hours ago" },
 ];
 
 const PAYMENT_METHODS = [
@@ -107,7 +103,7 @@ export default function ListingDetailPage() {
       setIsPaying(false);
       setIsPaymentOpen(false);
       toast({
-        title: "Funds Held in Escrow",
+        title: "Funds Held in Protection Hold",
         description: "Payment secured. Funds will be released only after you confirm the meetup.",
       });
       router.push('/messages');
@@ -124,7 +120,7 @@ export default function ListingDetailPage() {
         </Button>
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
-          {/* Photos - eBay/Takealot Style Carousel */}
+          {/* Photos */}
           <div className="lg:col-span-7 space-y-6">
             <Carousel className="w-full">
               <CarouselContent>
@@ -140,7 +136,6 @@ export default function ListingDetailPage() {
               <CarouselNext className="right-6 bg-white/80" />
             </Carousel>
 
-            {/* Structured Tabs - Takealot style */}
             <Tabs defaultValue="description" className="w-full">
               <TabsList className="bg-white p-1 rounded-2xl h-14 w-full justify-start gap-2 shadow-sm border border-slate-100 mb-6">
                 <TabsTrigger value="description" className="rounded-xl px-8 font-black uppercase text-[10px] tracking-widest data-[state=active]:bg-[#225BC3] data-[state=active]:text-white">
@@ -149,11 +144,6 @@ export default function ListingDetailPage() {
                 <TabsTrigger value="specs" className="rounded-xl px-8 font-black uppercase text-[10px] tracking-widest data-[state=active]:bg-[#225BC3] data-[state=active]:text-white">
                   <Info className="w-3 h-3 mr-2" /> Specs
                 </TabsTrigger>
-                {listing.isAuction && (
-                   <TabsTrigger value="bids" className="rounded-xl px-8 font-black uppercase text-[10px] tracking-widest data-[state=active]:bg-[#225BC3] data-[state=active]:text-white">
-                    <History className="w-3 h-3 mr-2" /> Bid History
-                  </TabsTrigger>
-                )}
               </TabsList>
               
               <Card className="rounded-[2.5rem] border-none shadow-xl bg-white p-8">
@@ -162,6 +152,15 @@ export default function ListingDetailPage() {
                   <p className="text-slate-600 leading-relaxed font-medium">
                     {listing.description}
                   </p>
+                  <div className="mt-8 p-6 bg-slate-50 rounded-3xl border border-slate-100 flex gap-4">
+                    <Scale className="w-10 h-10 text-slate-400 shrink-0" />
+                    <div>
+                      <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">No Platform Warranty</p>
+                      <p className="text-[11px] text-slate-400 font-bold leading-relaxed">
+                        To the fullest extent permitted by law, the platform does not give warranties or guarantees about the quality, safety, legality, or fitness of items listed by users.
+                      </p>
+                    </div>
+                  </div>
                 </TabsContent>
                 
                 <TabsContent value="specs" className="mt-0">
@@ -174,44 +173,19 @@ export default function ListingDetailPage() {
                     ))}
                   </div>
                 </TabsContent>
-
-                <TabsContent value="bids" className="mt-0">
-                  <div className="space-y-4">
-                    {BID_HISTORY.map((bid, i) => (
-                      <div key={i} className={cn(
-                        "flex items-center justify-between p-4 rounded-2xl",
-                        i === 0 ? "bg-[#225BC3]/5 border-2 border-[#225BC3]" : "bg-slate-50"
-                      )}>
-                        <div className="flex items-center gap-3">
-                          <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center font-black", i === 0 ? "bg-[#225BC3] text-white" : "bg-slate-200 text-slate-500")}>
-                            {bid.user[0]}
-                          </div>
-                          <div>
-                            <p className="font-black text-slate-900">{bid.user}</p>
-                            <p className="text-[10px] font-bold text-muted-foreground uppercase">{bid.time}</p>
-                          </div>
-                        </div>
-                        <div className="text-right">
-                          <p className="font-black text-[#225BC3]">R {bid.amount.toLocaleString()}</p>
-                          {i === 0 && <Badge className="bg-[#34CBED] text-white text-[8px] border-none uppercase">Highest Bid</Badge>}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </TabsContent>
               </Card>
             </Tabs>
           </div>
 
-          {/* Checkout/Action Sidebar - eBay style */}
+          {/* Checkout/Action Sidebar */}
           <div className="lg:col-span-5 space-y-6">
             <Card className="rounded-[3rem] border-none shadow-2xl bg-white overflow-hidden ring-1 ring-slate-100">
               <div className="bg-[#225BC3] p-8 text-white">
                 <div className="flex justify-between items-start mb-4">
-                   <Badge className="bg-[#34CBED] text-white border-none px-3">PROTECTED DEAL</Badge>
+                   <Badge className="bg-[#34CBED] text-white border-none px-3 uppercase text-[8px] font-black">Protected Hold</Badge>
                    <div className="text-right">
-                      <p className="text-[10px] font-black uppercase tracking-widest text-white/60 mb-1">Closing In</p>
-                      <p className="text-xl font-black">2h 45m 12s</p>
+                      <p className="text-[10px] font-black uppercase tracking-widest text-white/60 mb-1">Time Left</p>
+                      <p className="text-xl font-black">2h 45m</p>
                    </div>
                 </div>
                 <h1 className="text-3xl font-black mb-2">{listing.title}</h1>
@@ -223,70 +197,69 @@ export default function ListingDetailPage() {
               <CardContent className="p-8 space-y-8">
                 <div className="flex justify-between items-center">
                   <div>
-                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-1">Current Bid</span>
+                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-1">Price</span>
                     <span className="text-5xl font-black text-[#225BC3]">R {listing.price.toLocaleString()}</span>
                   </div>
                   <VerifiedBadge />
                 </div>
 
                 <div className="space-y-3">
-                  <div className="flex gap-3">
-                    <Button className="flex-1 bg-[#FF8C00] hover:bg-[#FF8C00]/90 text-white font-black h-16 rounded-2xl shadow-xl text-lg" onClick={() => setIsPaymentOpen(true)}>
-                      <Gavel className="w-5 h-5 mr-2" /> Place Bid
-                    </Button>
-                    <Button variant="outline" className="flex-1 border-2 border-[#225BC3] text-[#225BC3] font-black h-16 rounded-2xl hover:bg-[#225BC3]/5 text-lg">
-                       Buy Now
-                    </Button>
-                  </div>
+                  <Button className="w-full bg-[#FF8C00] hover:bg-[#FF8C00]/90 text-white font-black h-16 rounded-2xl shadow-xl text-lg" onClick={() => setIsPaymentOpen(true)}>
+                    Buy with Protection Hold
+                  </Button>
                   
                   <div className="grid grid-cols-2 gap-3">
                     <Button variant="ghost" className="h-14 rounded-2xl bg-slate-50 font-bold text-slate-600" onClick={() => router.push('/messages')}>
                       <MessageSquare className="w-5 h-5 mr-2" /> Chat
                     </Button>
-                    <Button variant="ghost" className="h-14 rounded-2xl bg-slate-50 font-bold text-slate-600">
-                      <HandCoins className="w-5 h-5 mr-2" /> Offer
-                    </Button>
-                  </div>
-
-                  <Dialog open={isBookingOpen} onOpenChange={setIsBookingOpen}>
-                    <DialogTrigger asChild>
-                      <Button className="w-full h-14 border-2 border-[#34CBED] text-[#34CBED] bg-white font-black rounded-2xl mt-4">
-                        <Calendar className="w-5 h-5 mr-2" /> Book Safe Meetup
-                      </Button>
-                    </DialogTrigger>
-                    <DialogContent className="rounded-[3rem] border-none p-8">
-                      <DialogHeader>
-                        <DialogTitle className="text-2xl font-black text-[#225BC3]">Select Meeting Point</DialogTitle>
-                        <DialogDescription className="font-bold">Choose a vetted safe location in your area.</DialogDescription>
-                      </DialogHeader>
-                      <div className="space-y-4 py-6">
-                        {SAFE_ZONES.map(z => (
-                          <div key={z.id} className="p-5 border-2 border-slate-100 rounded-3xl hover:border-[#34CBED] transition-all cursor-pointer group">
-                             <div className="flex justify-between items-center mb-1">
-                                <span className="font-black text-slate-900 group-hover:text-[#225BC3] transition-colors">{z.name}</span>
-                                <Badge className="bg-slate-100 text-slate-500 border-none">{z.distance}</Badge>
-                             </div>
-                             <p className="text-[10px] font-bold text-muted-foreground uppercase">{z.address}</p>
+                    <Dialog open={isBookingOpen} onOpenChange={setIsBookingOpen}>
+                      <DialogTrigger asChild>
+                        <Button variant="ghost" className="h-14 rounded-2xl bg-slate-50 font-bold text-slate-600">
+                          <Calendar className="w-5 h-5 mr-2" /> Book Meet
+                        </Button>
+                      </DialogTrigger>
+                      <DialogContent className="rounded-[3rem] border-none p-0 overflow-hidden">
+                        <div className="bg-[#225BC3] p-8 text-white">
+                          <DialogTitle className="text-2xl font-black">Book Safe Meetup</DialogTitle>
+                          <DialogDescription className="font-bold text-white/60 text-xs mt-1">Select a vetted public meeting point.</DialogDescription>
+                        </div>
+                        <div className="p-8 space-y-6">
+                          <div className="space-y-4">
+                            {SAFE_ZONES.map(z => (
+                              <div key={z.id} className="p-5 border-2 border-slate-100 rounded-3xl hover:border-[#34CBED] transition-all cursor-pointer group">
+                                <div className="flex justify-between items-center mb-1">
+                                    <span className="font-black text-slate-900 group-hover:text-[#225BC3] transition-colors">{z.name}</span>
+                                    <Badge className="bg-slate-100 text-slate-500 border-none">{z.distance}</Badge>
+                                </div>
+                                <p className="text-[10px] font-bold text-muted-foreground uppercase">{z.address}</p>
+                              </div>
+                            ))}
                           </div>
-                        ))}
-                      </div>
-                    </DialogContent>
-                  </Dialog>
+                          <div className="p-4 bg-orange-50 rounded-2xl border border-orange-100 flex gap-3">
+                            <AlertTriangle className="w-5 h-5 text-orange-600 shrink-0" />
+                            <p className="text-[10px] text-orange-700 font-bold leading-relaxed">
+                              SAFE MEETUP NOTICE: Suggestions are for convenience. Users remain responsible for their own safety and decisions during meetups.
+                            </p>
+                          </div>
+                          <Button className="w-full h-14 bg-[#225BC3] font-black rounded-2xl">Confirm Meeting Point</Button>
+                        </div>
+                      </DialogContent>
+                    </Dialog>
+                  </div>
                 </div>
 
-                <div className="p-4 bg-green-50 rounded-2xl border border-green-100 flex gap-4">
-                  <ShieldCheck className="w-10 h-10 text-green-600 shrink-0" />
-                  <div>
-                    <p className="text-[10px] font-black text-green-800 uppercase tracking-widest mb-1">Money Back Guarantee</p>
-                    <p className="text-[11px] text-green-700 leading-relaxed font-bold">
-                      Your funds are held safely until you confirm delivery. Simple, secure, local.
-                    </p>
-                  </div>
+                <div className="p-6 bg-green-50 rounded-[2rem] border border-green-100 space-y-3">
+                   <div className="flex items-center gap-3">
+                      <ShieldCheck className="w-8 h-8 text-green-600 shrink-0" />
+                      <h4 className="font-black text-green-800 uppercase text-[10px] tracking-widest">Buyer Responsibility</h4>
+                   </div>
+                   <p className="text-[10px] text-green-700 leading-relaxed font-bold">
+                     Review listings carefully and inspect items before confirming. Funds are released only after you press "Deal Completed".
+                   </p>
                 </div>
               </CardContent>
             </Card>
 
-            {/* Seller Dashboard - Takealot style */}
             <Card className="rounded-[2.5rem] border-none shadow-xl bg-white p-8">
                <div className="flex items-center justify-between mb-8">
                   <div className="flex items-center gap-4">
@@ -308,47 +281,32 @@ export default function ListingDetailPage() {
                     <ChevronRight className="w-6 h-6" />
                   </Button>
                </div>
-               
-               <div className="grid grid-cols-3 gap-4">
-                  <div className="text-center p-4 bg-slate-50 rounded-2xl">
-                     <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest mb-1">Response</p>
-                     <p className="text-xs font-black text-[#225BC3]">&lt; 1 HR</p>
-                  </div>
-                  <div className="text-center p-4 bg-slate-50 rounded-2xl">
-                     <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest mb-1">Joined</p>
-                     <p className="text-xs font-black text-[#225BC3]">2023</p>
-                  </div>
-                  <div className="text-center p-4 bg-slate-50 rounded-2xl">
-                     <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest mb-1">Sold</p>
-                     <p className="text-xs font-black text-[#225BC3]">128+</p>
-                  </div>
-               </div>
             </Card>
           </div>
         </div>
       </main>
 
-      {/* Payment Sheet - South Africa Specific */}
+      {/* Payment Sheet */}
       <Dialog open={isPaymentOpen} onOpenChange={setIsPaymentOpen}>
         <DialogContent className="sm:max-w-[450px] rounded-[3rem] border-none p-0 overflow-hidden shadow-2xl">
           <div className="bg-[#225BC3] p-10 text-white">
-            <h2 className="text-3xl font-black flex items-center gap-3">
+            <h2 className="text-3xl font-black flex items-center gap-3 uppercase tracking-tighter">
               <Lock className="w-8 h-8 text-[#34CBED]" />
-              Secure Checkout
+              Secure Pay
             </h2>
-            <p className="text-white/60 font-bold mt-2 uppercase text-xs tracking-widest">South African Platform Escrow</p>
+            <p className="text-white/60 font-bold mt-2 uppercase text-[9px] tracking-widest leading-tight">Payments are processed by secure third-party providers.</p>
           </div>
           <div className="p-10 space-y-8">
             <div className="bg-slate-50 p-6 rounded-[2rem] border border-slate-100 flex justify-between items-center">
                <div>
-                  <p className="text-[10px] font-black text-slate-400 uppercase mb-1">Total to hold</p>
+                  <p className="text-[10px] font-black text-slate-400 uppercase mb-1">Protection Hold Amount</p>
                   <p className="text-3xl font-black text-[#225BC3]">R {listing.price.toLocaleString()}</p>
                </div>
                <ShieldCheck className="w-12 h-12 text-green-500" />
             </div>
 
             <div className="space-y-4">
-              <Label className="font-black text-xs uppercase tracking-widest text-slate-400 ml-2">Choose Payment Method</Label>
+              <Label className="font-black text-xs uppercase tracking-widest text-slate-400 ml-2">Payment Method</Label>
               <RadioGroup value={paymentMethod} onValueChange={setPaymentMethod} className="gap-3">
                 {PAYMENT_METHODS.map((method) => {
                   const Icon = method.icon;
@@ -376,12 +334,18 @@ export default function ListingDetailPage() {
               </RadioGroup>
             </div>
 
+            <div className="p-4 bg-blue-50/50 rounded-2xl border border-blue-100">
+                <p className="text-[9px] text-blue-800 font-bold leading-relaxed">
+                   PROTECTION HOLD: Funds are placed on a temporary buyer protection hold and released after meetup confirmation.
+                </p>
+            </div>
+
             <Button 
               className="w-full h-18 bg-[#225BC3] text-white font-black rounded-3xl shadow-2xl hover:scale-[1.02] transition-transform text-lg" 
               onClick={handlePayment}
               disabled={isPaying}
             >
-              {isPaying ? "Processing..." : `Pay R ${listing.price.toLocaleString()}`}
+              {isPaying ? "Authorizing..." : `Pay R ${listing.price.toLocaleString()}`}
             </Button>
           </div>
         </DialogContent>

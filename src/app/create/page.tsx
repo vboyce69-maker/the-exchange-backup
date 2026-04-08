@@ -28,7 +28,8 @@ import {
   Gavel,
   TrendingUp,
   Info,
-  Scale
+  Scale,
+  AlertTriangle
 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import Image from "next/image";
@@ -321,62 +322,14 @@ export default function CreateListingPage() {
                 </div>
 
                 <div className="pt-6 border-t space-y-6">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <div className={cn(
-                        "w-10 h-10 rounded-xl flex items-center justify-center transition-colors",
-                        isAuction ? "bg-[#225BC3] text-white" : "bg-slate-100 text-slate-400"
-                      )}>
-                        <Gavel className="w-5 h-5" />
-                      </div>
-                      <div>
-                        <span className="font-black text-[#225BC3] block uppercase text-[10px] tracking-widest">Auction Listing</span>
-                        <span className="text-[10px] text-muted-foreground font-medium">Sell to highest bidder</span>
-                      </div>
-                    </div>
-                    <Button 
-                      type="button"
-                      variant={isAuction ? "default" : "outline"}
-                      className={cn("rounded-full h-8 px-6 font-black text-[10px] uppercase", isAuction ? "bg-[#225BC3]" : "border-[#225BC3] text-[#225BC3]")}
-                      onClick={() => setIsAuction(!isAuction)}
-                    >
-                      {isAuction ? "Active" : "Disabled"}
-                    </Button>
+                  <div className="p-5 bg-orange-50 rounded-[2rem] border border-orange-100 space-y-3">
+                    <h4 className="font-black text-orange-700 uppercase text-[10px] tracking-widest flex items-center gap-2">
+                      <AlertTriangle className="w-3 h-3" /> Prohibited Items
+                    </h4>
+                    <p className="text-[9px] font-bold text-orange-600 leading-tight">
+                      You may NOT list stolen goods, counterfeit brands, unlawful substances, or dangerous weapons. We report suspicious behavior to SAPS.
+                    </p>
                   </div>
-
-                  {isAuction && (
-                    <div className="animate-in slide-in-from-top-2 duration-300">
-                      <div className="bg-slate-50 p-6 rounded-3xl space-y-4 border border-slate-100">
-                        <div className="flex items-center justify-between">
-                          <Label className="font-black text-[#225BC3] uppercase text-[10px] tracking-widest">Auction Duration</Label>
-                          {aiSuggestion && (
-                            <TooltipProvider>
-                              <Tooltip>
-                                <TooltipTrigger asChild>
-                                  <div className="flex items-center gap-1 text-[10px] font-black text-[#34CBED] bg-[#34CBED]/10 px-2 py-1 rounded-full cursor-help animate-pulse">
-                                    <TrendingUp className="w-3 h-3" /> AI Suggested
-                                  </div>
-                                </TooltipTrigger>
-                                <TooltipContent className="rounded-2xl bg-white text-[#225BC3] border-[#34CBED]/20 shadow-2xl">
-                                  <p className="font-bold text-xs">{aiSuggestion}</p>
-                                </TooltipContent>
-                              </Tooltip>
-                            </TooltipProvider>
-                          )}
-                        </div>
-                        <Select value={auctionDuration} onValueChange={setAuctionDuration}>
-                          <SelectTrigger className="h-12 rounded-2xl bg-white border-none shadow-sm">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent className="rounded-2xl border-none shadow-2xl">
-                            {DURATIONS.map(d => (
-                              <SelectItem key={d.value} value={d.value}>{d.label}</SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
-                    </div>
-                  )}
 
                   <div className="p-5 bg-[#225BC3]/5 rounded-[2rem] border border-[#225BC3]/10 space-y-4">
                     <div className="flex items-start space-x-3">
@@ -387,7 +340,7 @@ export default function CreateListingPage() {
                         onCheckedChange={(checked) => setCpaConsent(checked === true)}
                       />
                       <label htmlFor="cpa" className="text-[10px] font-bold text-[#225BC3] leading-relaxed cursor-pointer">
-                        CPA DECLARATION: I warrant that I am the legal owner of this item and that all descriptions are true. I acknowledge that I am liable under the Consumer Protection Act (2008) for any misrepresentation or failure to provide an item of merchantable quality.
+                        SELLER DECLARATION: By posting this listing, I confirm that I am the legal owner of this item; it is not stolen or counterfeit; and the description/price are accurate. I acknowledge my liability under the Consumer Protection Act (2008) for misrepresentation.
                       </label>
                     </div>
                   </div>
