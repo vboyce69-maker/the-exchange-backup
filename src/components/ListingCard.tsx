@@ -5,10 +5,11 @@ import { useEffect, useState } from "react";
 import Image from "next/image";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { MapPin, Star, Zap, ShieldCheck, Gavel, Clock } from "lucide-react";
+import { MapPin, Star, Zap, ShieldCheck, Gavel, Clock, Heart } from "lucide-react";
 import { VerifiedBadge } from "./VerifiedBadge";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
+import { Button } from "./ui/button";
 
 interface ListingCardProps {
   id: string;
@@ -38,6 +39,7 @@ export function ListingCard({
   auctionEndDate,
 }: ListingCardProps) {
   const [timeLeft, setTimeLeft] = useState<string>("");
+  const [isSaved, setIsSaved] = useState(false);
 
   useEffect(() => {
     if (!isAuction || !auctionEndDate) return;
@@ -62,9 +64,9 @@ export function ListingCard({
   }, [isAuction, auctionEndDate]);
 
   return (
-    <Link href={`/listings/${id}`}>
-      <div className="group relative flex flex-col gap-4">
-        <div className="relative aspect-[1/1.2] overflow-hidden rounded-[2.5rem] shadow-sm group-hover:shadow-2xl transition-all duration-500 bg-white">
+    <div className="group relative flex flex-col gap-4">
+      <Link href={`/listings/${id}`} className="block">
+        <div className="relative aspect-square overflow-hidden rounded-[2.5rem] shadow-sm group-hover:shadow-2xl transition-all duration-500 bg-white border border-slate-100">
           <Image
             src={imageUrl || "https://picsum.photos/seed/placeholder/800/600"}
             alt={title}
@@ -72,59 +74,62 @@ export function ListingCard({
             className="object-cover transition-transform duration-700 group-hover:scale-110"
             data-ai-hint="product image"
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
           
           <div className="absolute top-4 left-4 flex flex-col gap-2">
             {isBoosted && (
-              <Badge className="bg-accent text-white font-black border-none shadow-xl px-3 py-1 text-[10px] uppercase tracking-tighter">
+              <Badge className="bg-[#FF8C00] text-white font-black border-none shadow-xl px-3 py-1 text-[9px] uppercase tracking-tighter">
                 <Zap className="w-3 h-3 mr-1 fill-current" />
                 Featured
               </Badge>
             )}
             {isAuction && (
               <Badge className={cn(
-                "font-black shadow-xl px-3 py-1 text-[10px] uppercase tracking-tighter border-none",
+                "font-black shadow-xl px-3 py-1 text-[9px] uppercase tracking-tighter border-none",
                 timeLeft === "Ended" ? "bg-slate-500 text-white" : "bg-[#225BC3] text-white"
               )}>
                 <Gavel className="w-3 h-3 mr-1" />
-                {timeLeft === "Ended" ? "Ended" : `Auction: ${timeLeft}`}
+                {timeLeft === "Ended" ? "Ended" : `${timeLeft}`}
               </Badge>
             )}
           </div>
-
-          <div className="absolute bottom-6 left-6 right-6 translate-y-4 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-500">
-             <div className="flex items-center gap-2">
-                <div className="w-10 h-10 rounded-xl bg-white/20 backdrop-blur-md flex items-center justify-center">
-                   <ShieldCheck className="w-5 h-5 text-white" />
-                </div>
-                <span className="text-white text-[10px] font-black uppercase tracking-widest">Vetted Seller</span>
-             </div>
-          </div>
         </div>
+      </Link>
 
-        <div className="px-2 space-y-2">
-          <div className="flex justify-between items-start">
-            <h3 className="font-black text-xl text-[#225BC3] line-clamp-1 group-hover:text-accent transition-colors">{title}</h3>
-            <span className="font-black text-accent text-xl">
-              R {price.toLocaleString()}
-            </span>
+      {/* FB/eBay Style Watchlist Toggle */}
+      <button 
+        onClick={(e) => { e.preventDefault(); setIsSaved(!isSaved); }}
+        className={cn(
+          "absolute top-4 right-4 z-10 w-10 h-10 rounded-full flex items-center justify-center transition-all shadow-lg",
+          isSaved ? "bg-[#225BC3] text-white" : "bg-white/80 backdrop-blur-md text-slate-400 hover:text-[#225BC3]"
+        )}
+      >
+        <Heart className={cn("w-5 h-5", isSaved && "fill-current")} />
+      </button>
+
+      <div className="px-2 space-y-2">
+        <div className="flex justify-between items-start">
+          <Link href={`/listings/${id}`}>
+            <h3 className="font-black text-lg text-slate-900 line-clamp-1 group-hover:text-[#225BC3] transition-colors">{title}</h3>
+          </Link>
+          <span className="font-black text-[#225BC3] text-lg whitespace-nowrap">
+            R {price.toLocaleString()}
+          </span>
+        </div>
+        
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-1.5 text-muted-foreground text-[10px] font-black uppercase tracking-tight">
+            <MapPin className="w-3.5 h-3.5 text-[#34CBED]" />
+            {location}
           </div>
-          
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-1.5 text-muted-foreground text-[10px] font-black uppercase tracking-tight">
-              <MapPin className="w-3.5 h-3.5 text-[#34CBED]" />
-              {location}
-            </div>
-            <div className="flex items-center gap-2">
-               <span className="text-[9px] font-black text-[#225BC3] uppercase">{sellerName || "Alex Rivera"}</span>
-               <div className="flex items-center gap-0.5 text-yellow-500">
-                 <Star className="w-3 h-3 fill-current" />
-                 <span className="text-[9px] font-black">{sellerRating || 4.9}</span>
-               </div>
-            </div>
+          <div className="flex items-center gap-2">
+             <div className="flex items-center gap-0.5 text-yellow-500">
+               <Star className="w-3 h-3 fill-current" />
+               <span className="text-[10px] font-black">{sellerRating || 4.9}</span>
+             </div>
+             <VerifiedBadge />
           </div>
         </div>
       </div>
-    </Link>
+    </div>
   );
 }
