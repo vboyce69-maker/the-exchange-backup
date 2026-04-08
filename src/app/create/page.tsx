@@ -24,7 +24,9 @@ import {
   CheckCircle2, 
   Zap,
   Package,
-  Gavel
+  Gavel,
+  TrendingUp,
+  Info
 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import Image from "next/image";
@@ -32,6 +34,8 @@ import { cn } from "@/lib/utils";
 import { collection, doc } from "firebase/firestore";
 import { useFirestore, useUser } from "@/firebase";
 import { addDocumentNonBlocking } from "@/firebase/non-blocking-updates";
+import { getSellerDemandInsights } from "@/ai/flows/seller-demand-insights";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 const CATEGORIES = [
   "Vehicles", "Electronics", "Real Estate", "Clothing", 
@@ -40,6 +44,11 @@ const CATEGORIES = [
 ];
 
 const CONDITIONS = ["New", "Like new", "Good", "Used"];
+const DURATIONS = [
+  { value: "1", label: "1 Day (Fast Sale)" },
+  { value: "3", label: "3 Days (Balanced)" },
+  { value: "7", label: "7 Days (Max Reach)" }
+];
 
 export default function CreateListingPage() {
   const router = useRouter();
@@ -51,6 +60,10 @@ export default function CreateListingPage() {
   const [locationDetecting, setLocationDetecting] = useState(false);
   const [location, setLocation] = useState<{ lat: number; lng: number; name: string } | null>(null);
   const [isAuction, setIsAuction] = useState(false);
+  const [auctionDuration, setAuctionDuration] = useState("3");
+
+  // AI Suggestions
+  const [aiSuggestion, setAiSuggestion] = useState<string | null>(null);
 
   // Form State
   const [title, setTitle] = useState("");
@@ -59,12 +72,34 @@ export default function CreateListingPage() {
   const [price, setPrice] = useState("");
   const [description, setDescription] = useState("");
 
+  useEffect(() => {
+    if (category && location) {
+      async function checkDemand() {
+        try {
+          const insights = await getSellerDemandInsights({
+            sellerId: user?.uid || "anon",
+            currentListingsCategories: [category],
+            sellerLocation: { latitude: location!.lat, longitude: location!.lng }
+          });
+          const optimal = insights.optimalListingCategories.find(c => c.categoryName.toLowerCase().includes(category.toLowerCase()));
+          if (optimal && optimal.demandScore > 80) {
+            setAiSuggestion(`High Demand! 1-day auction recommended for this category in your area.`);
+          } else {
+            setAiSuggestion(`Standard demand. 3-7 day listing recommended.`);
+          }
+        } catch (e) {
+          console.error("AI Insight failed", e);
+        }
+      }
+      checkDemand();
+    }
+  }, [category, location, user]);
+
   const handleImageUpload = () => {
     if (images.length >= 6) {
       toast({ variant: "destructive", title: "Limit Reached", description: "You can upload up to 6 photos." });
       return;
     }
-    // Simulate upload
     const nextId = images.length + 1;
     const newImage = `https://picsum.photos/seed/upload-${nextId}/600/400`;
     setImages([...images, newImage]);
@@ -76,7 +111,6 @@ export default function CreateListingPage() {
 
   const detectLocation = () => {
     setLocationDetecting(true);
-    // Simulate browser geolocation
     setTimeout(() => {
       setLocation({
         lat: -26.2041,
@@ -84,8 +118,8 @@ export default function CreateListingPage() {
         name: "Johannesburg, GP"
       });
       setLocationDetecting(false);
-      toast({ title: "Location Detected", description: "Johannesburg, Central" });
-    }, 1500);
+      toast({ title: "Location Detected", description: "Johannesburg, GP" });
+    }, 1200);
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -102,6 +136,9 @@ export default function CreateListingPage() {
 
     setLoading(true);
 
+    const endDate = new Date();
+    endDate.setDate(endDate.getDate() + parseInt(auctionDuration));
+
     const listingData = {
       sellerId: user.uid,
       categoryId: category.toLowerCase().replace(/\s+/g, '-'),
@@ -114,11 +151,12 @@ export default function CreateListingPage() {
       listingLocationLatitude: location?.lat || 0,
       listingLocationLongitude: location?.lng || 0,
       postedDate: new Date().toISOString(),
+      auctionEndDate: isAuction ? endDate.toISOString() : null,
       status: isAuction ? "auction_active" : "available",
       isAuction,
       viewCount: 0,
       isBoosted: false,
-      negotiable: true,
+      negotiable: !isAuction,
     };
 
     const listingsCol = collection(db, "publicListings");
@@ -128,43 +166,37 @@ export default function CreateListingPage() {
       setLoading(false);
       toast({
         title: "Listing Posted!",
-        description: "Your item is now live and visible to local buyers.",
+        description: isAuction ? `Auction live for ${auctionDuration} days!` : "Your item is now live.",
       });
-      router.push("/");
+      router.push("/auctions");
     }, 1000);
   };
 
   return (
-    <div className="min-h-screen bg-slate-50/50">
+    <div className="min-h-screen bg-slate-50/50 pb-20">
       <Navigation />
       <main className="container mx-auto px-4 py-8 lg:py-12 flex justify-center">
         <div className="w-full max-w-xl">
           <div className="mb-8 flex items-center justify-between">
             <div>
-              <h1 className="text-3xl font-bold tracking-tight">Sell an Item</h1>
-              <p className="text-muted-foreground mt-1">Ready to list in 60 seconds.</p>
-            </div>
-            <div className="hidden sm:flex items-center gap-2 bg-white px-4 py-2 rounded-full border shadow-sm">
-              <CheckCircle2 className="w-5 h-5 text-green-500" />
-              <span className="text-sm font-medium">Simple Flow</span>
+              <h1 className="text-3xl font-black text-[#225BC3]">Sell an Item</h1>
+              <p className="text-muted-foreground text-sm font-medium">List your items in the premium exchange.</p>
             </div>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-6">
-            {/* Photos Section */}
             <div className="space-y-4">
               <div className="flex items-center justify-between">
-                <Label className="text-base font-bold">Photos ({images.length}/6)</Label>
-                <span className="text-xs text-muted-foreground">Add clear photos for more sales</span>
+                <Label className="text-sm font-black uppercase tracking-widest text-muted-foreground">Photos ({images.length}/6)</Label>
               </div>
               <div className="grid grid-cols-3 gap-3">
                 {images.map((img, i) => (
-                  <div key={i} className="relative aspect-square rounded-2xl overflow-hidden border bg-white group shadow-sm">
+                  <div key={i} className="relative aspect-square rounded-[1.5rem] overflow-hidden border-2 border-white bg-white shadow-md group">
                     <Image src={img} alt="listing" fill className="object-cover" />
                     <button 
                       type="button"
                       onClick={() => removeImage(i)}
-                      className="absolute top-1.5 right-1.5 bg-black/60 text-white p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                      className="absolute top-1 right-1 bg-black/60 text-white p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
                     >
                       <X className="w-3 h-3" />
                     </button>
@@ -174,27 +206,24 @@ export default function CreateListingPage() {
                   <button
                     type="button"
                     onClick={handleImageUpload}
-                    className="aspect-square rounded-2xl border-2 border-dashed border-primary/20 bg-white hover:bg-primary/5 hover:border-primary/40 transition-all flex flex-col items-center justify-center gap-2"
+                    className="aspect-square rounded-[1.5rem] border-2 border-dashed border-[#225BC3]/20 bg-white hover:bg-[#225BC3]/5 hover:border-[#225BC3]/40 transition-all flex flex-col items-center justify-center gap-1"
                   >
-                    <div className="bg-primary/10 p-2 rounded-full">
-                      <Camera className="w-6 h-6 text-primary" />
-                    </div>
-                    <span className="text-xs font-bold text-primary">Add Photo</span>
+                    <Camera className="w-6 h-6 text-[#225BC3]" />
+                    <span className="text-[10px] font-black text-[#225BC3] uppercase">Add Photo</span>
                   </button>
                 )}
               </div>
             </div>
 
-            {/* Basic Info */}
-            <Card className="rounded-3xl border shadow-sm overflow-hidden">
-              <CardContent className="p-6 space-y-5">
+            <Card className="rounded-[2.5rem] border-none shadow-xl bg-white ring-1 ring-[#225BC3]/5">
+              <CardContent className="p-8 space-y-6">
                 <div className="space-y-2">
-                  <Label htmlFor="title" className="font-bold">Title</Label>
+                  <Label htmlFor="title" className="font-black text-[#225BC3] uppercase text-[10px] tracking-widest">Title</Label>
                   <Input 
                     id="title" 
                     placeholder="e.g. Samsung 55” TV" 
                     required 
-                    className="h-12 rounded-xl"
+                    className="h-14 rounded-2xl bg-slate-50 border-none font-bold"
                     value={title}
                     onChange={(e) => setTitle(e.target.value)}
                   />
@@ -202,12 +231,12 @@ export default function CreateListingPage() {
 
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label className="font-bold">Category</Label>
+                    <Label className="font-black text-[#225BC3] uppercase text-[10px] tracking-widest">Category</Label>
                     <Select value={category} onValueChange={setCategory} required>
-                      <SelectTrigger className="h-12 rounded-xl">
+                      <SelectTrigger className="h-14 rounded-2xl bg-slate-50 border-none">
                         <SelectValue placeholder="Select" />
                       </SelectTrigger>
-                      <SelectContent>
+                      <SelectContent className="rounded-2xl border-none shadow-2xl">
                         {CATEGORIES.map(c => (
                           <SelectItem key={c} value={c}>{c}</SelectItem>
                         ))}
@@ -215,12 +244,12 @@ export default function CreateListingPage() {
                     </Select>
                   </div>
                   <div className="space-y-2">
-                    <Label className="font-bold">Condition</Label>
+                    <Label className="font-black text-[#225BC3] uppercase text-[10px] tracking-widest">Condition</Label>
                     <Select value={condition} onValueChange={setCondition} required>
-                      <SelectTrigger className="h-12 rounded-xl">
+                      <SelectTrigger className="h-14 rounded-2xl bg-slate-50 border-none">
                         <SelectValue placeholder="Select" />
                       </SelectTrigger>
-                      <SelectContent>
+                      <SelectContent className="rounded-2xl border-none shadow-2xl">
                         {CONDITIONS.map(c => (
                           <SelectItem key={c} value={c}>{c}</SelectItem>
                         ))}
@@ -230,15 +259,15 @@ export default function CreateListingPage() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="price" className="font-bold">Price (R)</Label>
+                  <Label htmlFor="price" className="font-black text-[#225BC3] uppercase text-[10px] tracking-widest">Price (R)</Label>
                   <div className="relative">
-                    <span className="absolute left-4 top-1/2 -translate-y-1/2 font-bold text-muted-foreground">R</span>
+                    <span className="absolute left-4 top-1/2 -translate-y-1/2 font-black text-[#225BC3]">R</span>
                     <Input 
                       id="price" 
                       type="number" 
                       placeholder="0.00" 
                       required 
-                      className="h-12 pl-8 rounded-xl font-bold"
+                      className="h-14 pl-10 rounded-2xl bg-slate-50 border-none font-black text-lg"
                       value={price}
                       onChange={(e) => setPrice(e.target.value)}
                     />
@@ -246,11 +275,11 @@ export default function CreateListingPage() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="desc" className="font-bold">Description</Label>
+                  <Label htmlFor="desc" className="font-black text-[#225BC3] uppercase text-[10px] tracking-widest">Description</Label>
                   <Textarea 
                     id="desc" 
-                    placeholder="Tell us more about the item..." 
-                    className="min-h-[120px] rounded-xl resize-none"
+                    placeholder="Tell us about your item..." 
+                    className="min-h-[120px] rounded-2xl bg-slate-50 border-none resize-none font-medium p-4"
                     required
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
@@ -259,50 +288,97 @@ export default function CreateListingPage() {
               </CardContent>
             </Card>
 
-            {/* Location & Auction */}
-            <Card className="rounded-3xl border shadow-sm overflow-hidden">
-              <CardContent className="p-6 space-y-6">
+            <Card className="rounded-[2.5rem] border-none shadow-xl bg-white overflow-hidden ring-1 ring-[#225BC3]/5">
+              <CardContent className="p-8 space-y-6">
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <MapPin className="w-5 h-5 text-primary" />
-                    <span className="font-bold">Location</span>
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-[#34CBED]/10 flex items-center justify-center text-[#34CBED]">
+                      <MapPin className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <span className="font-black text-[#225BC3] block uppercase text-[10px] tracking-widest">Location</span>
+                      <span className="text-xs text-muted-foreground font-bold">{location ? location.name : "Not detected"}</span>
+                    </div>
                   </div>
                   <Button 
                     type="button" 
                     variant="ghost" 
-                    size="sm" 
-                    className="text-primary font-bold hover:bg-primary/5"
+                    className="text-[#34CBED] font-black text-xs hover:bg-[#34CBED]/5"
                     onClick={detectLocation}
                     disabled={locationDetecting}
                   >
-                    {locationDetecting ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
-                    {location ? location.name : "Detect Location"}
+                    {locationDetecting ? <Loader2 className="w-4 h-4 animate-spin" /> : "Auto-Detect"}
                   </Button>
                 </div>
 
-                <div className="flex items-center justify-between pt-4 border-t">
-                  <div className="flex items-center gap-2">
-                    <Gavel className="w-5 h-5 text-primary" />
-                    <div>
-                      <span className="font-bold block">Sell via Auction</span>
-                      <span className="text-[10px] text-muted-foreground">Sell to the highest bidder</span>
+                <div className="pt-6 border-t space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className={cn(
+                        "w-10 h-10 rounded-xl flex items-center justify-center transition-colors",
+                        isAuction ? "bg-[#225BC3] text-white" : "bg-slate-100 text-slate-400"
+                      )}>
+                        <Gavel className="w-5 h-5" />
+                      </div>
+                      <div>
+                        <span className="font-black text-[#225BC3] block uppercase text-[10px] tracking-widest">Auction Listing</span>
+                        <span className="text-[10px] text-muted-foreground font-medium">Sell to highest bidder</span>
+                      </div>
                     </div>
+                    <Button 
+                      type="button"
+                      variant={isAuction ? "default" : "outline"}
+                      className={cn("rounded-full h-8 px-6 font-black text-[10px] uppercase", isAuction ? "bg-[#225BC3]" : "border-[#225BC3] text-[#225BC3]")}
+                      onClick={() => setIsAuction(!isAuction)}
+                    >
+                      {isAuction ? "Active" : "Disabled"}
+                    </Button>
                   </div>
-                  <Button 
-                    type="button"
-                    variant={isAuction ? "default" : "outline"}
-                    className={cn("rounded-full h-8 px-4 font-bold text-xs transition-all", isAuction ? "bg-primary" : "border-primary text-primary")}
-                    onClick={() => setIsAuction(!isAuction)}
-                  >
-                    {isAuction ? "Active" : "Disabled"}
-                  </Button>
+
+                  {isAuction && (
+                    <div className="animate-in slide-in-from-top-2 duration-300">
+                      <div className="bg-slate-50 p-6 rounded-3xl space-y-4 border border-slate-100">
+                        <div className="flex items-center justify-between">
+                          <Label className="font-black text-[#225BC3] uppercase text-[10px] tracking-widest">Auction Duration</Label>
+                          {aiSuggestion && (
+                            <TooltipProvider>
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <div className="flex items-center gap-1 text-[10px] font-black text-[#34CBED] bg-[#34CBED]/10 px-2 py-1 rounded-full cursor-help animate-pulse">
+                                    <TrendingUp className="w-3 h-3" /> AI Suggested
+                                  </div>
+                                </TooltipTrigger>
+                                <TooltipContent className="rounded-2xl bg-white text-[#225BC3] border-[#34CBED]/20 shadow-2xl">
+                                  <p className="font-bold text-xs">{aiSuggestion}</p>
+                                </TooltipContent>
+                              </Tooltip>
+                            </TooltipProvider>
+                          )}
+                        </div>
+                        <Select value={auctionDuration} onValueChange={setAuctionDuration}>
+                          <SelectTrigger className="h-12 rounded-2xl bg-white border-none shadow-sm">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent className="rounded-2xl border-none shadow-2xl">
+                            {DURATIONS.map(d => (
+                              <SelectItem key={d.value} value={d.value}>{d.label}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <p className="text-[10px] text-muted-foreground font-medium flex items-center gap-1">
+                          <Info className="w-3 h-3" />
+                          Auction will end on {new Date(new Date().getTime() + parseInt(auctionDuration) * 24 * 60 * 60 * 1000).toLocaleDateString()}
+                        </p>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </CardContent>
             </Card>
 
             <Button 
               type="submit" 
-              className="w-full h-14 rounded-2xl bg-primary text-white font-bold text-lg shadow-lg hover:shadow-xl transition-all disabled:opacity-50"
+              className="w-full h-16 rounded-[1.5rem] bg-[#225BC3] text-white font-black text-lg shadow-2xl shadow-[#225BC3]/20 hover:scale-[1.02] transition-transform"
               disabled={loading}
             >
               {loading ? (
@@ -310,13 +386,10 @@ export default function CreateListingPage() {
               ) : (
                 <span className="flex items-center gap-2">
                   <Package className="w-5 h-5" />
-                  Post Listing
+                  Post to The Exchange
                 </span>
               )}
             </Button>
-            <p className="text-[10px] text-center text-muted-foreground">
-              By posting, you agree to our Terms of Service and Safety Guidelines.
-            </p>
           </form>
         </div>
       </main>
