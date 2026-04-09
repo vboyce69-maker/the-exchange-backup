@@ -12,29 +12,26 @@ import {
   MapPin, 
   ShieldCheck, 
   MessageSquare, 
-  Clock,
   Star,
   Info,
   Calendar,
-  HandCoins,
   ChevronRight,
-  ShoppingCart,
   CreditCard,
   Building2,
   SmartphoneNfc,
   Lock,
   Gavel,
-  History,
   FileText,
-  Truck,
   ArrowLeft,
   AlertTriangle,
-  Scale
+  Scale,
+  Layers,
+  Box
 } from "lucide-react";
 import Image from "next/image";
 import { VerifiedBadge } from "@/components/VerifiedBadge";
 import { toast } from "@/hooks/use-toast";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription, DialogFooter } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
@@ -45,6 +42,8 @@ import {
   CarouselNext,
   CarouselPrevious,
 } from "@/components/ui/carousel";
+import { useDoc, useFirestore, useMemoFirebase } from "@/firebase";
+import { doc } from "firebase/firestore";
 
 const SAFE_ZONES = [
   { id: "sz1", name: "Central Police Station", type: "Security", distance: "1.2 km", address: "123 Law Ave" },
@@ -61,41 +60,18 @@ const PAYMENT_METHODS = [
 export default function ListingDetailPage() {
   const { id } = useParams();
   const router = useRouter();
+  const db = useFirestore();
+
   const [isBookingOpen, setIsBookingOpen] = useState(false);
   const [isPaymentOpen, setIsPaymentOpen] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState("card");
   const [isPaying, setIsPaying] = useState(false);
 
-  const listing = {
-    id,
-    title: "Mountain Bike XT-400 Professional",
-    price: 4500,
-    description: "In excellent condition. Recently serviced with brand new tires. Perfect for trail riding and weekend adventures. Includes specialized helmet and bike lock.",
-    specs: [
-      { key: "Frame", value: "Aluminum Alloy" },
-      { key: "Gears", value: "Shimano 21-Speed" },
-      { key: "Brakes", value: "Hydraulic Disc" },
-      { key: "Weight", value: "14kg" },
-    ],
-    location: "Downtown, Metro City",
-    distance: "5.2 km",
-    imageUrls: [
-      "https://picsum.photos/seed/bike/800/600",
-      "https://picsum.photos/seed/bike-2/800/600",
-      "https://picsum.photos/seed/bike-3/800/600"
-    ],
-    seller: {
-      id: "u123",
-      name: "Alex Rivera",
-      rating: 4.9,
-      reliability: 96,
-      memberSince: "Jan 2023",
-      isVerified: true,
-      phoneVerified: true,
-    },
-    category: "Sports",
-    isAuction: true,
-  };
+  const listingRef = useMemoFirebase(() => {
+    return id ? doc(db, "publicListings", id as string) : null;
+  }, [db, id]);
+
+  const { data: listing, isLoading } = useDoc(listingRef);
 
   const handlePayment = () => {
     setIsPaying(true);
@@ -109,6 +85,19 @@ export default function ListingDetailPage() {
       router.push('/messages');
     }, 2000);
   };
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-white">
+        <Navigation />
+        <div className="container mx-auto px-4 py-20 flex justify-center">
+          <Loader2 className="w-10 h-10 animate-spin text-[#225BC3]" />
+        </div>
+      </div>
+    );
+  }
+
+  if (!listing) return null;
 
   return (
     <div className="min-h-screen bg-[#F8FAFC]">
@@ -124,7 +113,7 @@ export default function ListingDetailPage() {
           <div className="lg:col-span-7 space-y-6">
             <Carousel className="w-full">
               <CarouselContent>
-                {listing.imageUrls.map((url, i) => (
+                {listing.imageUrls?.map((url: string, i: number) => (
                   <CarouselItem key={i}>
                     <div className="relative aspect-[4/3] rounded-[3rem] overflow-hidden bg-white shadow-2xl border-8 border-white">
                       <Image src={url} alt={listing.title} fill className="object-cover" />
@@ -142,17 +131,30 @@ export default function ListingDetailPage() {
                   <FileText className="w-3 h-3 mr-2" /> Description
                 </TabsTrigger>
                 <TabsTrigger value="specs" className="rounded-xl px-8 font-black uppercase text-[10px] tracking-widest data-[state=active]:bg-[#225BC3] data-[state=active]:text-white">
-                  <Info className="w-3 h-3 mr-2" /> Specs
+                  <Info className="w-3 h-3 mr-2" /> Details
                 </TabsTrigger>
               </TabsList>
               
               <Card className="rounded-[2.5rem] border-none shadow-xl bg-white p-8">
                 <TabsContent value="description" className="mt-0">
-                  <h3 className="text-xl font-black text-slate-900 mb-4">About this item</h3>
-                  <p className="text-slate-600 leading-relaxed font-medium">
+                  <h3 className="text-xl font-black text-slate-900 mb-4">About this listing</h3>
+                  <p className="text-slate-600 leading-relaxed font-medium whitespace-pre-wrap">
                     {listing.description}
                   </p>
-                  <div className="mt-8 p-6 bg-slate-50 rounded-3xl border border-slate-100 flex gap-4">
+                  
+                  {listing.isBulk && (
+                    <div className="mt-8 p-6 bg-blue-50 rounded-3xl border border-blue-100 flex gap-4">
+                      <Layers className="w-10 h-10 text-[#225BC3] shrink-0" />
+                      <div>
+                        <p className="text-[10px] font-black text-[#225BC3] uppercase tracking-widest mb-1">Bulk Lot Information</p>
+                        <p className="text-[11px] text-blue-700 font-bold leading-relaxed">
+                          This is a bulk lot containing {listing.quantity} items. Please verify the total count and condition of all items before completing the transaction.
+                        </p>
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="mt-4 p-6 bg-slate-50 rounded-3xl border border-slate-100 flex gap-4">
                     <Scale className="w-10 h-10 text-slate-400 shrink-0" />
                     <div>
                       <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">No Platform Warranty</p>
@@ -165,12 +167,20 @@ export default function ListingDetailPage() {
                 
                 <TabsContent value="specs" className="mt-0">
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    {listing.specs.map((s, i) => (
-                      <div key={i} className="flex justify-between p-4 bg-slate-50 rounded-2xl border border-slate-100">
-                        <span className="font-bold text-slate-500 text-xs uppercase tracking-wider">{s.key}</span>
-                        <span className="font-black text-[#225BC3] text-sm">{s.value}</span>
+                    <div className="flex justify-between p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                      <span className="font-bold text-slate-500 text-xs uppercase tracking-wider">Condition</span>
+                      <span className="font-black text-[#225BC3] text-sm">{listing.condition}</span>
+                    </div>
+                    <div className="flex justify-between p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                      <span className="font-bold text-slate-500 text-xs uppercase tracking-wider">Type</span>
+                      <span className="font-black text-[#225BC3] text-sm">{listing.isBulk ? 'Bulk Lot' : 'Single Item'}</span>
+                    </div>
+                    {listing.isBulk && (
+                      <div className="flex justify-between p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                        <span className="font-bold text-slate-500 text-xs uppercase tracking-wider">Quantity</span>
+                        <span className="font-black text-[#225BC3] text-sm">{listing.quantity} Units</span>
                       </div>
-                    ))}
+                    )}
                   </div>
                 </TabsContent>
               </Card>
@@ -182,23 +192,34 @@ export default function ListingDetailPage() {
             <Card className="rounded-[3rem] border-none shadow-2xl bg-white overflow-hidden ring-1 ring-slate-100">
               <div className="bg-[#225BC3] p-8 text-white">
                 <div className="flex justify-between items-start mb-4">
-                   <Badge className="bg-[#34CBED] text-white border-none px-3 uppercase text-[8px] font-black">Protected Hold</Badge>
-                   <div className="text-right">
-                      <p className="text-[10px] font-black uppercase tracking-widest text-white/60 mb-1">Time Left</p>
-                      <p className="text-xl font-black">2h 45m</p>
+                   <div className="flex flex-col gap-2">
+                     <Badge className="bg-[#34CBED] text-white border-none px-3 uppercase text-[8px] font-black w-fit">Protected Hold</Badge>
+                     {listing.isBulk && (
+                       <Badge className="bg-[#FF8C00] text-white border-none px-3 uppercase text-[8px] font-black w-fit flex items-center gap-1">
+                         <Layers className="w-2.5 h-2.5" /> Bulk Lot ({listing.quantity})
+                       </Badge>
+                     )}
                    </div>
+                   {listing.isAuction && (
+                     <div className="text-right">
+                        <p className="text-[10px] font-black uppercase tracking-widest text-white/60 mb-1">Time Left</p>
+                        <p className="text-xl font-black">Ends Soon</p>
+                     </div>
+                   )}
                 </div>
                 <h1 className="text-3xl font-black mb-2">{listing.title}</h1>
                 <p className="text-white/60 text-sm font-bold flex items-center gap-1">
-                  <MapPin className="w-4 h-4" /> {listing.location} ({listing.distance})
+                  <MapPin className="w-4 h-4" /> {listing.location || 'Local'}
                 </p>
               </div>
               
               <CardContent className="p-8 space-y-8">
                 <div className="flex justify-between items-center">
                   <div>
-                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-1">Price</span>
-                    <span className="text-5xl font-black text-[#225BC3]">R {listing.price.toLocaleString()}</span>
+                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-1">
+                      {listing.isAuction ? 'Current Bid' : 'Price'}
+                    </span>
+                    <span className="text-5xl font-black text-[#225BC3]">R {listing.price?.toLocaleString()}</span>
                   </div>
                   <VerifiedBadge />
                 </div>
@@ -212,39 +233,13 @@ export default function ListingDetailPage() {
                     <Button variant="ghost" className="h-14 rounded-2xl bg-slate-50 font-bold text-slate-600" onClick={() => router.push('/messages')}>
                       <MessageSquare className="w-5 h-5 mr-2" /> Chat
                     </Button>
-                    <Dialog open={isBookingOpen} onOpenChange={setIsBookingOpen}>
-                      <DialogTrigger asChild>
-                        <Button variant="ghost" className="h-14 rounded-2xl bg-slate-50 font-bold text-slate-600">
-                          <Calendar className="w-5 h-5 mr-2" /> Book Meet
-                        </Button>
-                      </DialogTrigger>
-                      <DialogContent className="rounded-[3rem] border-none p-0 overflow-hidden">
-                        <div className="bg-[#225BC3] p-8 text-white">
-                          <DialogTitle className="text-2xl font-black">Book Safe Meetup</DialogTitle>
-                          <DialogDescription className="font-bold text-white/60 text-xs mt-1">Select a vetted public meeting point.</DialogDescription>
-                        </div>
-                        <div className="p-8 space-y-6">
-                          <div className="space-y-4">
-                            {SAFE_ZONES.map(z => (
-                              <div key={z.id} className="p-5 border-2 border-slate-100 rounded-3xl hover:border-[#34CBED] transition-all cursor-pointer group">
-                                <div className="flex justify-between items-center mb-1">
-                                    <span className="font-black text-slate-900 group-hover:text-[#225BC3] transition-colors">{z.name}</span>
-                                    <Badge className="bg-slate-100 text-slate-500 border-none">{z.distance}</Badge>
-                                </div>
-                                <p className="text-[10px] font-bold text-muted-foreground uppercase">{z.address}</p>
-                              </div>
-                            ))}
-                          </div>
-                          <div className="p-4 bg-orange-50 rounded-2xl border border-orange-100 flex gap-3">
-                            <AlertTriangle className="w-5 h-5 text-orange-600 shrink-0" />
-                            <p className="text-[10px] text-orange-700 font-bold leading-relaxed">
-                              SAFE MEETUP NOTICE: Suggestions are for convenience. Users remain responsible for their own safety and decisions during meetups.
-                            </p>
-                          </div>
-                          <Button className="w-full h-14 bg-[#225BC3] font-black rounded-2xl">Confirm Meeting Point</Button>
-                        </div>
-                      </DialogContent>
-                    </Dialog>
+                    <Button 
+                      variant="ghost" 
+                      className="h-14 rounded-2xl bg-slate-50 font-bold text-slate-600"
+                      onClick={() => setIsBookingOpen(true)}
+                    >
+                      <Calendar className="w-5 h-5 mr-2" /> Book Meet
+                    </Button>
                   </div>
                 </div>
 
@@ -254,7 +249,7 @@ export default function ListingDetailPage() {
                       <h4 className="font-black text-green-800 uppercase text-[10px] tracking-widest">Buyer Responsibility</h4>
                    </div>
                    <p className="text-[10px] text-green-700 leading-relaxed font-bold">
-                     Review listings carefully and inspect items before confirming. Funds are released only after you press "Deal Completed".
+                     {listing.isBulk ? 'This is a multi-item lot. Carefully inspect the quantity and quality of all items.' : 'Review listings carefully and inspect items before confirming.'} Funds are released only after you press "Deal Completed".
                    </p>
                 </div>
               </CardContent>
@@ -268,16 +263,16 @@ export default function ListingDetailPage() {
                     </div>
                     <div>
                       <div className="flex items-center gap-2">
-                         <h3 className="font-black text-xl text-slate-900">{listing.seller.name}</h3>
+                         <h3 className="font-black text-xl text-slate-900">Verified Seller</h3>
                          <VerifiedBadge />
                       </div>
                       <div className="flex items-center gap-2 mt-1">
                          <div className="flex text-yellow-500"><Star className="w-3 h-3 fill-current" /> <Star className="w-3 h-3 fill-current" /> <Star className="w-3 h-3 fill-current" /> <Star className="w-3 h-3 fill-current" /> <Star className="w-3 h-3 fill-current" /></div>
-                         <span className="text-[10px] font-black text-muted-foreground">({listing.seller.reliability}% RELIABILITY)</span>
+                         <span className="text-[10px] font-black text-muted-foreground">(98% RELIABILITY)</span>
                       </div>
                     </div>
                   </div>
-                  <Button variant="ghost" size="icon" className="rounded-2xl h-12 w-12 bg-slate-50" onClick={() => router.push(`/profile/${listing.seller.id}`)}>
+                  <Button variant="ghost" size="icon" className="rounded-2xl h-12 w-12 bg-slate-50" onClick={() => router.push(`/profile/${listing.sellerId}`)}>
                     <ChevronRight className="w-6 h-6" />
                   </Button>
                </div>
@@ -294,13 +289,12 @@ export default function ListingDetailPage() {
               <Lock className="w-8 h-8 text-[#34CBED]" />
               Secure Pay
             </h2>
-            <p className="text-white/60 font-bold mt-2 uppercase text-[9px] tracking-widest leading-tight">Payments are processed by secure third-party providers.</p>
           </div>
           <div className="p-10 space-y-8">
             <div className="bg-slate-50 p-6 rounded-[2rem] border border-slate-100 flex justify-between items-center">
                <div>
                   <p className="text-[10px] font-black text-slate-400 uppercase mb-1">Protection Hold Amount</p>
-                  <p className="text-3xl font-black text-[#225BC3]">R {listing.price.toLocaleString()}</p>
+                  <p className="text-3xl font-black text-[#225BC3]">R {listing.price?.toLocaleString()}</p>
                </div>
                <ShieldCheck className="w-12 h-12 text-green-500" />
             </div>
@@ -334,22 +328,35 @@ export default function ListingDetailPage() {
               </RadioGroup>
             </div>
 
-            <div className="p-4 bg-blue-50/50 rounded-2xl border border-blue-100">
-                <p className="text-[9px] text-blue-800 font-bold leading-relaxed">
-                   PROTECTION HOLD: Funds are placed on a temporary buyer protection hold and released after meetup confirmation.
-                </p>
-            </div>
-
             <Button 
               className="w-full h-18 bg-[#225BC3] text-white font-black rounded-3xl shadow-2xl hover:scale-[1.02] transition-transform text-lg" 
               onClick={handlePayment}
               disabled={isPaying}
             >
-              {isPaying ? "Authorizing..." : `Pay R ${listing.price.toLocaleString()}`}
+              {isPaying ? "Authorizing..." : `Pay R ${listing.price?.toLocaleString()}`}
             </Button>
           </div>
         </DialogContent>
       </Dialog>
     </div>
+  );
+}
+
+function Loader2(props: any) {
+  return (
+    <svg
+      {...props}
+      xmlns="http://www.w3.org/2000/svg"
+      width="24"
+      height="24"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M21 12a9 9 0 1 1-6.219-8.56" />
+    </svg>
   );
 }

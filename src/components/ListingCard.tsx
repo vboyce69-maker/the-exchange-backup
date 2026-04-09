@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 import Image from "next/image";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { MapPin, Star, Zap, ShieldCheck, Gavel, Clock, Heart } from "lucide-react";
+import { MapPin, Star, Zap, ShieldCheck, Gavel, Clock, Heart, Layers } from "lucide-react";
 import { VerifiedBadge } from "./VerifiedBadge";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
@@ -22,6 +22,8 @@ interface ListingCardProps {
   isVerified: boolean;
   isBoosted?: boolean;
   isAuction?: boolean;
+  isBulk?: boolean;
+  quantity?: number;
   auctionEndDate?: string;
 }
 
@@ -36,6 +38,8 @@ export function ListingCard({
   isVerified,
   isBoosted,
   isAuction,
+  isBulk,
+  quantity,
   auctionEndDate,
 }: ListingCardProps) {
   const [timeLeft, setTimeLeft] = useState<string>("");
@@ -91,11 +95,16 @@ export function ListingCard({
                 {timeLeft === "Ended" ? "Ended" : `${timeLeft}`}
               </Badge>
             )}
+            {isBulk && (
+              <Badge className="bg-white/90 backdrop-blur-md text-[#225BC3] font-black border-none shadow-lg px-3 py-1 text-[9px] uppercase tracking-tighter">
+                <Layers className="w-3 h-3 mr-1" />
+                Bulk Lot ({quantity})
+              </Badge>
+            )}
           </div>
         </div>
       </Link>
 
-      {/* FB/eBay Style Watchlist Toggle */}
       <button 
         onClick={(e) => { e.preventDefault(); setIsSaved(!isSaved); }}
         className={cn(

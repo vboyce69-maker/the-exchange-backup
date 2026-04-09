@@ -146,6 +146,14 @@
           "type": "boolean",
           "description": "Indicates if the listing is an auction."
         },
+        "isBulk": {
+          "type": "boolean",
+          "description": "Indicates if the listing is a bulk lot (multiple items)."
+        },
+        "quantity": {
+          "type": "number",
+          "description": "The number of items included in this listing."
+        },
         "isBoosted": {
           "type": "boolean",
           "description": "Indicates if the listing is boosted (monetization)."
@@ -168,6 +176,8 @@
         "postedDate",
         "status",
         "isAuction",
+        "isBulk",
+        "quantity",
         "isBoosted",
         "viewCount"
       ]

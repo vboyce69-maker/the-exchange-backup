@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Switch } from "@/components/ui/switch";
 import { 
   Select, 
   SelectContent, 
@@ -22,19 +23,17 @@ import {
   MapPin, 
   Loader2, 
   X, 
-  CheckCircle2, 
   Zap,
   Package,
   Gavel,
-  TrendingUp,
+  AlertTriangle,
   Info,
-  Scale,
-  AlertTriangle
+  Layers,
+  ImagePlus
 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import Image from "next/image";
-import { cn } from "@/lib/utils";
-import { collection, doc } from "firebase/firestore";
+import { collection } from "firebase/firestore";
 import { useFirestore, useUser } from "@/firebase";
 import { addDocumentNonBlocking } from "@/firebase/non-blocking-updates";
 import { getSellerDemandInsights } from "@/ai/flows/seller-demand-insights";
@@ -62,7 +61,11 @@ export default function CreateListingPage() {
   const [loading, setLoading] = useState(false);
   const [locationDetecting, setLocationDetecting] = useState(false);
   const [location, setLocation] = useState<{ lat: number; lng: number; name: string } | null>(null);
+  
+  // Auction & Bulk States
   const [isAuction, setIsAuction] = useState(false);
+  const [isBulk, setIsBulk] = useState(false);
+  const [quantity, setQuantity] = useState("1");
   const [auctionDuration, setAuctionDuration] = useState("3");
   const [cpaConsent, setCpaConsent] = useState(false);
 
@@ -100,12 +103,12 @@ export default function CreateListingPage() {
   }, [category, location, user]);
 
   const handleImageUpload = () => {
-    if (images.length >= 6) {
-      toast({ variant: "destructive", title: "Limit Reached", description: "You can upload up to 6 photos." });
+    if (images.length >= 10) {
+      toast({ variant: "destructive", title: "Limit Reached", description: "You can upload up to 10 photos." });
       return;
     }
-    const nextId = images.length + 1;
-    const newImage = `https://picsum.photos/seed/upload-${nextId}/600/400`;
+    const nextId = Date.now();
+    const newImage = `https://picsum.photos/seed/${nextId}/800/600`;
     setImages([...images, newImage]);
   };
 
@@ -163,6 +166,8 @@ export default function CreateListingPage() {
       auctionEndDate: isAuction ? endDate.toISOString() : null,
       status: isAuction ? "auction_active" : "available",
       isAuction,
+      isBulk,
+      quantity: parseInt(quantity),
       viewCount: 0,
       isBoosted: false,
       negotiable: !isAuction,
@@ -187,22 +192,36 @@ export default function CreateListingPage() {
       <Navigation />
       <main className="container mx-auto px-4 py-8 lg:py-12 flex justify-center">
         <div className="w-full max-w-xl">
-          <div className="mb-8 flex items-center justify-between">
-            <div>
-              <h1 className="text-3xl font-black text-[#225BC3]">Sell an Item</h1>
-              <p className="text-muted-foreground text-sm font-medium">List your items in the premium exchange.</p>
-            </div>
+          <div className="mb-8">
+            <h1 className="text-3xl font-black text-[#225BC3]">Create Listing</h1>
+            <p className="text-muted-foreground text-sm font-medium">Add multiple items or single premium goods.</p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-6">
+            {/* Multi-Image Section */}
             <div className="space-y-4">
               <div className="flex items-center justify-between">
-                <Label className="text-sm font-black uppercase tracking-widest text-muted-foreground">Photos ({images.length}/6)</Label>
+                <Label className="text-xs font-black uppercase tracking-widest text-[#225BC3]">
+                  Item Photos ({images.length}/10)
+                </Label>
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Info className="w-4 h-4 text-slate-400 cursor-help" />
+                    </TooltipTrigger>
+                    <TooltipContent className="bg-white border rounded-xl p-3 shadow-xl max-w-[200px]">
+                      <p className="text-[10px] font-bold leading-tight">Better photos increase sales by 40%. For bulk lots, include a photo of all items together.</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
               </div>
-              <div className="grid grid-cols-3 gap-3">
+              <div className="grid grid-cols-3 sm:grid-cols-4 gap-3">
                 {images.map((img, i) => (
                   <div key={i} className="relative aspect-square rounded-[1.5rem] overflow-hidden border-2 border-white bg-white shadow-md group">
                     <Image src={img} alt="listing" fill className="object-cover" />
+                    {i === 0 && (
+                      <div className="absolute top-1 left-1 bg-[#225BC3] text-white px-2 py-0.5 rounded-full text-[8px] font-black uppercase shadow-lg">Primary</div>
+                    )}
                     <button 
                       type="button"
                       onClick={() => removeImage(i)}
@@ -212,13 +231,13 @@ export default function CreateListingPage() {
                     </button>
                   </div>
                 ))}
-                {images.length < 6 && (
+                {images.length < 10 && (
                   <button
                     type="button"
                     onClick={handleImageUpload}
                     className="aspect-square rounded-[1.5rem] border-2 border-dashed border-[#225BC3]/20 bg-white hover:bg-[#225BC3]/5 hover:border-[#225BC3]/40 transition-all flex flex-col items-center justify-center gap-1"
                   >
-                    <Camera className="w-6 h-6 text-[#225BC3]" />
+                    <ImagePlus className="w-6 h-6 text-[#225BC3]" />
                     <span className="text-[10px] font-black text-[#225BC3] uppercase">Add Photo</span>
                   </button>
                 )}
@@ -228,15 +247,45 @@ export default function CreateListingPage() {
             <Card className="rounded-[2.5rem] border-none shadow-xl bg-white ring-1 ring-[#225BC3]/5">
               <CardContent className="p-8 space-y-6">
                 <div className="space-y-2">
-                  <Label htmlFor="title" className="font-black text-[#225BC3] uppercase text-[10px] tracking-widest">Title</Label>
+                  <Label htmlFor="title" className="font-black text-[#225BC3] uppercase text-[10px] tracking-widest">Listing Title</Label>
                   <Input 
                     id="title" 
-                    placeholder="e.g. Samsung 55” TV" 
+                    placeholder="e.g. Job Lot of 10 Samsung TVs" 
                     required 
                     className="h-14 rounded-2xl bg-slate-50 border-none font-bold"
                     value={title}
                     onChange={(e) => setTitle(e.target.value)}
                   />
+                </div>
+
+                {/* Bulk Lot Features */}
+                <div className="p-6 bg-slate-50 rounded-[2rem] border border-slate-100 space-y-6">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-xl bg-white flex items-center justify-center shadow-sm text-[#225BC3]">
+                        <Layers className="w-5 h-5" />
+                      </div>
+                      <div>
+                        <span className="font-black text-[#225BC3] block uppercase text-[10px] tracking-widest leading-none mb-1">Bulk Lot</span>
+                        <span className="text-[9px] text-muted-foreground font-bold">Selling multiple items together?</span>
+                      </div>
+                    </div>
+                    <Switch checked={isBulk} onCheckedChange={setIsBulk} />
+                  </div>
+
+                  {isBulk && (
+                    <div className="space-y-2 animate-in fade-in slide-in-from-top-2">
+                      <Label htmlFor="qty" className="font-black text-[#225BC3] uppercase text-[10px] tracking-widest">Total Items in Lot</Label>
+                      <Input 
+                        id="qty" 
+                        type="number" 
+                        min="1"
+                        className="h-12 rounded-xl bg-white border-none font-black"
+                        value={quantity}
+                        onChange={(e) => setQuantity(e.target.value)}
+                      />
+                    </div>
+                  )}
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
@@ -288,7 +337,7 @@ export default function CreateListingPage() {
                   <Label htmlFor="desc" className="font-black text-[#225BC3] uppercase text-[10px] tracking-widest">Description</Label>
                   <Textarea 
                     id="desc" 
-                    placeholder="Tell us about your item..." 
+                    placeholder="Provide details about the item(s). For lots, list exactly what is included." 
                     className="min-h-[120px] rounded-2xl bg-slate-50 border-none resize-none font-medium p-4"
                     required
                     value={description}
@@ -298,7 +347,7 @@ export default function CreateListingPage() {
               </CardContent>
             </Card>
 
-            <Card className="rounded-[2.5rem] border-none shadow-xl bg-white overflow-hidden ring-1 ring-[#225BC3]/5">
+            <Card className="rounded-[2.5rem] border-none shadow-xl bg-white ring-1 ring-[#225BC3]/5">
               <CardContent className="p-8 space-y-6">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
@@ -324,10 +373,10 @@ export default function CreateListingPage() {
                 <div className="pt-6 border-t space-y-6">
                   <div className="p-5 bg-orange-50 rounded-[2rem] border border-orange-100 space-y-3">
                     <h4 className="font-black text-orange-700 uppercase text-[10px] tracking-widest flex items-center gap-2">
-                      <AlertTriangle className="w-3 h-3" /> Prohibited Items
+                      <AlertTriangle className="w-3 h-3" /> Marketplace Rules
                     </h4>
                     <p className="text-[9px] font-bold text-orange-600 leading-tight">
-                      You may NOT list stolen goods, counterfeit brands, unlawful substances, or dangerous weapons. We report suspicious behavior to SAPS.
+                      Stolen or counterfeit goods are banned. We support SAPS in investigating high-value theft. All lots are subject to manual review.
                     </p>
                   </div>
 
@@ -340,7 +389,7 @@ export default function CreateListingPage() {
                         onCheckedChange={(checked) => setCpaConsent(checked === true)}
                       />
                       <label htmlFor="cpa" className="text-[10px] font-bold text-[#225BC3] leading-relaxed cursor-pointer">
-                        SELLER DECLARATION: By posting this listing, I confirm that I am the legal owner of this item; it is not stolen or counterfeit; and the description/price are accurate. I acknowledge my liability under the Consumer Protection Act (2008) for misrepresentation.
+                        I confirm ownership and accuracy of this listing (including all items in bulk lots). I am aware of my liability under the CPA (2008).
                       </label>
                     </div>
                   </div>
@@ -358,7 +407,7 @@ export default function CreateListingPage() {
               ) : (
                 <span className="flex items-center gap-2">
                   <Package className="w-5 h-5" />
-                  Post to The Exchange
+                  List on The Exchange
                 </span>
               )}
             </Button>
