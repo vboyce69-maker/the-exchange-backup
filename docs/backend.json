@@ -181,6 +181,24 @@
         "isBoosted",
         "viewCount"
       ]
+    },
+    "Review": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Review",
+      "type": "object",
+      "description": "A review left by a buyer for a seller after a completed transaction.",
+      "properties": {
+        "id": { "type": "string" },
+        "sellerId": { "type": "string" },
+        "buyerId": { "type": "string" },
+        "buyerName": { "type": "string" },
+        "listingId": { "type": "string" },
+        "listingTitle": { "type": "string" },
+        "rating": { "type": "number", "minimum": 1, "maximum": 5 },
+        "comment": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "sellerId", "buyerId", "rating", "comment", "createdAt"]
     }
   },
   "auth": {
@@ -202,6 +220,14 @@
           "entityName": "ProductListing",
           "schema": { "$ref": "#/backend/entities/ProductListing" },
           "description": "Active and sold product listings."
+        }
+      },
+      {
+        "path": "/userProfiles/{userId}/reviews/{reviewId}",
+        "definition": {
+          "entityName": "Review",
+          "schema": { "$ref": "#/backend/entities/Review" },
+          "description": "Buyer reviews for a specific seller."
         }
       }
     ]

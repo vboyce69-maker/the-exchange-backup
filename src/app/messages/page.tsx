@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Textarea } from "@/components/ui/textarea";
 import { 
   ShieldAlert, 
   Send, 
@@ -26,7 +27,8 @@ import {
   ArrowRightLeft,
   Home,
   Shield,
-  Loader2
+  Loader2,
+  Star
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { VerifiedBadge } from "@/components/VerifiedBadge";
@@ -42,8 +44,9 @@ import {
 } from "@/components/ui/dialog";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useUser, useDoc, useFirestore, useMemoFirebase } from "@/firebase";
-import { doc } from "firebase/firestore";
+import { doc, collection } from "firebase/firestore";
 import { Progress } from "@/components/ui/progress";
+import { addDocumentNonBlocking } from "@/firebase/non-blocking-updates";
 
 interface Message {
   id: string;
@@ -78,11 +81,19 @@ export default function MessagesPage() {
   const [showFeedback, setShowFeedback] = useState(false);
   const [isEscrowActive, setIsEscrowActive] = useState(true);
   
+  // Review State
+  const [rating, setRating] = useState(0);
+  const [reviewComment, setReviewComment] = useState("");
+  const [isSubmittingReview, setIsSubmittingReview] = useState(false);
+
   const [meetingRequest, setMeetingRequest] = useState({
     status: 'pending', // 'pending', 'accepted', 'way', 'arrived', 'completed'
     location: "Shell Garage Main Road",
     time: "Tomorrow 13:00",
     requester: "Alex Rivera",
+    sellerId: "seller_123", // Simulated
+    listingId: "listing_123",
+    listingTitle: "Premium Mountain Bike",
     myStatus: 'idle',
   });
 
@@ -177,6 +188,38 @@ export default function MessagesPage() {
       description: "You've checked in as safe. Reliability score boosted!",
     });
     setShowFeedback(true);
+  };
+
+  const submitReview = () => {
+    if (rating === 0 || !reviewComment.trim()) {
+      toast({ variant: "destructive", title: "Incomplete", description: "Please provide a rating and a comment." });
+      return;
+    }
+
+    setIsSubmittingReview(true);
+    
+    const reviewData = {
+      sellerId: meetingRequest.sellerId,
+      buyerId: user?.uid || "anon",
+      buyerName: user?.displayName || "Verified Buyer",
+      listingId: meetingRequest.listingId,
+      listingTitle: meetingRequest.listingTitle,
+      rating: rating,
+      comment: reviewComment,
+      createdAt: new Date().toISOString()
+    };
+
+    const reviewsCol = collection(db, "userProfiles", meetingRequest.sellerId, "reviews");
+    addDocumentNonBlocking(reviewsCol, reviewData);
+
+    setTimeout(() => {
+      setIsSubmittingReview(false);
+      setShowFeedback(false);
+      toast({
+        title: "Review Submitted",
+        description: "Your feedback helps the community stay safe and informed.",
+      });
+    }, 1000);
   };
 
   return (
@@ -346,26 +389,67 @@ export default function MessagesPage() {
       </main>
 
       <Dialog open={showFeedback} onOpenChange={setShowFeedback}>
-        <DialogContent className="rounded-[3rem] border-none p-10">
-          <DialogHeader>
-            <DialogTitle className="text-2xl font-black text-[#225BC3]">How was the trade?</DialogTitle>
-            <DialogDescription className="font-bold">Your feedback affects the seller's reliability score.</DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4 py-6">
-            <div className="flex items-center space-x-3 p-4 rounded-2xl bg-slate-50 border-2 border-transparent hover:border-[#225BC3] cursor-pointer">
-              <Checkbox id="smooth" />
-              <label htmlFor="smooth" className="text-sm font-bold cursor-pointer">Smooth trade</label>
+        <DialogContent className="rounded-[3rem] border-none p-0 overflow-hidden shadow-2xl max-w-md">
+          <div className="bg-[#225BC3] p-8 text-white text-center">
+            <div className="w-16 h-16 bg-white/10 rounded-2xl flex items-center justify-center mx-auto mb-4">
+              <ThumbsUp className="w-8 h-8 text-[#34CBED]" />
             </div>
-            <div className="flex items-center space-x-3 p-4 rounded-2xl bg-slate-50 border-2 border-transparent hover:border-[#225BC3] cursor-pointer">
-              <Checkbox id="match" />
-              <label htmlFor="match" className="text-sm font-bold cursor-pointer">Item matched description</label>
+            <DialogTitle className="text-2xl font-black uppercase tracking-tighter">Rate your Trade</DialogTitle>
+            <DialogDescription className="text-white/60 font-bold mt-2">Your review helps keep The Exchange safe.</DialogDescription>
+          </div>
+          
+          <div className="p-8 space-y-8">
+            <div className="flex justify-center gap-2">
+              {[1, 2, 3, 4, 5].map((s) => (
+                <button 
+                  key={s} 
+                  onClick={() => setRating(s)}
+                  className="transition-transform hover:scale-110 active:scale-95"
+                >
+                  <Star 
+                    className={cn(
+                      "w-10 h-10 transition-colors", 
+                      rating >= s ? "text-[#FF8C00] fill-current" : "text-slate-200"
+                    )} 
+                  />
+                </button>
+              ))}
             </div>
-            <div className="flex items-center space-x-3 p-4 rounded-2xl bg-slate-50 border-2 border-transparent hover:border-[#225BC3] cursor-pointer">
-              <Checkbox id="friendly" />
-              <label htmlFor="friendly" className="text-sm font-bold cursor-pointer">Seller was friendly</label>
+
+            <div className="space-y-4">
+               <Label className="font-black text-[10px] uppercase tracking-widest text-[#225BC3] ml-2">Tell us about the item & experience</Label>
+               <Textarea 
+                placeholder="e.g. Item was exactly as described, seller was punctual and friendly. Highly recommend!" 
+                className="min-h-[120px] rounded-2xl bg-slate-50 border-none font-medium resize-none p-4"
+                value={reviewComment}
+                onChange={(e) => setReviewComment(e.target.value)}
+               />
+            </div>
+
+            <div className="space-y-3">
+              <Button 
+                className="w-full h-14 bg-[#225BC3] font-black rounded-2xl shadow-xl hover:scale-[1.02] transition-transform" 
+                onClick={submitReview}
+                disabled={isSubmittingReview}
+              >
+                {isSubmittingReview ? <Loader2 className="w-5 h-5 animate-spin" /> : "Post Review"}
+              </Button>
+              <Button 
+                variant="ghost" 
+                className="w-full font-bold text-slate-400" 
+                onClick={() => setShowFeedback(false)}
+              >
+                Skip for now
+              </Button>
+            </div>
+
+            <div className="p-4 bg-blue-50/50 rounded-2xl border border-blue-100 flex gap-3">
+               <ShieldCheck className="w-5 h-5 text-[#225BC3] shrink-0" />
+               <p className="text-[9px] text-blue-700 font-bold leading-tight">
+                 Verified reviews are the foundation of our high-trust marketplace. Thank you for contributing!
+               </p>
             </div>
           </div>
-          <Button className="w-full h-14 bg-[#225BC3] font-black rounded-2xl" onClick={() => setShowFeedback(false)}>Submit Feedback</Button>
         </DialogContent>
       </Dialog>
     </div>
