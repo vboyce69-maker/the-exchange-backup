@@ -14,7 +14,8 @@ import {
   Home,
   LogOut,
   UserCircle,
-  Scale
+  Scale,
+  LogIn
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
@@ -25,11 +26,21 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { useUser } from "@/firebase";
+import { useUser, useAuth } from "@/firebase";
+import { signOut } from "firebase/auth";
 
 export function Navigation() {
   const pathname = usePathname();
   const { user } = useUser();
+  const auth = useAuth();
+
+  const handleSignOut = async () => {
+    try {
+      await signOut(auth);
+    } catch (error) {
+      console.error("Sign out error", error);
+    }
+  };
 
   const navItems = [
     { name: "Browse", href: "/", icon: Home },
@@ -76,59 +87,66 @@ export function Navigation() {
             </Button>
           </Link>
 
-          {/* User Dropdown */}
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button size="icon" variant="ghost" className="rounded-2xl h-11 w-11 bg-slate-50 overflow-hidden border border-slate-100">
-                {user?.photoURL ? (
-                  <img src={user.photoURL} alt="user" className="w-full h-full object-cover" />
-                ) : (
-                  <User className="w-5 h-5 text-[#225BC3]" />
-                )}
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-64 rounded-[2rem] p-3 shadow-2xl border-none ring-1 ring-black/5 mt-2 bg-white">
-              <DropdownMenuLabel className="font-black text-[10px] uppercase tracking-widest text-muted-foreground px-4 py-3">Your Account</DropdownMenuLabel>
-              <DropdownMenuSeparator className="bg-slate-100" />
-              
-              {/* Mobile-only nav items inside dropdown */}
-              <div className="lg:hidden">
-                {navItems.map((item) => (
-                  <DropdownMenuItem key={item.href} className="rounded-xl p-3 font-bold gap-3 focus:bg-[#225BC3]/5 focus:text-[#225BC3]" asChild>
-                    <Link href={item.href}>
-                      <item.icon className="w-4 h-4" />
-                      {item.name}
-                    </Link>
-                  </DropdownMenuItem>
-                ))}
+          {user ? (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button size="icon" variant="ghost" className="rounded-2xl h-11 w-11 bg-slate-50 overflow-hidden border border-slate-100">
+                  {user.photoURL ? (
+                    <img src={user.photoURL} alt="user" className="w-full h-full object-cover" />
+                  ) : (
+                    <User className="w-5 h-5 text-[#225BC3]" />
+                  )}
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-64 rounded-[2rem] p-3 shadow-2xl border-none ring-1 ring-black/5 mt-2 bg-white">
+                <DropdownMenuLabel className="font-black text-[10px] uppercase tracking-widest text-muted-foreground px-4 py-3">Your Account</DropdownMenuLabel>
                 <DropdownMenuSeparator className="bg-slate-100" />
-              </div>
+                
+                <div className="lg:hidden">
+                  {navItems.map((item) => (
+                    <DropdownMenuItem key={item.href} className="rounded-xl p-3 font-bold gap-3 focus:bg-[#225BC3]/5 focus:text-[#225BC3]" asChild>
+                      <Link href={item.href}>
+                        <item.icon className="w-4 h-4" />
+                        {item.name}
+                      </Link>
+                    </DropdownMenuItem>
+                  ))}
+                  <DropdownMenuSeparator className="bg-slate-100" />
+                </div>
 
-              <DropdownMenuItem className="rounded-xl p-3 font-bold gap-3 focus:bg-[#225BC3]/5 focus:text-[#225BC3] cursor-pointer" asChild>
-                <Link href={user ? `/profile/${user.uid}` : "/verify"}>
-                  <UserCircle className="w-4 h-4" />
-                  My Profile
-                </Link>
-              </DropdownMenuItem>
-              <DropdownMenuItem className="rounded-xl p-3 font-bold gap-3 focus:bg-[#225BC3]/5 focus:text-[#225BC3] cursor-pointer" asChild>
-                <Link href="/verify">
-                  <ShieldCheck className="w-4 h-4 text-[#34CBED]" />
-                  Get Verified
-                </Link>
-              </DropdownMenuItem>
-              <DropdownMenuItem className="rounded-xl p-3 font-bold gap-3 focus:bg-[#225BC3]/5 focus:text-[#225BC3] cursor-pointer" asChild>
-                 <Link href="/legal">
-                  <Scale className="w-4 h-4" />
-                  Legal Hub (CPA/POPIA)
-                </Link>
-              </DropdownMenuItem>
-              <DropdownMenuSeparator className="bg-slate-100" />
-              <DropdownMenuItem className="rounded-xl p-3 font-bold gap-3 text-red-500 focus:bg-red-50 focus:text-red-600 cursor-pointer">
-                <LogOut className="w-4 h-4" />
-                Sign Out
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+                <DropdownMenuItem className="rounded-xl p-3 font-bold gap-3 focus:bg-[#225BC3]/5 focus:text-[#225BC3] cursor-pointer" asChild>
+                  <Link href={`/profile/${user.uid}`}>
+                    <UserCircle className="w-4 h-4" />
+                    My Profile
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem className="rounded-xl p-3 font-bold gap-3 focus:bg-[#225BC3]/5 focus:text-[#225BC3] cursor-pointer" asChild>
+                  <Link href="/verify">
+                    <ShieldCheck className="w-4 h-4 text-[#34CBED]" />
+                    Get Verified
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem className="rounded-xl p-3 font-bold gap-3 focus:bg-[#225BC3]/5 focus:text-[#225BC3] cursor-pointer" asChild>
+                   <Link href="/legal">
+                    <Scale className="w-4 h-4" />
+                    Legal Hub (CPA/POPIA)
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator className="bg-slate-100" />
+                <DropdownMenuItem onClick={handleSignOut} className="rounded-xl p-3 font-bold gap-3 text-red-500 focus:bg-red-50 focus:text-red-600 cursor-pointer">
+                  <LogOut className="w-4 h-4" />
+                  Sign Out
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          ) : (
+            <Link href="/login">
+              <Button variant="ghost" className="rounded-2xl h-11 font-black uppercase text-[10px] tracking-widest text-[#225BC3] gap-2">
+                <LogIn className="w-4 h-4" />
+                Sign In
+              </Button>
+            </Link>
+          )}
         </div>
       </div>
     </nav>

@@ -1,33 +1,7 @@
+
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-
-    /**
-     * LOCALBID EXCHANGE SECURITY RULES
-     *
-     * CORE PHILOSOPHY:
-     * This ruleset implements a robust, owner-centric authorization model designed for a local marketplace. 
-     * It prioritizes "Authorization Independence" by ensuring that most security decisions can be made 
-     * using only the document's data and the user's authentication state, minimizing the need for 
-     * expensive cross-document lookups (get() calls).
-     *
-     * DATA STRUCTURE:
-     * - Top-level collections: userProfiles, categories, publicListings, conversations, transactions, reports, roles_admin.
-     * - Nested collections: Draft listings, bids, messages, and meeting suggestions are stored as subcollections 
-     *   to maintain a strict hierarchy and simplify ownership logic.
-     *
-     * KEY SECURITY DECISIONS:
-     * 1. RELATIONAL INTEGRITY: We enforce that internal 'ID' or 'ownerID' fields match the Firestore 
-     *    path parameters during creation to prevent data spoofing.
-     * 2. STRUCTURAL SEGREGATION: Private drafts are kept in user-specific subcollections, 
-     *    while active listings are moved to a global public collection for easier discovery.
-     * 3. SHARED COLLABORATION: Conversations and bidding use denormalized membership maps or 
-     *    ID fields (e.g., user1Id, user2Id) to allow multi-party access without complex queries.
-     * 4. PROTOTYPING FLEXIBILITY: While access is strictly controlled, we do not enforce 
-     *    strict data types or schema shapes (beyond relational IDs) to allow for rapid development.
-     */
-
-    // --- Helper Functions ---
 
     function isSignedIn() {
       return request.auth != null;
@@ -41,33 +15,18 @@ service cloud.firestore {
       return isSignedIn() && exists(/databases/$(database)/documents/roles_admin/$(request.auth.uid));
     }
 
-    // Helper for update/delete to ensure document exists and user owns it
     function isExistingOwner(userId) {
       return resource != null && isOwner(userId);
     }
 
     // --- Rules ---
 
-    /**
-     * @description Rules for global admin marker collection. Only readable by signed-in users; writes are strictly prohibited.
-     * @path /roles_admin/{userId}
-     * @allow (get) if any authenticated user is checking roles.
-     * @deny (write) No user can grant themselves admin privileges via the client.
-     * @principle System-level role management.
-     */
     match /roles_admin/{userId} {
       allow get: if isSignedIn();
       allow list: if isAdmin();
-      allow create, update, delete: if false; 
+      allow write: if false; 
     }
 
-    /**
-     * @description Manages user profiles. Owners can manage their data; others can view public profiles.
-     * @path /userProfiles/{userId}
-     * @allow (create) If authenticated UID matches document path and internal ID field.
-     * @deny (update) If user tries to change another user's profile.
-     * @principle Self-creation and ownership for core user data.
-     */
     match /userProfiles/{userId} {
       allow get, list: if isSignedIn();
       allow create: if isOwner(userId) && request.resource.data.id == userId;
@@ -75,38 +34,19 @@ service cloud.firestore {
       allow delete: if isExistingOwner(userId) || isAdmin();
     }
 
-    /**
-     * @description Global product categories. Read-only for public; write-only for admins.
-     * @path /categories/{categoryId}
-     * @allow (get/list) Publicly readable.
-     * @deny (create/update/delete) If not an administrator.
-     * @principle Global reference data protection.
-     */
     match /categories/{categoryId} {
       allow read: if true;
       allow create, update, delete: if isAdmin();
     }
 
-    /**
-     * @description Publicly visible product listings. Owner-managed writes.
-     * @path /publicListings/{listingId}
-     * @allow (create) If sellerId in data matches the authenticated user.
-     * @deny (update) If the sellerId is changed or updated by someone else.
-     * @principle Public consumption with owner-only modifications.
-     */
     match /publicListings/{listingId} {
-      allow read: if true;
+      // Allow everyone (authenticated or not) to read and list public listings
+      allow read, list: if true;
+      
       allow create: if isSignedIn() && request.resource.data.sellerId == request.auth.uid;
       allow update: if isExistingOwner(resource.data.sellerId) && request.resource.data.sellerId == resource.data.sellerId;
       allow delete: if isExistingOwner(resource.data.sellerId) || isAdmin();
 
-      /**
-       * @description Bids for auction items. Visible to the seller and the bidder.
-       * @path /publicListings/{listingId}/bids/{bidId}
-       * @allow (get/list) If user is the bidder or the seller of the parent listing.
-       * @deny (create) If bidderId doesn't match the current user.
-       * @principle Shared access based on denormalized relationship IDs.
-       */
       match /bids/{bidId} {
         allow get, list: if isSignedIn() && (isOwner(resource.data.bidderId) || isOwner(resource.data.listingSellerId));
         allow create: if isSignedIn() && request.resource.data.bidderId == request.auth.uid;
@@ -115,13 +55,6 @@ service cloud.firestore {
       }
     }
 
-    /**
-     * @description Private user-specific subcollections (Drafts, Blocks, Boosts).
-     * @path /userProfiles/{userId}/[subcollection]
-     * @allow (all) Only if the authenticated user matches the parent userId.
-     * @deny (all) Any attempt to access another user's private subcollections.
-     * @principle Subcollection ownership for private user-scoped data.
-     */
     match /userProfiles/{userId}/draftListings/{listingId} {
       allow read, write: if isOwner(userId);
     }
@@ -134,13 +67,6 @@ service cloud.firestore {
       allow read, write: if isOwner(userId);
     }
 
-    /**
-     * @description Reviews posted on a seller's profile.
-     * @path /userProfiles/{sellerId}/reviews/{reviewId}
-     * @allow (read) Publicly readable.
-     * @deny (create) If the reviewerId in the data doesn't match the sender.
-     * @principle Public feedback with verified reviewer ownership.
-     */
     match /userProfiles/{sellerId}/reviews/{reviewId} {
       allow read: if true;
       allow create: if isSignedIn() && request.resource.data.reviewerId == request.auth.uid;
@@ -148,30 +74,16 @@ service cloud.firestore {
       allow delete: if isExistingOwner(resource.data.reviewerId) || isAdmin();
     }
 
-    /**
-     * @description Messaging threads between two users.
-     * @path /conversations/{conversationId}
-     * @allow (get/list/update) If user is either user1Id or user2Id.
-     * @deny (create) If the user is not participating in the conversation.
-     * @principle Collaborative access for shared communications.
-     */
     match /conversations/{conversationId} {
       allow read: if isSignedIn() && (isOwner(resource.data.user1Id) || isOwner(resource.data.user2Id));
       allow create: if isSignedIn() && (request.resource.data.user1Id == request.auth.uid || request.resource.data.user2Id == request.auth.uid);
       allow update: if isSignedIn() && (isOwner(resource.data.user1Id) || isOwner(resource.data.user2Id));
       allow delete: if isAdmin();
 
-      /**
-       * @description Messages and Meeting Suggestions within a conversation.
-       * @path /conversations/{conversationId}/[subcollection]
-       * @allow (read) If user is part of the conversation (via denormalized participant map).
-       * @deny (create) If user is not a participant.
-       * @principle Denormalized membership check for performant subcollection access.
-       */
       match /messages/{messageId} {
         allow read: if isSignedIn() && request.auth.uid in resource.data.conversationParticipants.keys();
         allow create: if isSignedIn() && request.auth.uid in request.resource.data.conversationParticipants.keys();
-        allow update, delete: if false; // Messages are usually immutable or admin-deleted
+        allow update, delete: if false;
       }
 
       match /meetingPointSuggestions/{suggestionId} {
@@ -182,26 +94,12 @@ service cloud.firestore {
       }
     }
 
-    /**
-     * @description Purchase transactions.
-     * @path /transactions/{transactionId}
-     * @allow (get/list) If user is the buyerId or sellerId.
-     * @deny (write) If user is not one of the parties; typically handled by system/admin.
-     * @principle Multi-party ownership for financial records.
-     */
     match /transactions/{transactionId} {
       allow get, list: if isSignedIn() && (isOwner(resource.data.buyerId) || isOwner(resource.data.sellerId));
       allow create, update: if isSignedIn() && (request.resource.data.buyerId == request.auth.uid || request.resource.data.sellerId == request.auth.uid);
       allow delete: if isAdmin();
     }
 
-    /**
-     * @description User reports for moderation.
-     * @path /reports/{reportId}
-     * @allow (get) If user is the reporter or an admin.
-     * @deny (list) For non-admins to prevent bulk report viewing.
-     * @principle Reporter ownership with restricted administrative visibility.
-     */
     match /reports/{reportId} {
       allow get: if isExistingOwner(resource.data.reporterId) || isAdmin();
       allow list: if isAdmin();

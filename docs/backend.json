@@ -70,11 +70,8 @@
       "required": [
         "id",
         "username",
-        "email",
         "firstName",
         "lastName",
-        "locationLatitude",
-        "locationLongitude",
         "isIdVerified",
         "totalSalesCount",
         "reliabilityScore",
