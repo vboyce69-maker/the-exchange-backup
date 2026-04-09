@@ -72,7 +72,7 @@ export default function LandingPage() {
     <div className="min-h-screen bg-[#F8FAFC]">
       <Navigation />
       
-      {/* Hero Section - Amazon/Takealot Visual Impact */}
+      {/* Hero Section */}
       <section className="relative h-[65vh] flex items-center overflow-hidden bg-[#225BC3]">
         <div className="absolute inset-0 opacity-25">
            <Image 
@@ -89,7 +89,7 @@ export default function LandingPage() {
               <Sparkles className="w-4 h-4 text-[#34CBED]" />
               <span className="text-[10px] font-black uppercase tracking-widest">South Africa's Trusted Marketplace</span>
             </div>
-            <h1 className="text-3xl md:text-5xl font-black leading-[1.1] tracking-tighter">
+            <h1 className="text-2xl md:text-4xl font-black leading-[1.1] tracking-tighter">
               The smartest way to <span className="text-[#34CBED]">trade locally.</span>
             </h1>
             <p className="text-xl text-white/80 font-black max-w-lg tracking-tight leading-relaxed">
@@ -130,7 +130,6 @@ export default function LandingPage() {
       </section>
 
       <main className="container mx-auto px-6 py-12">
-        {/* Amazon-style Category Grid */}
         <section className="mb-16 -mt-24 relative z-30">
           <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-4">
             {CATEGORIES.map((cat) => {
@@ -153,7 +152,6 @@ export default function LandingPage() {
           </div>
         </section>
 
-        {/* Facebook Marketplace style Local Search & Radius */}
         <section className="bg-white p-8 rounded-[3rem] shadow-xl border border-slate-100 flex flex-col lg:flex-row items-center gap-8 mb-16">
           <div className="flex-1 w-full space-y-4">
             <h3 className="font-black text-[#225BC3] uppercase text-[10px] tracking-[0.2em]">Nearby Discovery</h3>
@@ -194,7 +192,6 @@ export default function LandingPage() {
           </div>
         </section>
 
-        {/* Trending Section - Takealot style */}
         <section className="mb-16">
           <div className="flex items-center justify-between mb-10">
             <div className="flex items-center gap-4">
@@ -246,7 +243,6 @@ export default function LandingPage() {
           )}
         </section>
 
-        {/* Confidence Banner */}
         <section className="mb-16">
           <div className="bg-[#225BC3] rounded-[4rem] p-16 text-white relative overflow-hidden shadow-2xl shadow-[#225BC3]/20">
              <div className="absolute -right-20 -top-20 w-80 h-80 bg-white/5 rounded-full blur-3xl" />

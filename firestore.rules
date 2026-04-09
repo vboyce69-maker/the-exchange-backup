@@ -18,10 +18,9 @@ service cloud.firestore {
 
     // --- Rules ---
 
-    // Marketplace Transparency: Public listings are readable by anyone
+    // Marketplace Transparency: Public listings are readable by anyone (authenticated or not)
     match /publicListings/{listingId} {
-      // Explicitly allow read and list for everyone to prevent permission errors on landing/search pages
-      allow read, list: if true;
+      allow read: if true;
       
       // Mutations require authentication and ownership
       allow create: if isSignedIn() && request.resource.data.sellerId == request.auth.uid;
