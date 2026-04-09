@@ -88,11 +88,16 @@ export default function CreateListingPage() {
             currentListingsCategories: [category],
             sellerLocation: { latitude: location!.lat, longitude: location!.lng }
           });
-          const optimal = insights.optimalListingCategories.find(c => c.categoryName.toLowerCase().includes(category.toLowerCase()));
-          if (optimal && optimal.demandScore > 80) {
-            setAiSuggestion(`High Demand! 1-day auction recommended for this category in your area.`);
-          } else {
-            setAiSuggestion(`Standard demand. 3-7 day listing recommended.`);
+          
+          if (insights?.optimalListingCategories) {
+            const optimal = insights.optimalListingCategories.find(c => 
+              c.categoryName.toLowerCase().includes(category.toLowerCase())
+            );
+            if (optimal && optimal.demandScore > 80) {
+              setAiSuggestion(`High Demand! 1-day auction recommended for this category in your area.`);
+            } else {
+              setAiSuggestion(`Standard demand. 3-7 day listing recommended.`);
+            }
           }
         } catch (e) {
           console.error("AI Insight failed", e);
@@ -218,7 +223,7 @@ export default function CreateListingPage() {
               <div className="grid grid-cols-3 sm:grid-cols-4 gap-3">
                 {images.map((img, i) => (
                   <div key={i} className="relative aspect-square rounded-[1.5rem] overflow-hidden border-2 border-white bg-white shadow-md group">
-                    <Image src={img} alt="listing" fill className="object-cover" />
+                    <Image src={img} alt="listing" fill className="object-cover" data-ai-hint="product image" />
                     {i === 0 && (
                       <div className="absolute top-1 left-1 bg-[#225BC3] text-white px-2 py-0.5 rounded-full text-[8px] font-black uppercase shadow-lg">Primary</div>
                     )}
@@ -243,6 +248,13 @@ export default function CreateListingPage() {
                 )}
               </div>
             </div>
+
+            {aiSuggestion && (
+              <div className="bg-[#34CBED]/10 p-4 rounded-2xl border border-[#34CBED]/20 flex items-center gap-3 animate-in fade-in slide-in-from-left-4">
+                <Zap className="w-5 h-5 text-[#34CBED] shrink-0" />
+                <p className="text-xs font-bold text-[#225BC3]">{aiSuggestion}</p>
+              </div>
+            )}
 
             <Card className="rounded-[2.5rem] border-none shadow-xl bg-white ring-1 ring-[#225BC3]/5">
               <CardContent className="p-8 space-y-6">

@@ -2,6 +2,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { Navigation } from "@/components/Navigation";
 import { ListingCard } from "@/components/ListingCard";
 import { Button } from "@/components/ui/button";
@@ -42,7 +43,9 @@ const CATEGORIES = [
 ];
 
 export default function LandingPage() {
+  const router = useRouter();
   const [activeRadius, setActiveRadius] = useState(25);
+  const [searchQuery, setSearchQuery] = useState("");
   const db = useFirestore();
 
   const trendingQuery = useMemoFirebase(() => {
@@ -54,6 +57,13 @@ export default function LandingPage() {
   }, [db]);
 
   const { data: listings, isLoading } = useCollection(trendingQuery);
+
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (searchQuery.trim()) {
+      router.push(`/auctions?q=${encodeURIComponent(searchQuery)}`);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-[#F8FAFC]">
@@ -154,14 +164,16 @@ export default function LandingPage() {
                 ))}
              </div>
           </div>
-          <div className="flex-1 max-w-md w-full relative">
+          <form onSubmit={handleSearch} className="flex-1 max-w-md w-full relative">
              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
              <input 
               type="text" 
               placeholder="Search for items, brands or categories..." 
               className="w-full h-14 pl-12 pr-6 rounded-2xl bg-white border border-slate-100 shadow-sm focus:ring-2 focus:ring-[#225BC3]/10 outline-none font-medium"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
              />
-          </div>
+          </form>
         </section>
 
         <section className="mb-16">
