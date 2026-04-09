@@ -78,8 +78,8 @@ export default function LandingPage() {
             <h1 className="text-5xl md:text-7xl font-black leading-tight tracking-tighter">
               The smartest way to <span className="text-[#34CBED]">trade locally.</span>
             </h1>
-            <p className="text-xl text-white/80 font-medium max-w-lg">
-              Verified sellers, secure escrow payments, and vetted safe-zone meetups.
+            <p className="text-xl text-white/80 font-black max-w-lg tracking-tight">
+              Verified Sellers, Secure Deals, No Scams, Just Good Trades.
             </p>
             <div className="flex gap-4 pt-4">
               <Link href="/auctions">
@@ -224,7 +224,7 @@ export default function LandingPage() {
                 </div>
                 <h2 className="text-4xl font-black leading-tight">Shop with total confidence.</h2>
                 <p className="text-white/70 text-lg font-medium">
-                  Our unique escrow system holds your payment until you've met the seller and verified the item. No scams, no risk.
+                  Verified Sellers, Secure Deals, No Scams, Just Good Trades.
                 </p>
                 <Link href="/verify">
                   <Button className="bg-[#34CBED] text-white font-black h-14 px-8 rounded-2xl">

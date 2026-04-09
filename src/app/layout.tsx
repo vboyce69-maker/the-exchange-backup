@@ -6,7 +6,7 @@ import { Toaster } from '@/components/ui/toaster';
 
 export const metadata: Metadata = {
   title: 'The Exchange | Premium Verified Marketplace',
-  description: 'The most trusted and immersive peer-to-peer marketplace.',
+  description: 'Verified Sellers, Secure Deals, No Scams, Just Good Trades.',
 };
 
 export default function RootLayout({
