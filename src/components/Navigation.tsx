@@ -15,7 +15,14 @@ import {
   LogOut,
   UserCircle,
   Scale,
-  LogIn
+  LogIn,
+  ChevronDown,
+  Lock,
+  MapPin,
+  Star,
+  ShieldAlert,
+  Layers,
+  Fingerprint
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
@@ -46,7 +53,15 @@ export function Navigation() {
     { name: "Browse", href: "/", icon: Home },
     { name: "Auctions", href: "/auctions", icon: Gavel },
     { name: "Demand", href: "/insights", icon: TrendingUp },
-    { name: "Messages", href: "/messages", icon: MessageSquare },
+  ];
+
+  const features = [
+    { name: "Biometric KYC", description: "AI Identity Verification", icon: Fingerprint, href: "/verify", color: "text-blue-500" },
+    { name: "Protected Payments", description: "Secure Escrow-Style Hold", icon: Lock, href: "/legal", color: "text-green-500" },
+    { name: "Safe Zone Bookings", description: "Vetted Meetup Points", icon: MapPin, href: "/messages", color: "text-orange-500" },
+    { name: "Reliability Scoring", description: "Behavior-Based Trust", icon: Star, href: "/profile/me", color: "text-yellow-500" },
+    { name: "Anti-Scam Protection", description: "AI Chat Monitoring", icon: ShieldAlert, href: "/messages", color: "text-red-500" },
+    { name: "Bulk Lot Auctions", description: "Inventory Clearance", icon: Layers, href: "/auctions", color: "text-purple-500" },
   ];
 
   return (
@@ -56,7 +71,10 @@ export function Navigation() {
           <div className="bg-[#225BC3] p-2 rounded-xl shadow-lg shadow-blue-500/20">
             <ShieldCheck className="w-5 h-5 text-white" />
           </div>
-          <span className="font-black text-xl text-[#225BC3] tracking-tighter uppercase hidden xs:block">THE <span className="text-[#34CBED]">EXCHANGE</span></span>
+          <div className="flex flex-col -space-y-1">
+            <span className="font-black text-xl text-[#225BC3] tracking-tighter uppercase hidden xs:block">THE <span className="text-[#34CBED]">EXCHANGE</span></span>
+            <span className="text-[7px] font-black text-[#225BC3]/60 tracking-widest uppercase hidden xs:block">Premium Marketplace</span>
+          </div>
         </Link>
 
         {/* Desktop Navigation */}
@@ -77,6 +95,46 @@ export function Navigation() {
               </Link>
             );
           })}
+
+          {/* Features Dropdown */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-muted-foreground hover:text-[#34CBED] outline-none">
+                Platform Features <ChevronDown className="w-3 h-3" />
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent className="w-72 rounded-[2rem] p-4 shadow-2xl border-none ring-1 ring-black/5 mt-2 bg-white grid grid-cols-1 gap-1">
+              <DropdownMenuLabel className="font-black text-[9px] uppercase tracking-[0.2em] text-[#225BC3] px-3 py-2">Advanced Security</DropdownMenuLabel>
+              {features.map((feature) => (
+                <DropdownMenuItem key={feature.name} className="rounded-2xl p-3 cursor-pointer focus:bg-[#225BC3]/5 group" asChild>
+                  <Link href={feature.href} className="flex items-center gap-4">
+                    <div className={cn("w-10 h-10 rounded-xl bg-slate-50 flex items-center justify-center group-focus:bg-white group-focus:shadow-sm transition-all", feature.color)}>
+                      <feature.icon className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <p className="font-black text-xs text-slate-900 leading-none mb-1">{feature.name}</p>
+                      <p className="text-[9px] font-bold text-muted-foreground">{feature.description}</p>
+                    </div>
+                  </Link>
+                </DropdownMenuItem>
+              ))}
+              <DropdownMenuSeparator className="my-2 bg-slate-100" />
+              <DropdownMenuItem className="rounded-2xl p-3 font-black text-[9px] uppercase tracking-widest text-[#34CBED] justify-center focus:text-[#225BC3] cursor-pointer" asChild>
+                <Link href="/legal">View Compliance Framework</Link>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+
+          <Link 
+            href="/messages"
+            className={cn(
+              "flex items-center gap-2 text-[10px] font-black uppercase tracking-widest transition-all hover:text-[#34CBED]",
+              pathname === "/messages" ? "text-[#34CBED]" : "text-muted-foreground"
+            )}
+          >
+            <MessageSquare className="w-4 h-4" />
+            Messages
+          </Link>
         </div>
 
         <div className="flex items-center gap-2 sm:gap-4">
@@ -103,6 +161,7 @@ export function Navigation() {
                 <DropdownMenuSeparator className="bg-slate-100" />
                 
                 <div className="lg:hidden">
+                  <DropdownMenuLabel className="font-black text-[8px] uppercase tracking-widest text-[#225BC3] px-4 pt-2">Navigation</DropdownMenuLabel>
                   {navItems.map((item) => (
                     <DropdownMenuItem key={item.href} className="rounded-xl p-3 font-bold gap-3 focus:bg-[#225BC3]/5 focus:text-[#225BC3]" asChild>
                       <Link href={item.href}>
