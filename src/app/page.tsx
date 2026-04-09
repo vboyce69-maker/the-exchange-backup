@@ -23,7 +23,10 @@ import {
   Footprints,
   ShieldCheck,
   Loader2,
-  Package
+  Package,
+  Sparkles,
+  Zap,
+  ShoppingBag
 } from "lucide-react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
@@ -32,14 +35,14 @@ import { useCollection, useFirestore, useMemoFirebase } from "@/firebase";
 import { collection, query, orderBy, limit } from "firebase/firestore";
 
 const CATEGORIES = [
-  { name: "Vehicles", icon: Car, color: "bg-blue-500" },
-  { name: "Electronics", icon: Smartphone, color: "bg-purple-500" },
-  { name: "Real Estate", icon: Home, color: "bg-green-500" },
-  { name: "Clothing", icon: Shirt, color: "bg-pink-500" },
-  { name: "Sneakers", icon: Footprints, color: "bg-orange-500" },
-  { name: "Jewelry", icon: Watch, color: "bg-yellow-500" },
-  { name: "Sports", icon: Bike, color: "bg-cyan-500" },
-  { name: "Photography", icon: Camera, color: "bg-red-500" },
+  { name: "Vehicles", icon: Car, color: "bg-blue-500", description: "Cars, Trucks & Parts" },
+  { name: "Electronics", icon: Smartphone, color: "bg-purple-500", description: "Phones, Laptops & TV" },
+  { name: "Real Estate", icon: Home, color: "bg-green-500", description: "Buy, Sell & Rent" },
+  { name: "Clothing", icon: Shirt, color: "bg-pink-500", description: "Fashion & Trends" },
+  { name: "Sneakers", icon: Footprints, color: "bg-orange-500", description: "Collectibles & Kickz" },
+  { name: "Jewelry", icon: Watch, color: "bg-yellow-500", description: "Luxury & Gems" },
+  { name: "Sports", icon: Bike, color: "bg-cyan-500", description: "Gear & Equipment" },
+  { name: "Photography", icon: Camera, color: "bg-red-500", description: "Cameras & Glass" },
 ];
 
 export default function LandingPage() {
@@ -69,52 +72,56 @@ export default function LandingPage() {
     <div className="min-h-screen bg-[#F8FAFC]">
       <Navigation />
       
-      {/* Hero Section */}
-      <section className="relative h-[60vh] flex items-center overflow-hidden bg-[#225BC3]">
-        <div className="absolute inset-0 opacity-20">
+      {/* Hero Section - Amazon/Takealot Visual Impact */}
+      <section className="relative h-[65vh] flex items-center overflow-hidden bg-[#225BC3]">
+        <div className="absolute inset-0 opacity-25">
            <Image 
             src="https://picsum.photos/seed/localbid-hero/1920/1080" 
-            alt="Pattern" 
+            alt="Marketplace Hero" 
             fill 
             className="object-cover"
-            data-ai-hint="marketplace trade"
+            data-ai-hint="marketplace commerce"
           />
         </div>
         <div className="container mx-auto px-6 relative z-10 grid lg:grid-cols-2 gap-12 items-center">
-          <div className="text-white space-y-6">
-            <Badge className="bg-[#34CBED] text-white font-black border-none px-4 py-1.5 rounded-full">
-              TRUSTED BY 50K+ SOUTH AFRICANS
-            </Badge>
-            <h1 className="text-5xl md:text-7xl font-black leading-tight tracking-tighter">
+          <div className="text-white space-y-8">
+            <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-md px-4 py-2 rounded-2xl border border-white/20">
+              <Sparkles className="w-4 h-4 text-[#34CBED]" />
+              <span className="text-[10px] font-black uppercase tracking-widest">South Africa's Trusted Marketplace</span>
+            </div>
+            <h1 className="text-5xl md:text-8xl font-black leading-[0.9] tracking-tighter">
               The smartest way to <span className="text-[#34CBED]">trade locally.</span>
             </h1>
-            <p className="text-xl text-white/80 font-black max-w-lg tracking-tight">
+            <p className="text-xl text-white/80 font-black max-w-lg tracking-tight leading-relaxed">
               Verified Sellers, Secure Deals, No Scams, Just Good Trades.
             </p>
-            <div className="flex gap-4 pt-4">
+            <div className="flex flex-wrap gap-4 pt-4">
               <Link href="/auctions">
-                <Button size="lg" className="bg-[#FF8C00] hover:bg-[#FF8C00]/90 text-white font-black h-16 px-10 rounded-2xl text-lg shadow-xl shadow-orange-500/20">
-                  Shop Now
+                <Button size="lg" className="bg-[#FF8C00] hover:bg-[#FF8C00]/90 text-white font-black h-18 px-10 rounded-[1.5rem] text-lg shadow-2xl shadow-orange-500/30 hover:scale-105 transition-transform">
+                  Explore Auctions
                 </Button>
               </Link>
               <Link href="/create">
-                <Button size="lg" variant="outline" className="border-white/30 text-white bg-white/10 hover:bg-white/20 backdrop-blur-md h-16 px-10 rounded-2xl text-lg font-bold">
-                  Sell Item
+                <Button size="lg" variant="outline" className="border-white/30 text-white bg-white/10 hover:bg-white/20 backdrop-blur-md h-18 px-10 rounded-[1.5rem] text-lg font-bold">
+                  Start Selling
                 </Button>
               </Link>
             </div>
           </div>
-          <div className="hidden lg:block relative aspect-square group">
-             <div className="absolute inset-0 bg-white/10 rounded-[4rem] rotate-6 group-hover:rotate-3 transition-transform duration-500" />
-             <div className="absolute inset-0 bg-white/5 rounded-[4rem] -rotate-3 group-hover:-rotate-1 transition-transform duration-500" />
-             <div className="relative h-full w-full rounded-[4rem] overflow-hidden border-8 border-white/10 shadow-2xl">
-                <Image src="https://picsum.photos/seed/premium/800/800" alt="Premium" fill className="object-cover" data-ai-hint="luxury products" />
-                <div className="absolute bottom-8 left-8 bg-white p-6 rounded-3xl shadow-2xl animate-in slide-in-from-bottom-4">
-                   <p className="text-[10px] font-black text-[#225BC3] uppercase tracking-widest mb-1">Top Auction</p>
-                   <p className="text-xl font-black text-slate-900">Premium Rolex</p>
-                   <div className="flex items-center gap-2 mt-2">
-                      <Badge className="bg-green-100 text-green-700 border-none">R 125,000</Badge>
-                      <span className="text-[10px] font-bold text-muted-foreground flex items-center gap-1"><Clock className="w-3 h-3" /> 2h left</span>
+          
+          <div className="hidden lg:block relative aspect-[4/3] group">
+             <div className="absolute inset-0 bg-white/10 rounded-[3rem] rotate-3 group-hover:rotate-1 transition-transform duration-500" />
+             <div className="relative h-full w-full rounded-[3rem] overflow-hidden border-8 border-white/10 shadow-2xl">
+                <Image src="https://picsum.photos/seed/premium-deal/800/600" alt="Premium Listing" fill className="object-cover" data-ai-hint="luxury products" />
+                <div className="absolute bottom-6 left-6 right-6 bg-white/95 backdrop-blur-sm p-6 rounded-[2rem] shadow-2xl animate-in slide-in-from-bottom-8">
+                   <div className="flex justify-between items-center mb-2">
+                     <Badge className="bg-[#225BC3] text-white border-none text-[8px] font-black uppercase">Live Auction</Badge>
+                     <span className="text-[10px] font-black text-[#FF8C00] flex items-center gap-1"><Clock className="w-3 h-3" /> 2h 14m left</span>
+                   </div>
+                   <p className="text-xl font-black text-slate-900 leading-tight">Professional Video Suite</p>
+                   <div className="flex items-center justify-between mt-3">
+                      <span className="text-2xl font-black text-[#225BC3]">R 42,500</span>
+                      <Button size="sm" className="bg-[#34CBED] text-white font-black rounded-xl h-10 px-6">Bid Now</Button>
                    </div>
                 </div>
              </div>
@@ -123,83 +130,95 @@ export default function LandingPage() {
       </section>
 
       <main className="container mx-auto px-6 py-12">
+        {/* Amazon-style Category Grid */}
         <section className="mb-16 -mt-24 relative z-30">
-          <div className="bg-white p-4 rounded-[2.5rem] shadow-2xl border border-slate-100 flex items-center gap-4 overflow-x-auto no-scrollbar">
+          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-4">
             {CATEGORIES.map((cat) => {
               const Icon = cat.icon;
               return (
                 <Link 
                   key={cat.name} 
                   href={`/auctions?category=${cat.name.toLowerCase()}`}
-                  className="flex flex-col items-center gap-2 min-w-[100px] p-4 rounded-3xl hover:bg-slate-50 transition-all group"
+                  className="bg-white p-5 rounded-[2rem] shadow-xl border border-slate-100 flex flex-col items-center gap-3 hover:bg-slate-50 transition-all hover:-translate-y-2 group"
                 >
                   <div className={cn("w-14 h-14 rounded-2xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform", cat.color)}>
                     <Icon className="w-6 h-6 text-white" />
                   </div>
-                  <span className="text-[10px] font-black uppercase text-slate-600 tracking-tight">{cat.name}</span>
+                  <div className="text-center">
+                    <span className="text-[10px] font-black uppercase text-slate-900 block leading-none">{cat.name}</span>
+                  </div>
                 </Link>
               );
             })}
           </div>
         </section>
 
-        <section className="flex flex-col md:flex-row items-center justify-between gap-6 mb-12">
-          <div className="flex items-center gap-4">
-             <div className="bg-white h-14 px-6 rounded-2xl flex items-center gap-3 shadow-sm border border-slate-100">
-                <MapPin className="w-5 h-5 text-[#225BC3]" />
-                <span className="font-bold text-sm text-slate-700">Johannesburg, GP</span>
-             </div>
-             <div className="flex bg-slate-100 p-1.5 rounded-2xl h-14">
-                {[5, 10, 25, 50].map(r => (
-                   <button 
-                    key={r} 
-                    onClick={() => setActiveRadius(r)}
-                    className={cn(
-                      "px-6 rounded-xl text-xs font-black transition-all",
-                      activeRadius === r ? "bg-white text-[#225BC3] shadow-md" : "text-slate-400"
-                    )}
-                   >
-                    {r}km
-                   </button>
-                ))}
-             </div>
+        {/* Facebook Marketplace style Local Search & Radius */}
+        <section className="bg-white p-8 rounded-[3rem] shadow-xl border border-slate-100 flex flex-col lg:flex-row items-center gap-8 mb-16">
+          <div className="flex-1 w-full space-y-4">
+            <h3 className="font-black text-[#225BC3] uppercase text-[10px] tracking-[0.2em]">Nearby Discovery</h3>
+            <div className="flex flex-col sm:flex-row items-center gap-4">
+               <div className="w-full sm:w-64 h-14 px-6 rounded-2xl flex items-center gap-3 bg-slate-50">
+                  <MapPin className="w-5 h-5 text-[#225BC3]" />
+                  <span className="font-bold text-sm text-slate-700">Johannesburg, GP</span>
+               </div>
+               <div className="flex flex-1 bg-slate-100 p-1.5 rounded-2xl h-14 w-full">
+                  {[5, 10, 25, 50, 100].map(r => (
+                     <button 
+                      key={r} 
+                      onClick={() => setActiveRadius(r)}
+                      className={cn(
+                        "flex-1 rounded-xl text-[10px] font-black transition-all uppercase tracking-tighter",
+                        activeRadius === r ? "bg-white text-[#225BC3] shadow-md" : "text-slate-400 hover:text-slate-600"
+                      )}
+                     >
+                      {r}km
+                     </button>
+                  ))}
+               </div>
+            </div>
           </div>
-          <form onSubmit={handleSearch} className="flex-1 max-w-md w-full relative">
-             <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
-             <input 
-              type="text" 
-              placeholder="Search for items, brands or categories..." 
-              className="w-full h-14 pl-12 pr-6 rounded-2xl bg-white border border-slate-100 shadow-sm focus:ring-2 focus:ring-[#225BC3]/10 outline-none font-medium"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-             />
-          </form>
+          <div className="flex-1 w-full space-y-4">
+            <h3 className="font-black text-[#225BC3] uppercase text-[10px] tracking-[0.2em]">Smart Filter</h3>
+            <form onSubmit={handleSearch} className="relative group">
+               <Search className="absolute left-6 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 group-focus-within:text-[#225BC3]" />
+               <input 
+                type="text" 
+                placeholder="Search for items, brands or categories..." 
+                className="w-full h-14 pl-14 pr-6 rounded-2xl bg-slate-50 border-none shadow-inner focus:ring-2 focus:ring-[#225BC3]/10 outline-none font-medium text-sm"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+               />
+               <Button type="submit" className="absolute right-2 top-2 h-10 px-6 rounded-xl bg-[#225BC3] text-white font-black text-xs">Search</Button>
+            </form>
+          </div>
         </section>
 
+        {/* Trending Section - Takealot style */}
         <section className="mb-16">
-          <div className="flex items-center justify-between mb-8">
-            <div className="flex items-center gap-3">
-              <div className="w-12 h-12 bg-orange-100 rounded-2xl flex items-center justify-center text-orange-600">
-                <TrendingUp className="w-6 h-6" />
+          <div className="flex items-center justify-between mb-10">
+            <div className="flex items-center gap-4">
+              <div className="w-14 h-14 bg-orange-100 rounded-[1.5rem] flex items-center justify-center text-orange-600 shadow-inner">
+                <TrendingUp className="w-7 h-7" />
               </div>
               <div>
-                <h2 className="text-2xl font-black text-slate-900 leading-none">Trending Now</h2>
-                <p className="text-sm text-muted-foreground font-medium mt-1">High demand items in your area</p>
+                <h2 className="text-3xl font-black text-slate-900 tracking-tight leading-none">Trending Deals</h2>
+                <p className="text-sm text-muted-foreground font-medium mt-1">Hottest listings in South Africa right now</p>
               </div>
             </div>
             <Link href="/auctions">
-              <Button variant="ghost" className="font-black text-[#225BC3] gap-2">
-                View All <ArrowRight className="w-4 h-4" />
+              <Button variant="ghost" className="h-12 rounded-2xl font-black text-[#225BC3] hover:bg-[#225BC3]/5 gap-2 group">
+                Browse All <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
               </Button>
             </Link>
           </div>
           
           {isLoading ? (
-            <div className="flex justify-center py-20">
-              <Loader2 className="w-10 h-10 animate-spin text-[#225BC3]" />
+            <div className="flex justify-center py-24">
+              <Loader2 className="w-12 h-12 animate-spin text-[#225BC3]" />
             </div>
           ) : listings && listings.length > 0 ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10">
               {listings.map((listing) => (
                 <ListingCard 
                   key={listing.id} 
@@ -220,29 +239,39 @@ export default function LandingPage() {
               ))}
             </div>
           ) : (
-            <div className="text-center py-20 bg-white rounded-[3rem] shadow-sm">
-               <Package className="w-12 h-12 text-slate-200 mx-auto mb-4" />
-               <p className="font-black text-[#225BC3] uppercase tracking-widest">No listings found</p>
+            <div className="text-center py-24 bg-white rounded-[4rem] shadow-sm border border-dashed border-slate-200">
+               <Package className="w-16 h-16 text-slate-100 mx-auto mb-4" />
+               <p className="font-black text-[#225BC3] uppercase tracking-widest text-sm">No listings currently trending</p>
             </div>
           )}
         </section>
 
+        {/* Confidence Banner */}
         <section className="mb-16">
-          <div className="bg-[#225BC3] rounded-[3rem] p-12 text-white relative overflow-hidden">
-             <div className="absolute right-0 top-0 bottom-0 w-1/3 opacity-10 bg-gradient-to-l from-white to-transparent" />
-             <div className="max-w-xl relative z-10 space-y-6">
-                <div className="w-16 h-16 bg-white/20 rounded-2xl flex items-center justify-center">
-                   <ShieldCheck className="w-10 h-10 text-[#34CBED]" />
+          <div className="bg-[#225BC3] rounded-[4rem] p-16 text-white relative overflow-hidden shadow-2xl shadow-[#225BC3]/20">
+             <div className="absolute -right-20 -top-20 w-80 h-80 bg-white/5 rounded-full blur-3xl" />
+             <div className="absolute -left-20 -bottom-20 w-64 h-64 bg-[#34CBED]/10 rounded-full blur-2xl" />
+             
+             <div className="max-w-2xl relative z-10 space-y-8 text-center md:text-left mx-auto md:mx-0">
+                <div className="w-20 h-20 bg-white/20 backdrop-blur-md rounded-[2rem] flex items-center justify-center mx-auto md:mx-0 shadow-2xl">
+                   <ShieldCheck className="w-12 h-12 text-[#34CBED]" />
                 </div>
-                <h2 className="text-4xl font-black leading-tight">Shop with total confidence.</h2>
-                <p className="text-white/70 text-lg font-medium">
+                <h2 className="text-4xl md:text-6xl font-black leading-[1.1] tracking-tighter">Shop with total confidence.</h2>
+                <p className="text-white/70 text-xl font-medium leading-relaxed">
                   Verified Sellers, Secure Deals, No Scams, Just Good Trades.
                 </p>
-                <Link href="/verify">
-                  <Button className="bg-[#34CBED] text-white font-black h-14 px-8 rounded-2xl">
-                    Get Verified Today
-                  </Button>
-                </Link>
+                <div className="flex flex-wrap gap-4 justify-center md:justify-start">
+                   <Link href="/verify">
+                     <Button className="bg-[#34CBED] hover:bg-[#34CBED]/90 text-white font-black h-16 px-10 rounded-[1.5rem] shadow-xl text-lg">
+                       Get Verified Badge
+                     </Button>
+                   </Link>
+                   <Link href="/legal">
+                     <Button variant="ghost" className="text-white/80 hover:text-white font-black h-16 px-10 rounded-[1.5rem] text-lg">
+                       Safety Center
+                     </Button>
+                   </Link>
+                </div>
              </div>
           </div>
         </section>

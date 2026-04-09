@@ -23,7 +23,10 @@ import {
   ShieldAlert,
   Layers,
   Fingerprint,
-  Briefcase
+  Briefcase,
+  Heart,
+  ShoppingBag,
+  Search
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
@@ -56,7 +59,6 @@ export function Navigation() {
     { name: "Insights", href: "/insights", icon: TrendingUp },
   ];
 
-  // consolidated features for the hub
   const features = [
     { name: "Live Auctions", description: "Bidding & Bulk Lots", icon: Gavel, href: "/auctions", color: "text-[#225BC3]" },
     { name: "Biometric KYC", description: "AI Identity Verification", icon: Fingerprint, href: "/verify", color: "text-blue-500" },
@@ -79,24 +81,14 @@ export function Navigation() {
           </div>
         </Link>
 
-        {/* Desktop Navigation */}
-        <div className="hidden lg:flex items-center gap-8">
-          {navItems.map((item) => {
-            const Icon = item.icon;
-            return (
-              <Link 
-                key={item.href}
-                href={item.href}
-                className={cn(
-                  "flex items-center gap-2 text-[10px] font-black uppercase tracking-widest transition-all hover:text-[#34CBED] group",
-                  pathname === item.href ? "text-[#34CBED]" : "text-muted-foreground"
-                )}
-              >
-                <Icon className="w-4 h-4" />
-                {item.name}
-              </Link>
-            );
-          })}
+        {/* Global Search - Amazon/Takealot style */}
+        <div className="hidden lg:flex flex-1 max-w-md mx-8 relative group">
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-[#225BC3] transition-colors" />
+          <input 
+            type="text" 
+            placeholder="Search items, brands or categories..." 
+            className="w-full h-11 pl-10 pr-4 rounded-2xl bg-slate-50 border-none focus:ring-2 focus:ring-[#225BC3]/10 outline-none font-medium text-sm transition-all"
+          />
         </div>
 
         <div className="flex items-center gap-2 sm:gap-4">
@@ -166,6 +158,10 @@ export function Navigation() {
                     <MessageSquare className="w-4 h-4" />
                     Messages
                   </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem className="rounded-xl p-3 font-bold gap-3 focus:bg-[#225BC3]/5 focus:text-[#225BC3] cursor-pointer">
+                  <Heart className="w-4 h-4 text-pink-500" />
+                  Saved Items
                 </DropdownMenuItem>
                 <DropdownMenuItem className="rounded-xl p-3 font-bold gap-3 focus:bg-[#225BC3]/5 focus:text-[#225BC3] cursor-pointer" asChild>
                   <Link href="/verify">

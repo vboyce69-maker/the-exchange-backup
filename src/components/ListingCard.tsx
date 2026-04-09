@@ -105,28 +105,29 @@ export function ListingCard({
         </div>
       </Link>
 
+      {/* FB Marketplace/Amazon style Save Button */}
       <button 
         onClick={(e) => { e.preventDefault(); setIsSaved(!isSaved); }}
         className={cn(
-          "absolute top-4 right-4 z-10 w-10 h-10 rounded-full flex items-center justify-center transition-all shadow-lg",
-          isSaved ? "bg-[#225BC3] text-white" : "bg-white/80 backdrop-blur-md text-slate-400 hover:text-[#225BC3]"
+          "absolute top-4 right-4 z-10 w-11 h-11 rounded-full flex items-center justify-center transition-all shadow-xl backdrop-blur-sm",
+          isSaved ? "bg-pink-500 text-white scale-110" : "bg-white/80 text-slate-400 hover:text-pink-500 hover:bg-white"
         )}
       >
         <Heart className={cn("w-5 h-5", isSaved && "fill-current")} />
       </button>
 
-      <div className="px-2 space-y-2">
-        <div className="flex justify-between items-start">
-          <Link href={`/listings/${id}`}>
-            <h3 className="font-black text-lg text-slate-900 line-clamp-1 group-hover:text-[#225BC3] transition-colors">{title}</h3>
+      <div className="px-3 space-y-2">
+        <div className="flex justify-between items-start gap-4">
+          <Link href={`/listings/${id}`} className="flex-1">
+            <h3 className="font-black text-lg text-slate-900 line-clamp-1 group-hover:text-[#225BC3] transition-colors tracking-tight">{title}</h3>
           </Link>
-          <span className="font-black text-[#225BC3] text-lg whitespace-nowrap">
+          <span className="font-black text-[#225BC3] text-xl whitespace-nowrap">
             R {price.toLocaleString()}
           </span>
         </div>
         
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-1.5 text-muted-foreground text-[10px] font-black uppercase tracking-tight">
+          <div className="flex items-center gap-1.5 text-slate-500 text-[10px] font-black uppercase tracking-tight">
             <MapPin className="w-3.5 h-3.5 text-[#34CBED]" />
             {location}
           </div>
@@ -137,6 +138,13 @@ export function ListingCard({
              </div>
              <VerifiedBadge />
           </div>
+        </div>
+
+        {/* Amazon style Quick Action */}
+        <div className="pt-2 opacity-0 group-hover:opacity-100 transition-opacity">
+           <Link href={`/listings/${id}`}>
+              <Button className="w-full h-10 rounded-xl bg-slate-900 text-white font-black text-[10px] uppercase tracking-widest shadow-lg">View Details</Button>
+           </Link>
         </div>
       </div>
     </div>
