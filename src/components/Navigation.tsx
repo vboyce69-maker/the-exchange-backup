@@ -22,7 +22,8 @@ import {
   Star,
   ShieldAlert,
   Layers,
-  Fingerprint
+  Fingerprint,
+  Briefcase
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
@@ -52,16 +53,17 @@ export function Navigation() {
   const navItems = [
     { name: "Browse", href: "/", icon: Home },
     { name: "Auctions", href: "/auctions", icon: Gavel },
-    { name: "Demand", href: "/insights", icon: TrendingUp },
+    { name: "Insights", href: "/insights", icon: TrendingUp },
   ];
 
+  // consolidated features for the hub
   const features = [
+    { name: "Live Auctions", description: "Bidding & Bulk Lots", icon: Gavel, href: "/auctions", color: "text-[#225BC3]" },
     { name: "Biometric KYC", description: "AI Identity Verification", icon: Fingerprint, href: "/verify", color: "text-blue-500" },
-    { name: "Protected Payments", description: "Secure Escrow-Style Hold", icon: Lock, href: "/legal", color: "text-green-500" },
-    { name: "Safe Zone Bookings", description: "Vetted Meetup Points", icon: MapPin, href: "/messages", color: "text-orange-500" },
-    { name: "Reliability Scoring", description: "Behavior-Based Trust", icon: Star, href: "/profile/me", color: "text-yellow-500" },
-    { name: "Anti-Scam Protection", description: "AI Chat Monitoring", icon: ShieldAlert, href: "/messages", color: "text-red-500" },
-    { name: "Bulk Lot Auctions", description: "Inventory Clearance", icon: Layers, href: "/auctions", color: "text-purple-500" },
+    { name: "Protected Payments", description: "Escrow-Style Hold", icon: Lock, href: "/legal", color: "text-green-500" },
+    { name: "Safe Zones", description: "Vetted Meetup Points", icon: MapPin, href: "/messages", color: "text-orange-500" },
+    { name: "Market Insights", description: "Seller Demand Data", icon: TrendingUp, href: "/insights", color: "text-purple-500" },
+    { name: "Legal Hub", description: "CPA & POPIA Compliance", icon: Scale, href: "/legal", color: "text-slate-600" },
   ];
 
   return (
@@ -95,17 +97,6 @@ export function Navigation() {
               </Link>
             );
           })}
-
-          <Link 
-            href="/messages"
-            className={cn(
-              "flex items-center gap-2 text-[10px] font-black uppercase tracking-widest transition-all hover:text-[#34CBED]",
-              pathname === "/messages" ? "text-[#34CBED]" : "text-muted-foreground"
-            )}
-          >
-            <MessageSquare className="w-4 h-4" />
-            Messages
-          </Link>
         </div>
 
         <div className="flex items-center gap-2 sm:gap-4">
@@ -116,36 +107,38 @@ export function Navigation() {
             </Button>
           </Link>
 
-          {/* Features Dropdown (Moved next to Sign In) */}
-          <div className="hidden md:block">
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <button className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-[#225BC3] hover:text-[#34CBED] outline-none h-11 px-4 rounded-2xl bg-[#225BC3]/5 hover:bg-[#225BC3]/10 transition-colors">
-                  Features <ChevronDown className="w-3 h-3" />
-                </button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent className="w-72 rounded-[2rem] p-4 shadow-2xl border-none ring-1 ring-black/5 mt-2 bg-white grid grid-cols-1 gap-1">
-                <DropdownMenuLabel className="font-black text-[9px] uppercase tracking-[0.2em] text-[#225BC3] px-3 py-2">Advanced Security</DropdownMenuLabel>
-                {features.map((feature) => (
-                  <DropdownMenuItem key={feature.name} className="rounded-2xl p-3 cursor-pointer focus:bg-[#225BC3]/5 group" asChild>
-                    <Link href={feature.href} className="flex items-center gap-4">
-                      <div className={cn("w-10 h-10 rounded-xl bg-slate-50 flex items-center justify-center group-focus:bg-white group-focus:shadow-sm transition-all", feature.color)}>
-                        <feature.icon className="w-5 h-5" />
-                      </div>
-                      <div>
-                        <p className="font-black text-xs text-slate-900 leading-none mb-1">{feature.name}</p>
-                        <p className="text-[9px] font-bold text-muted-foreground">{feature.description}</p>
-                      </div>
-                    </Link>
-                  </DropdownMenuItem>
-                ))}
-                <DropdownMenuSeparator className="my-2 bg-slate-100" />
-                <DropdownMenuItem className="rounded-2xl p-3 font-black text-[9px] uppercase tracking-widest text-[#34CBED] justify-center focus:text-[#225BC3] cursor-pointer" asChild>
-                  <Link href="/legal">View Compliance Framework</Link>
+          {/* Consolidated Features Hub */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-[#225BC3] hover:text-[#34CBED] outline-none h-11 px-4 rounded-2xl bg-[#225BC3]/5 hover:bg-[#225BC3]/10 transition-colors border border-[#225BC3]/10 shadow-sm">
+                Hub <ChevronDown className="w-3 h-3" />
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent className="w-72 rounded-[2rem] p-4 shadow-2xl border-none ring-1 ring-black/5 mt-2 bg-white grid grid-cols-1 gap-1">
+              <DropdownMenuLabel className="font-black text-[9px] uppercase tracking-[0.2em] text-[#225BC3] px-3 py-2 flex items-center justify-between">
+                Marketplace Hub
+                <Briefcase className="w-3 h-3" />
+              </DropdownMenuLabel>
+              <DropdownMenuSeparator className="mb-2 bg-slate-100" />
+              {features.map((feature) => (
+                <DropdownMenuItem key={feature.name} className="rounded-2xl p-3 cursor-pointer focus:bg-[#225BC3]/5 group" asChild>
+                  <Link href={feature.href} className="flex items-center gap-4">
+                    <div className={cn("w-10 h-10 rounded-xl bg-slate-50 flex items-center justify-center group-focus:bg-white group-focus:shadow-sm transition-all shadow-sm", feature.color)}>
+                      <feature.icon className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <p className="font-black text-xs text-slate-900 leading-none mb-1">{feature.name}</p>
+                      <p className="text-[9px] font-bold text-muted-foreground">{feature.description}</p>
+                    </div>
+                  </Link>
                 </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
+              ))}
+              <DropdownMenuSeparator className="my-2 bg-slate-100" />
+              <DropdownMenuItem className="rounded-2xl p-3 font-black text-[9px] uppercase tracking-widest text-[#34CBED] justify-center focus:text-[#225BC3] cursor-pointer" asChild>
+                <Link href="/legal">Security & Compliance</Link>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
 
           {user ? (
             <DropdownMenu>
@@ -162,19 +155,6 @@ export function Navigation() {
                 <DropdownMenuLabel className="font-black text-[10px] uppercase tracking-widest text-muted-foreground px-4 py-3">Your Account</DropdownMenuLabel>
                 <DropdownMenuSeparator className="bg-slate-100" />
                 
-                <div className="lg:hidden">
-                  <DropdownMenuLabel className="font-black text-[8px] uppercase tracking-widest text-[#225BC3] px-4 pt-2">Navigation</DropdownMenuLabel>
-                  {navItems.map((item) => (
-                    <DropdownMenuItem key={item.href} className="rounded-xl p-3 font-bold gap-3 focus:bg-[#225BC3]/5 focus:text-[#225BC3]" asChild>
-                      <Link href={item.href}>
-                        <item.icon className="w-4 h-4" />
-                        {item.name}
-                      </Link>
-                    </DropdownMenuItem>
-                  ))}
-                  <DropdownMenuSeparator className="bg-slate-100" />
-                </div>
-
                 <DropdownMenuItem className="rounded-xl p-3 font-bold gap-3 focus:bg-[#225BC3]/5 focus:text-[#225BC3] cursor-pointer" asChild>
                   <Link href={`/profile/${user.uid}`}>
                     <UserCircle className="w-4 h-4" />
@@ -182,15 +162,15 @@ export function Navigation() {
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem className="rounded-xl p-3 font-bold gap-3 focus:bg-[#225BC3]/5 focus:text-[#225BC3] cursor-pointer" asChild>
-                  <Link href="/verify">
-                    <ShieldCheck className="w-4 h-4 text-[#34CBED]" />
-                    Get Verified
+                  <Link href="/messages">
+                    <MessageSquare className="w-4 h-4" />
+                    Messages
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem className="rounded-xl p-3 font-bold gap-3 focus:bg-[#225BC3]/5 focus:text-[#225BC3] cursor-pointer" asChild>
-                   <Link href="/legal">
-                    <Scale className="w-4 h-4" />
-                    Legal Hub (CPA/POPIA)
+                  <Link href="/verify">
+                    <ShieldCheck className="w-4 h-4 text-[#34CBED]" />
+                    Get Verified
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator className="bg-slate-100" />
@@ -202,7 +182,7 @@ export function Navigation() {
             </DropdownMenu>
           ) : (
             <Link href="/login">
-              <Button variant="ghost" className="rounded-2xl h-11 font-black uppercase text-[10px] tracking-widest text-[#225BC3] gap-2">
+              <Button variant="ghost" className="rounded-2xl h-11 font-black uppercase text-[10px] tracking-widest text-[#225BC3] gap-2 border border-[#225BC3]/10">
                 <LogIn className="w-4 h-4" />
                 Sign In
               </Button>
