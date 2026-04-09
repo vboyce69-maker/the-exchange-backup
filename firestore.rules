@@ -20,6 +20,7 @@ service cloud.firestore {
 
     // Marketplace Transparency: Public listings are readable by anyone
     match /publicListings/{listingId} {
+      // Explicitly allow read and list for everyone to prevent permission errors on landing/search pages
       allow read, list: if true;
       
       // Mutations require authentication and ownership
@@ -29,7 +30,7 @@ service cloud.firestore {
     }
 
     match /userProfiles/{userId} {
-      // Profiles are visible to signed-in users
+      // Profiles are visible to signed-in users for transparency
       allow read: if isSignedIn();
       allow list: if isSignedIn();
       
