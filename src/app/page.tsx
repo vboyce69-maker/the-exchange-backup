@@ -198,9 +198,11 @@ export default function LandingPage() {
                   imageUrl={listing.imageUrls?.[0]}
                   sellerName="Verified Seller"
                   sellerRating={4.9}
-                  isVerified={listing.isIdVerified}
+                  isVerified={true}
                   isBoosted={listing.isBoosted}
                   isAuction={listing.isAuction}
+                  isBulk={listing.isBulk}
+                  quantity={listing.quantity}
                   auctionEndDate={listing.auctionEndDate}
                 />
               ))}
