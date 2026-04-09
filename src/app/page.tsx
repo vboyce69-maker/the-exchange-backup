@@ -89,7 +89,7 @@ export default function LandingPage() {
               <Sparkles className="w-4 h-4 text-[#34CBED]" />
               <span className="text-[10px] font-black uppercase tracking-widest">South Africa's Trusted Marketplace</span>
             </div>
-            <h1 className="text-5xl md:text-8xl font-black leading-[0.9] tracking-tighter">
+            <h1 className="text-4xl md:text-6xl font-black leading-[0.9] tracking-tighter">
               The smartest way to <span className="text-[#34CBED]">trade locally.</span>
             </h1>
             <p className="text-xl text-white/80 font-black max-w-lg tracking-tight leading-relaxed">
