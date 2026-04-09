@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Navigation } from "@/components/Navigation";
 import { antiScamChatProtection, AntiScamChatProtectionOutput } from "@/ai/flows/anti-scam-chat-protection";
 import { Button } from "@/components/ui/button";
@@ -23,7 +23,10 @@ import {
   AlertTriangle,
   ThumbsUp,
   Lock,
-  ArrowRightLeft
+  ArrowRightLeft,
+  Home,
+  Shield,
+  Loader2
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { VerifiedBadge } from "@/components/VerifiedBadge";
@@ -38,6 +41,9 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Checkbox } from "@/components/ui/checkbox";
+import { useUser, useDoc, useFirestore, useMemoFirebase } from "@/firebase";
+import { doc } from "firebase/firestore";
+import { Progress } from "@/components/ui/progress";
 
 interface Message {
   id: string;
@@ -46,7 +52,23 @@ interface Message {
   timestamp: string;
 }
 
+// Simulated coordinates for Safe Zones
+const SAFE_ZONE_COORDS: Record<string, { lat: number, lng: number }> = {
+  "Shell Garage Main Road": { lat: -26.2041, lng: 28.0473 },
+  "Central Police Station": { lat: -26.2100, lng: 28.0400 },
+  "Mall Entrance A": { lat: -26.1950, lng: 28.0550 },
+};
+
 export default function MessagesPage() {
+  const { user } = useUser();
+  const db = useFirestore();
+
+  // Fetch user profile for home location
+  const profileRef = useMemoFirebase(() => {
+    return user ? doc(db, "userProfiles", user.uid) : null;
+  }, [db, user]);
+  const { data: profile } = useDoc(profileRef);
+
   const [messages, setMessages] = useState<Message[]>([
     { id: "1", senderId: "seller", text: "Hey! Are you still interested in the Mountain Bike?", timestamp: "10:30 AM" },
   ]);
@@ -63,6 +85,58 @@ export default function MessagesPage() {
     requester: "Alex Rivera",
     myStatus: 'idle',
   });
+
+  // Safe Arrival States
+  const [safeArrival, setSafeArrival] = useState({
+    active: false,
+    estimatedMinutes: 0,
+    elapsedSeconds: 0,
+    isHome: false,
+  });
+
+  // Calculate distance and time
+  const travelStats = useMemo(() => {
+    if (!profile || !meetingRequest.location) return { distance: 0, time: 0 };
+    
+    const homeLat = profile.locationLatitude || -26.2041;
+    const homeLng = profile.locationLongitude || 28.0473;
+    const meetCoords = SAFE_ZONE_COORDS[meetingRequest.location] || SAFE_ZONE_COORDS["Shell Garage Main Road"];
+
+    // Haversine formula
+    const R = 6371; // km
+    const dLat = (meetCoords.lat - homeLat) * Math.PI / 180;
+    const dLon = (meetCoords.lng - homeLng) * Math.PI / 180;
+    const a = 
+      Math.sin(dLat/2) * Math.sin(dLat/2) +
+      Math.cos(homeLat * Math.PI / 180) * Math.cos(meetCoords.lat * Math.PI / 180) * 
+      Math.sin(dLon/2) * Math.sin(dLon/2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    const distance = R * c;
+
+    // Estimate time: 40km/h average
+    const timeInMinutes = Math.max(1, Math.round((distance / 40) * 60));
+    
+    return { distance: distance.toFixed(1), time: timeInMinutes };
+  }, [profile, meetingRequest.location]);
+
+  // Safe Arrival Timer Simulation
+  useEffect(() => {
+    let timer: NodeJS.Timeout;
+    if (safeArrival.active && !safeArrival.isHome) {
+      timer = setInterval(() => {
+        setSafeArrival(prev => {
+          const nextElapsed = prev.elapsedSeconds + 1;
+          const totalSeconds = prev.estimatedMinutes * 60;
+          return {
+            ...prev,
+            elapsedSeconds: nextElapsed,
+            isHome: nextElapsed >= totalSeconds
+          };
+        });
+      }, 1000);
+    }
+    return () => clearInterval(timer);
+  }, [safeArrival.active, safeArrival.isHome]);
 
   const handleSend = async () => {
     if (!inputValue.trim() || isSending) return;
@@ -82,21 +156,43 @@ export default function MessagesPage() {
 
   const updateStatus = (nextStatus: string) => {
     setMeetingRequest({...meetingRequest, status: nextStatus});
+    
+    if (nextStatus === 'completed') {
+      setSafeArrival({
+        active: true,
+        estimatedMinutes: travelStats.time,
+        elapsedSeconds: 0,
+        isHome: false
+      });
+      setIsEscrowActive(false);
+    }
+
     toast({ title: "Status Updated", description: `You are now marked as ${nextStatus.replace('-', ' ')}.` });
+  };
+
+  const confirmSafeHome = () => {
+    setSafeArrival(prev => ({ ...prev, active: false, isHome: true }));
+    toast({
+      title: "Check-in Confirmed",
+      description: "You've checked in as safe. Reliability score boosted!",
+    });
+    setShowFeedback(true);
   };
 
   return (
     <div className="min-h-screen bg-[#EEF1F3] flex flex-col">
       <Navigation />
       
-      <main className="flex-1 container mx-auto px-4 py-8 flex gap-6">
+      <main className="flex-1 container mx-auto px-4 py-8 flex flex-col lg:flex-row gap-6">
         <aside className="hidden lg:block w-80 bg-white border rounded-[2rem] shadow-sm overflow-hidden h-[calc(100vh-10rem)]">
           <div className="p-6 border-b bg-[#225BC3]/5"><h2 className="font-headline font-bold text-lg text-[#225BC3]">Conversations</h2></div>
           <div className="p-5 bg-blue-50/50 border-l-4 border-[#225BC3] flex gap-3 cursor-pointer">
             <Avatar className="h-12 w-12 border-2 border-white shadow-sm"><AvatarImage src="https://picsum.photos/seed/user1/200/200" /></Avatar>
             <div className="flex-1 min-w-0">
               <span className="font-bold text-sm">Alex Rivera</span>
-              <p className="text-xs text-muted-foreground truncate">Funds in protected hold...</p>
+              <p className="text-xs text-muted-foreground truncate">
+                {meetingRequest.status === 'completed' ? "Deal Complete" : "Funds in protected hold..."}
+              </p>
             </div>
           </div>
         </aside>
@@ -107,7 +203,7 @@ export default function MessagesPage() {
               <Avatar className="border-2 border-[#225BC3]/10"><AvatarImage src="https://picsum.photos/seed/user1/200/200" /></Avatar>
               <h3 className="font-bold text-[#225BC3]">Alex Rivera <VerifiedBadge /></h3>
             </div>
-            {isEscrowActive && (
+            {isEscrowActive && meetingRequest.status !== 'completed' && (
               <Badge className="bg-green-600 text-white border-none px-4 py-1.5 flex items-center gap-2">
                 <Lock className="w-3 h-3" /> Protected Hold Active
               </Badge>
@@ -122,6 +218,7 @@ export default function MessagesPage() {
                </AlertDescription>
             </Alert>
 
+            {/* Meetup Lifecycle Card */}
             {meetingRequest.status === 'pending' && (
               <Card className="border-none shadow-2xl bg-white rounded-3xl overflow-hidden ring-1 ring-[#225BC3]/10">
                 <div className="bg-[#225BC3] p-4 text-white flex justify-between items-center font-bold text-sm">
@@ -142,7 +239,7 @@ export default function MessagesPage() {
               </Card>
             )}
 
-            {meetingRequest.status !== 'pending' && meetingRequest.status !== 'declined' && (
+            {meetingRequest.status !== 'pending' && meetingRequest.status !== 'declined' && meetingRequest.status !== 'completed' && (
               <Card className="border-none shadow-xl bg-white rounded-3xl overflow-hidden ring-1 ring-slate-100">
                 <div className="p-5 flex items-center justify-between border-b">
                    <div className="flex items-center gap-3">
@@ -171,8 +268,61 @@ export default function MessagesPage() {
                    <div className="flex gap-2">
                       {meetingRequest.status === 'accepted' && <Button className="w-full bg-[#225BC3] rounded-xl h-12 font-bold" onClick={() => updateStatus('way')}>I'm on my way</Button>}
                       {meetingRequest.status === 'way' && <Button className="w-full bg-[#34CBED] rounded-xl h-12 font-bold" onClick={() => updateStatus('arrived')}>I have arrived</Button>}
-                      {meetingRequest.status === 'arrived' && <Button className="w-full bg-green-600 rounded-xl h-12 font-bold" onClick={() => { updateStatus('completed'); setShowFeedback(true); }}>Deal Completed</Button>}
+                      {meetingRequest.status === 'arrived' && <Button className="w-full bg-green-600 rounded-xl h-12 font-bold" onClick={() => updateStatus('completed')}>Deal Completed</Button>}
                    </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Arrived Safe at Home Tracker */}
+            {safeArrival.active && (
+              <Card className="border-none shadow-2xl bg-[#225BC3] text-white rounded-[2rem] overflow-hidden animate-in slide-in-from-top-4">
+                <CardContent className="p-8 space-y-6">
+                  <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 bg-white/10 rounded-2xl flex items-center justify-center">
+                       <Shield className="w-6 h-6 text-[#34CBED]" />
+                    </div>
+                    <div>
+                      <h4 className="font-black uppercase text-[10px] tracking-widest text-[#34CBED]">Safety Check-in</h4>
+                      <h3 className="text-xl font-black">Traveling Home</h3>
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <div className="flex justify-between text-[10px] font-bold uppercase opacity-80">
+                       <span>{travelStats.distance}km journey</span>
+                       <span>Est. {travelStats.time} mins</span>
+                    </div>
+                    <Progress 
+                      value={(safeArrival.elapsedSeconds / (safeArrival.estimatedMinutes * 60)) * 100} 
+                      className="h-2 bg-white/20" 
+                    />
+                  </div>
+
+                  <p className="text-xs font-medium text-white/70 leading-relaxed italic">
+                    "We're monitoring your expected arrival. Please confirm once you're safely indoors."
+                  </p>
+
+                  <Button 
+                    className={cn(
+                      "w-full h-14 rounded-2xl font-black transition-all",
+                      safeArrival.isHome 
+                        ? "bg-[#34CBED] text-white hover:scale-[1.02] shadow-xl" 
+                        : "bg-white/10 text-white/40 cursor-wait"
+                    )}
+                    onClick={confirmSafeHome}
+                    disabled={!safeArrival.isHome}
+                  >
+                    {safeArrival.isHome ? (
+                      <span className="flex items-center gap-2">
+                        <Home className="w-5 h-5" /> I'm Safe at Home
+                      </span>
+                    ) : (
+                      <span className="flex items-center gap-2">
+                        <Loader2 className="w-4 h-4 animate-spin" /> Journey in Progress...
+                      </span>
+                    )}
+                  </Button>
                 </CardContent>
               </Card>
             )}
