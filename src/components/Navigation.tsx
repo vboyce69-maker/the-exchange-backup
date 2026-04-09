@@ -2,7 +2,8 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { 
   PlusCircle, 
@@ -42,8 +43,10 @@ import { signOut } from "firebase/auth";
 
 export function Navigation() {
   const pathname = usePathname();
+  const router = useRouter();
   const { user } = useUser();
   const auth = useAuth();
+  const [searchVal, setSearchVal] = useState("");
 
   const handleSignOut = async () => {
     try {
@@ -53,18 +56,20 @@ export function Navigation() {
     }
   };
 
-  const navItems = [
-    { name: "Browse", href: "/", icon: Home },
-    { name: "Auctions", href: "/auctions", icon: Gavel },
-    { name: "Insights", href: "/insights", icon: TrendingUp },
-  ];
+  const handleSearchSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (searchVal.trim()) {
+      router.push(`/search?q=${encodeURIComponent(searchVal)}`);
+    }
+  };
 
   const features = [
-    { name: "Live Auctions", description: "Bidding & Bulk Lots", icon: Gavel, href: "/auctions", color: "text-[#225BC3]" },
+    { name: "Browse Marketplace", description: "Fixed Price & Lots", icon: ShoppingBag, href: "/search", color: "text-[#225BC3]" },
+    { name: "Live Auctions", description: "Bidding & Bulk Lots", icon: Gavel, href: "/auctions", color: "text-[#FF8C00]" },
     { name: "Biometric KYC", description: "AI Identity Verification", icon: Fingerprint, href: "/verify", color: "text-blue-500" },
     { name: "Protected Payments", description: "Escrow-Style Hold", icon: Lock, href: "/legal", color: "text-green-500" },
-    { name: "Safe Zones", description: "Vetted Meetup Points", icon: MapPin, href: "/messages", color: "text-orange-500" },
     { name: "Market Insights", description: "Seller Demand Data", icon: TrendingUp, href: "/insights", color: "text-purple-500" },
+    { name: "Safe Zones", description: "Vetted Meetup Points", icon: MapPin, href: "/messages", color: "text-orange-500" },
     { name: "Legal Hub", description: "CPA & POPIA Compliance", icon: Scale, href: "/legal", color: "text-slate-600" },
   ];
 
@@ -81,15 +86,17 @@ export function Navigation() {
           </div>
         </Link>
 
-        {/* Global Search - Amazon/Takealot style */}
-        <div className="hidden lg:flex flex-1 max-w-md mx-8 relative group">
+        {/* Global Search - Amazon style */}
+        <form onSubmit={handleSearchSubmit} className="hidden lg:flex flex-1 max-w-md mx-8 relative group">
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-[#225BC3] transition-colors" />
           <input 
             type="text" 
-            placeholder="Search items, brands or categories..." 
+            placeholder="Search for items, brands or categories..." 
+            value={searchVal}
+            onChange={(e) => setSearchVal(e.target.value)}
             className="w-full h-11 pl-10 pr-4 rounded-2xl bg-slate-50 border-none focus:ring-2 focus:ring-[#225BC3]/10 outline-none font-medium text-sm transition-all"
           />
-        </div>
+        </form>
 
         <div className="flex items-center gap-2 sm:gap-4">
           <Link href="/create">
@@ -99,7 +106,7 @@ export function Navigation() {
             </Button>
           </Link>
 
-          {/* Consolidated Features Hub */}
+          {/* Marketplace Hub */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <button className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-[#225BC3] hover:text-[#34CBED] outline-none h-11 px-4 rounded-2xl bg-[#225BC3]/5 hover:bg-[#225BC3]/10 transition-colors border border-[#225BC3]/10 shadow-sm">
@@ -108,7 +115,7 @@ export function Navigation() {
             </DropdownMenuTrigger>
             <DropdownMenuContent className="w-72 rounded-[2rem] p-4 shadow-2xl border-none ring-1 ring-black/5 mt-2 bg-white grid grid-cols-1 gap-1">
               <DropdownMenuLabel className="font-black text-[9px] uppercase tracking-[0.2em] text-[#225BC3] px-3 py-2 flex items-center justify-between">
-                Marketplace Hub
+                Platform Hub
                 <Briefcase className="w-3 h-3" />
               </DropdownMenuLabel>
               <DropdownMenuSeparator className="mb-2 bg-slate-100" />
@@ -125,10 +132,6 @@ export function Navigation() {
                   </Link>
                 </DropdownMenuItem>
               ))}
-              <DropdownMenuSeparator className="my-2 bg-slate-100" />
-              <DropdownMenuItem className="rounded-2xl p-3 font-black text-[9px] uppercase tracking-widest text-[#34CBED] justify-center focus:text-[#225BC3] cursor-pointer" asChild>
-                <Link href="/legal">Security & Compliance</Link>
-              </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
 

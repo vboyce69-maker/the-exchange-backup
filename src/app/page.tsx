@@ -64,7 +64,7 @@ export default function LandingPage() {
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     if (searchQuery.trim()) {
-      router.push(`/auctions?q=${encodeURIComponent(searchQuery)}`);
+      router.push(`/search?q=${encodeURIComponent(searchQuery)}`);
     }
   };
 
@@ -80,7 +80,7 @@ export default function LandingPage() {
             alt="Marketplace Hero" 
             fill 
             className="object-cover"
-            data-ai-hint="marketplace commerce"
+            data-ai-hint="marketplace trade"
           />
         </div>
         <div className="container mx-auto px-6 relative z-10 grid lg:grid-cols-2 gap-12 items-center">
@@ -89,21 +89,21 @@ export default function LandingPage() {
               <Sparkles className="w-4 h-4 text-[#34CBED]" />
               <span className="text-[10px] font-black uppercase tracking-widest">South Africa's Trusted Marketplace</span>
             </div>
-            <h1 className="text-2xl md:text-4xl font-black leading-[1.1] tracking-tighter">
+            <h1 className="text-2xl md:text-3xl font-black leading-[1.1] tracking-tighter">
               The smartest way to <span className="text-[#34CBED]">trade locally.</span>
             </h1>
             <p className="text-xl text-white/80 font-black max-w-lg tracking-tight leading-relaxed">
               Verified Sellers, Secure Deals, No Scams, Just Good Trades.
             </p>
             <div className="flex flex-wrap gap-4 pt-4">
-              <Link href="/auctions">
+              <Link href="/search">
                 <Button size="lg" className="bg-[#FF8C00] hover:bg-[#FF8C00]/90 text-white font-black h-18 px-10 rounded-[1.5rem] text-lg shadow-2xl shadow-orange-500/30 hover:scale-105 transition-transform">
-                  Explore Auctions
+                  Explore Marketplace
                 </Button>
               </Link>
-              <Link href="/create">
+              <Link href="/auctions">
                 <Button size="lg" variant="outline" className="border-white/30 text-white bg-white/10 hover:bg-white/20 backdrop-blur-md h-18 px-10 rounded-[1.5rem] text-lg font-bold">
-                  Start Selling
+                  Live Auctions
                 </Button>
               </Link>
             </div>
@@ -137,7 +137,7 @@ export default function LandingPage() {
               return (
                 <Link 
                   key={cat.name} 
-                  href={`/auctions?category=${cat.name.toLowerCase()}`}
+                  href={`/search?category=${cat.name.toLowerCase()}`}
                   className="bg-white p-5 rounded-[2rem] shadow-xl border border-slate-100 flex flex-col items-center gap-3 hover:bg-slate-50 transition-all hover:-translate-y-2 group"
                 >
                   <div className={cn("w-14 h-14 rounded-2xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform", cat.color)}>
@@ -177,7 +177,7 @@ export default function LandingPage() {
             </div>
           </div>
           <div className="flex-1 w-full space-y-4">
-            <h3 className="font-black text-[#225BC3] uppercase text-[10px] tracking-[0.2em]">Smart Filter</h3>
+            <h3 className="font-black text-[#225BC3] uppercase text-[10px] tracking-[0.2em]">Smart Search</h3>
             <form onSubmit={handleSearch} className="relative group">
                <Search className="absolute left-6 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 group-focus-within:text-[#225BC3]" />
                <input 
@@ -203,7 +203,7 @@ export default function LandingPage() {
                 <p className="text-sm text-muted-foreground font-medium mt-1">Hottest listings in South Africa right now</p>
               </div>
             </div>
-            <Link href="/auctions">
+            <Link href="/search">
               <Button variant="ghost" className="h-12 rounded-2xl font-black text-[#225BC3] hover:bg-[#225BC3]/5 gap-2 group">
                 Browse All <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
               </Button>

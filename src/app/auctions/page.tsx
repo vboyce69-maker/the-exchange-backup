@@ -33,15 +33,13 @@ function AuctionsContent() {
   const auctionsQuery = useMemoFirebase(() => {
     const constraints: QueryConstraint[] = [];
     
-    // We always want auctions for this specific page
+    // STRICTLY AUCTIONS
     constraints.push(where("isAuction", "==", true));
 
     if (categoryFilter) {
       constraints.push(where("categoryId", "==", categoryFilter.toLowerCase()));
     }
 
-    // Firestore doesn't support full-text search easily without a 3rd party,
-    // so we order by date and filter the results locally for the "Search" simulation in this MVP.
     constraints.push(orderBy("postedDate", "desc"));
 
     return query(collection(db, "publicListings"), ...constraints);
@@ -82,7 +80,7 @@ function AuctionsContent() {
       <main className="container mx-auto px-4 py-12">
         <div className="mb-12">
           <div className="flex items-center gap-3 mb-4">
-            <Badge className="bg-[#34CBED] text-white font-black px-4 py-1 border-none rounded-full uppercase tracking-widest text-[10px]">
+            <Badge className="bg-[#FF8C00] text-white font-black px-4 py-1 border-none rounded-full uppercase tracking-widest text-[10px]">
               Live Bidding
             </Badge>
             {(categoryFilter || searchQuery) && (
@@ -99,16 +97,10 @@ function AuctionsContent() {
           
           <h1 className="text-4xl font-black text-[#225BC3] mb-4 flex items-center gap-3 tracking-tighter">
             <Gavel className="w-10 h-10 text-[#225BC3]" />
-            {categoryFilter ? (
-              <span className="capitalize">{categoryFilter} Auctions</span>
-            ) : searchQuery ? (
-              <span>Results for "{searchQuery}"</span>
-            ) : (
-              "Active Auctions"
-            )}
+            Auction House
           </h1>
           <p className="text-muted-foreground text-lg max-w-2xl font-medium">
-            Discover premium {categoryFilter ? categoryFilter.toLowerCase() : "items"} from verified sellers. Bidding is secure and automated.
+            Discover premium timed auctions from verified sellers. Bidding is secure, automated, and platform-protected.
           </p>
         </div>
 
@@ -117,7 +109,7 @@ function AuctionsContent() {
             <AlertCircle className="h-5 w-5" />
             <AlertTitle className="font-black uppercase text-[10px] tracking-widest">Connection Error</AlertTitle>
             <AlertDescription className="font-medium text-sm">
-              We encountered a problem fetching the live auction data. This may be due to a missing database index or network issue.
+              We encountered a problem fetching the live auction data.
             </AlertDescription>
           </Alert>
         )}
@@ -125,7 +117,7 @@ function AuctionsContent() {
         <Tabs defaultValue="all" className="space-y-8">
           <TabsList className="bg-white/80 backdrop-blur-md border-none p-1.5 h-14 rounded-2xl shadow-xl inline-flex">
             <TabsTrigger value="all" className="rounded-xl px-8 h-full font-black text-xs uppercase data-[state=active]:bg-[#225BC3] data-[state=active]:text-white">
-              All {categoryFilter || searchQuery ? 'Matches' : 'Auctions'}
+              All Active Bids
             </TabsTrigger>
             <TabsTrigger value="ending" className="rounded-xl px-8 h-full font-black text-xs uppercase data-[state=active]:bg-[#225BC3] data-[state=active]:text-white">
               Ending Soon ({endingSoon.length})
@@ -136,7 +128,7 @@ function AuctionsContent() {
             {isLoading ? (
               <div className="flex flex-col items-center justify-center py-24">
                 <Loader2 className="w-12 h-12 animate-spin text-[#225BC3] mb-4" />
-                <p className="text-muted-foreground font-black uppercase text-[10px] tracking-widest">Streaming live auctions...</p>
+                <p className="text-muted-foreground font-black uppercase text-[10px] tracking-widest">Syncing auction house...</p>
               </div>
             ) : auctions && auctions.length > 0 ? (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
@@ -146,7 +138,7 @@ function AuctionsContent() {
                     id={listing.id}
                     title={listing.title}
                     price={listing.price}
-                    location={listing.location || "Johannesburg"}
+                    location={listing.location || "Local"}
                     imageUrl={listing.imageUrls?.[0]}
                     sellerName="Verified Seller"
                     sellerRating={4.9}
@@ -160,9 +152,9 @@ function AuctionsContent() {
               </div>
             ) : (
               <div className="text-center py-20 bg-white rounded-[3rem] shadow-sm border-2 border-dashed border-[#225BC3]/10">
-                 <Search className="w-12 h-12 text-slate-200 mx-auto mb-4" />
-                 <p className="font-black text-[#225BC3] uppercase tracking-widest">No matching auctions</p>
-                 <p className="text-muted-foreground text-sm font-medium">Try a different category or broader search.</p>
+                 <Gavel className="w-12 h-12 text-slate-200 mx-auto mb-4" />
+                 <p className="font-black text-[#225BC3] uppercase tracking-widest">No active auctions</p>
+                 <p className="text-muted-foreground text-sm font-medium">Try a different category or check back later.</p>
               </div>
             )}
           </TabsContent>
@@ -176,7 +168,7 @@ function AuctionsContent() {
                     id={listing.id}
                     title={listing.title}
                     price={listing.price}
-                    location={listing.location || "Johannesburg"}
+                    location={listing.location || "Local"}
                     imageUrl={listing.imageUrls?.[0]}
                     sellerName="Verified Seller"
                     sellerRating={4.9}
