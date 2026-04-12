@@ -3,10 +3,11 @@ import { googleAI } from '@genkit-ai/google-genai';
 
 /**
  * Centralized Model Configuration for 'The Exchange'.
- * Using latest stable model aliases supported by the @genkit-ai/google-genai plugin.
+ * Primary: Gemini 2.0 Flash (Latest, high speed)
+ * Fallback: Gemini 1.5 Flash (Highly stable)
  */
-export const PRIMARY_MODEL = 'gemini-2.0-flash';
-export const FALLBACK_MODEL = 'gemini-1.5-pro';
+export const PRIMARY_MODEL = 'googleai/gemini-2.0-flash';
+export const FALLBACK_MODEL = 'googleai/gemini-1.5-flash';
 
 export const ai = genkit({
   plugins: [googleAI()],
@@ -29,7 +30,13 @@ export async function runWithModelSafe<T>(
     return { ok: true, output: result, modelUsed: PRIMARY_MODEL };
   } catch (error: any) {
     const errorMessage = error.message || String(error);
-    const isRecoverable = errorMessage.includes('404') || errorMessage.includes('429') || errorMessage.includes('500') || errorMessage.includes('not found');
+    // Check for common recoverable errors or specific model failures
+    const isRecoverable = 
+      errorMessage.includes('404') || 
+      errorMessage.includes('429') || 
+      errorMessage.includes('500') || 
+      errorMessage.includes('not found') ||
+      errorMessage.includes('unsupported');
     
     if (isRecoverable) {
       console.warn(`[AI SECURITY] Primary model (${PRIMARY_MODEL}) failed: ${errorMessage}. Attempting fallback to ${FALLBACK_MODEL}...`);

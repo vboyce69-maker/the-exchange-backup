@@ -27,7 +27,7 @@ const SYMBOL_MAP: Record<string, string> = {
 };
 
 /**
- * Normalizes text to defeat obfuscation.
+ * Normalizes text to defeat sophisticated obfuscation.
  */
 export function normalizeText(text: string): string {
   let normalized = text.toLowerCase();
@@ -37,14 +37,18 @@ export function normalizeText(text: string): string {
     normalized = normalized.split(symbol).join(letter);
   });
 
-  // 2. Remove punctuation and special chars (keeping spaces)
+  // 2. Remove punctuation and special chars (keeping spaces temporarily)
   normalized = normalized.replace(/[^a-z0-9\s]/g, '');
 
   // 3. Join spaced out words (e.g., w h a t s a p p -> whatsapp)
-  // Logic: find a single letter followed by a space, if the next character is also a single letter, join them.
-  normalized = normalized.replace(/\b([a-z])\s+(?=[a-z]\b)/g, '$1');
+  // We apply this recursively to catch long sequences
+  let prev;
+  do {
+    prev = normalized;
+    normalized = normalized.replace(/\b([a-z])\s+([a-z])\b/gi, '$1$2');
+  } while (normalized !== prev);
 
-  // 4. Collapse multiple spaces
+  // 4. Collapse multiple spaces and trim
   normalized = normalized.trim().replace(/\s+/g, ' ');
 
   return normalized;
@@ -56,55 +60,55 @@ export const SCAM_RULES: ScamRule[] = [
     category: 'fake_courier_pickup',
     weight: 25,
     patterns: ['courier', 'cheque', 'driver', 'collect', 'pickup', 'delivery man'],
-    explanation: 'Requests for courier collection are high risk.'
+    explanation: 'Requests for courier collection or third-party drivers are high risk in peer-to-peer trades.'
   },
   {
     id: 'insurance_fees',
     category: 'fee_scam',
     weight: 30,
     patterns: ['insurance', 'refundable', 'clearance', 'release fee', 'activation fee', 'holding fee'],
-    explanation: 'Advance-fee fraud indicator detected.'
+    explanation: 'Advance-fee fraud indicator detected. Scammers often request small "insurance" payments before meeting.'
   },
   {
     id: 'phishing_link',
     category: 'phishing_verification_link',
     weight: 40,
-    patterns: ['login here', 'verify account', 'security update', 'click here', 'bitly', 'tinyurl'],
-    explanation: 'Suspicious redirect or verification request.'
+    patterns: ['login here', 'verify account', 'security update', 'click here', 'bitly', 'tinyurl', 'qr code'],
+    explanation: 'Suspicious redirect or verification request detected. Never enter your credentials on external links.'
   },
   {
     id: 'overpayment',
     category: 'overpayment_refund',
     weight: 45,
     patterns: ['accidentally paid', 'overpaid', 'refund the difference', 'send the change', 'driver change'],
-    explanation: 'Classic overpayment/refund scam pattern.'
+    explanation: 'Classic overpayment scam pattern. Scammers pretend to overpay via fake Proof of Payment and ask for a cash refund.'
   },
   {
     id: 'off_platform',
     category: 'off_platform_redirect',
     weight: 20,
-    patterns: ['whatsapp', 'telegram', 'watsapp', 'whatsap', 'phone number', 'insta'],
-    explanation: 'Attempt to move communication off-platform.'
+    patterns: ['whatsapp', 'telegram', 'watsapp', 'whatsap', 'phone number', 'insta', 'message me on'],
+    explanation: 'Attempt to move communication off-platform to avoid security monitoring.'
   },
   {
     id: 'bank_otp',
     category: 'bank_detail_or_code_request',
     weight: 60,
-    patterns: ['otp', 'one time pin', 'verification code', 'bank details', 'reflect later'],
-    explanation: 'Direct request for sensitive banking/OTP data.'
+    patterns: ['otp', 'one time pin', 'verification code', 'bank details', 'reflect later', 'pop attached'],
+    explanation: 'Direct request for sensitive banking/OTP data. This is a high-severity fraud indicator.'
   },
   {
     id: 'urgency',
     category: 'urgent_release_of_goods',
     weight: 15,
-    patterns: ['urgent', 'immediately', 'now or never', 'release item', 'fast payment'],
-    explanation: 'High pressure social engineering.'
+    patterns: ['urgent', 'immediately', 'now or never', 'release item', 'fast payment', 'send now'],
+    explanation: 'High pressure social engineering used to bypass your natural caution.'
   }
 ];
 
 const CO_OCCURRENCE_BOOSTS = [
   { terms: ['courier', 'insurance'], boost: 35 },
-  { terms: ['payment', 'urgency'], boost: 30 },
+  { terms: ['payment', 'urgent'], boost: 30 },
   { terms: ['overpaid', 'refund'], boost: 40 },
   { terms: ['login', 'link'], boost: 45 },
   { terms: ['whatsapp', 'payment'], boost: 25 },
@@ -130,7 +134,7 @@ export function detectScamText(text: string): DetectionResult {
   CO_OCCURRENCE_BOOSTS.forEach(boost => {
     if (boost.terms.every(term => normalized.includes(term))) {
       score += boost.boost;
-      reasons.push(`Dangerous combination: ${boost.terms.join(' + ')}`);
+      reasons.push(`High-Risk Combination: ${boost.terms.join(' + ')} detected.`);
     }
   });
 
