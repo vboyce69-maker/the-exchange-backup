@@ -3,32 +3,43 @@
 import { useState } from 'react';
 import { antiScamChatProtection, AntiScamChatProtectionOutput } from '@/ai/flows/anti-scam-chat-protection';
 import { toast } from '@/hooks/use-toast';
+import { useUser } from '@/firebase';
 
 /**
  * Reusable hook for marketplace security.
- * Compatible with React/Next.js (Web) and logic is portable to React Native.
+ * Detects scams in real-time across messages, listings, and bios.
  */
 export function useScamDetection() {
   const [isValidating, setIsValidating] = useState(false);
+  const { user } = useUser();
 
-  const checkContent = async (text: string): Promise<AntiScamChatProtectionOutput | null> => {
+  const checkContent = async (text: string, context: 'message' | 'listing' | 'bio' = 'message'): Promise<AntiScamChatProtectionOutput | null> => {
     if (!text.trim()) return null;
     
     setIsValidating(true);
     try {
-      const result = await antiScamChatProtection({ message: text });
+      // Logic for trust score can be fetched from user profile
+      const userTrustScore = user ? 50 : 0; 
+      
+      const result = await antiScamChatProtection({ message: text, userTrustScore });
       
       if (result.decision === 'block') {
         toast({
           variant: 'destructive',
-          title: 'Security Alert',
-          description: 'This message was blocked for your safety as it contains high-risk fraud indicators.',
+          title: 'Security Alert: Message Blocked',
+          description: 'This content contains high-risk fraud indicators and has been blocked for your safety.',
         });
-      } else if (result.decision === 'flag') {
+      } else if (result.decision === 'warn') {
         toast({
           variant: 'default',
-          title: 'Caution',
-          description: 'Our AI has flagged this message as potentially suspicious.',
+          title: 'Security Notice',
+          description: 'Always keep communication and payments in-app to remain protected.',
+        });
+      } else if (result.decision === 'hold') {
+        toast({
+          variant: 'default',
+          title: 'Verification Required',
+          description: 'This listing is being reviewed by our safety team to ensure marketplace integrity.',
         });
       }
 
