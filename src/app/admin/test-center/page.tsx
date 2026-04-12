@@ -24,7 +24,8 @@ import {
   ShieldAlert,
   Server,
   Cpu,
-  Fingerprint
+  Fingerprint,
+  Activity
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "@/hooks/use-toast";
@@ -44,11 +45,14 @@ export default function AutonomousTestCenter() {
   const [isRunning, setIsRunning] = useState(false);
   const [results, setResults] = useState<AutonomousTesterOutput | null>(null);
   const [scamTests, setScamTests] = useState<any[]>([]);
+  const [currentStep, setCurrentStep] = useState<string>("");
 
   const runAllTests = async () => {
     setIsRunning(true);
     setScamTests([]);
     setResults(null);
+    setCurrentStep("Scanning phrases...");
+    
     try {
       const scamResults = await Promise.all(
         SCAM_PHRASES_TO_TEST.map(async (text) => {
@@ -58,6 +62,7 @@ export default function AutonomousTestCenter() {
       );
       setScamTests(scamResults);
 
+      setCurrentStep("Auditing trust layers...");
       const data = await runAutonomousTesting({});
       setResults(data);
 
@@ -74,6 +79,7 @@ export default function AutonomousTestCenter() {
       });
     } finally {
       setIsRunning(false);
+      setCurrentStep("");
     }
   };
 
@@ -94,13 +100,22 @@ export default function AutonomousTestCenter() {
               <h1 className="text-2xl lg:text-4xl font-black text-slate-900 tracking-tighter uppercase">Security Protocol</h1>
               <p className="text-muted-foreground font-medium text-xs lg:text-sm">Validating layered defenses and de-obfuscation logic.</p>
             </div>
-            <Button 
-              className="w-full md:w-auto h-14 lg:h-16 px-10 rounded-2xl bg-[#225BC3] text-white font-black text-base lg:text-lg shadow-2xl hover:scale-105 transition-transform"
-              onClick={runAllTests}
-              disabled={isRunning}
-            >
-              {isRunning ? <Loader2 className="w-6 h-6 animate-spin" /> : "Initiate Full Audit"}
-            </Button>
+            <div className="flex flex-col gap-3 w-full md:w-auto">
+              <Button 
+                id="initiate-audit-button"
+                className="h-14 lg:h-16 px-10 rounded-2xl bg-[#225BC3] text-white font-black text-base lg:text-lg shadow-2xl hover:scale-105 transition-transform"
+                onClick={runAllTests}
+                disabled={isRunning}
+              >
+                {isRunning ? <Loader2 className="w-6 h-6 animate-spin" /> : "Initiate Full Audit"}
+              </Button>
+              {isRunning && (
+                <div className="flex items-center justify-center gap-2 text-[10px] font-black text-[#225BC3] uppercase animate-pulse">
+                  <Activity className="w-3 h-3" />
+                  {currentStep}
+                </div>
+              )}
+            </div>
           </div>
 
           {scamTests.length > 0 && (

@@ -14,7 +14,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
-import { Smartphone, Lock, Loader2, CheckCircle2, AlertCircle } from "lucide-react";
+import { Smartphone, Lock, Loader2, CheckCircle2, AlertCircle, Info } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
@@ -34,7 +34,6 @@ export default function LoginPage() {
   useEffect(() => {
     if (!auth) return;
 
-    // Initialize Recaptcha Verifier once the component is mounted and auth is ready
     if (!recaptchaVerifierRef.current) {
       try {
         recaptchaVerifierRef.current = new RecaptchaVerifier(auth, "recaptcha-container", {
@@ -102,7 +101,7 @@ export default function LoginPage() {
       if (err.code === 'auth/too-many-requests') msg = "Too many attempts. Please try again later.";
       if (err.code === 'auth/quota-exceeded') msg = "SMS quota exceeded for today. Try again tomorrow.";
       if (err.code === 'auth/operation-not-allowed') {
-        msg = "Phone authentication is not enabled in the Firebase Console. Please enable it in Authentication > Sign-in method.";
+        msg = "Phone authentication is NOT ENABLED. Action Required: Go to Firebase Console > Authentication > Sign-in method and enable 'Phone'.";
       }
       
       setError(msg);
@@ -112,7 +111,6 @@ export default function LoginPage() {
         description: msg,
       });
 
-      // Clear the verifier on specific errors so it can be re-rendered/re-initialized
       if (recaptchaVerifierRef.current) {
         recaptchaVerifierRef.current.clear();
         recaptchaVerifierRef.current = null;
@@ -157,7 +155,7 @@ export default function LoginPage() {
       <main className="container mx-auto px-4 py-20 flex justify-center">
         <div className="w-full max-w-md space-y-4">
           {error && (
-            <Alert variant="destructive" className="rounded-2xl border-none shadow-lg animate-in fade-in slide-in-from-top-2">
+            <Alert variant="destructive" id="auth-error-alert" className="rounded-2xl border-none shadow-lg animate-in fade-in slide-in-from-top-2">
               <AlertCircle className="h-4 w-4" />
               <AlertTitle className="font-black text-[10px] uppercase tracking-widest">Security Alert</AlertTitle>
               <AlertDescription className="text-xs font-medium">{error}</AlertDescription>
@@ -188,9 +186,10 @@ export default function LoginPage() {
               {step === "phone" ? (
                 <form onSubmit={handleSendOtp} className="space-y-6">
                   <div className="space-y-2">
-                    <Label htmlFor="phone" className="font-black text-[10px] uppercase tracking-widest text-[#225BC3]">Phone Number</Label>
+                    <Label htmlFor="phone-number-input" className="font-black text-[10px] uppercase tracking-widest text-[#225BC3]">Phone Number</Label>
                     <Input 
-                      id="phone" 
+                      id="phone-number-input"
+                      data-testid="phone-number-input"
                       type="tel" 
                       placeholder="+27 12 345 6789" 
                       required 
@@ -202,6 +201,8 @@ export default function LoginPage() {
                   </div>
                   <div id="recaptcha-container"></div>
                   <Button 
+                    id="send-otp-button"
+                    data-testid="send-otp-button"
                     type="submit" 
                     className="w-full h-16 rounded-2xl bg-[#225BC3] text-white font-black text-lg shadow-xl hover:scale-[1.02] active:scale-[0.98] transition-all"
                     disabled={loading || !phoneNumber}
@@ -212,9 +213,10 @@ export default function LoginPage() {
               ) : (
                 <form onSubmit={handleVerifyOtp} className="space-y-6">
                   <div className="space-y-2">
-                    <Label htmlFor="otp" className="font-black text-[10px] uppercase tracking-widest text-[#225BC3]">Verification Code</Label>
+                    <Label htmlFor="otp-input" className="font-black text-[10px] uppercase tracking-widest text-[#225BC3]">Verification Code</Label>
                     <Input 
-                      id="otp" 
+                      id="otp-input"
+                      data-testid="otp-input"
                       type="text" 
                       placeholder="000000" 
                       maxLength={6}
@@ -226,6 +228,8 @@ export default function LoginPage() {
                     />
                   </div>
                   <Button 
+                    id="verify-otp-button"
+                    data-testid="verify-otp-button"
                     type="submit" 
                     className="w-full h-16 rounded-2xl bg-[#34CBED] text-white font-black text-lg shadow-xl hover:scale-[1.02] active:scale-[0.98] transition-all"
                     disabled={loading || otp.length < 6}
@@ -233,6 +237,7 @@ export default function LoginPage() {
                     {loading ? <Loader2 className="w-6 h-6 animate-spin" /> : "Verify & Continue"}
                   </Button>
                   <Button 
+                    id="change-phone-button"
                     type="button" 
                     variant="ghost" 
                     className="w-full font-bold text-xs text-[#225BC3] h-12 rounded-xl" 
@@ -248,10 +253,15 @@ export default function LoginPage() {
               )}
               
               <div className="mt-10 p-5 bg-blue-50/50 rounded-[2rem] border border-blue-100 flex gap-4">
-                <CheckCircle2 className="w-6 h-6 text-[#225BC3] shrink-0" />
-                <p className="text-[10px] text-blue-700 font-bold leading-tight uppercase tracking-wider">
-                  Phone verification ensures a trusted local community and protects against automated bot accounts.
-                </p>
+                <Info className="w-6 h-6 text-[#225BC3] shrink-0" />
+                <div className="space-y-1">
+                  <p className="text-[10px] text-blue-700 font-black leading-tight uppercase tracking-wider">
+                    Robo-Testing & Demo Access
+                  </p>
+                  <p className="text-[9px] text-blue-600 font-bold leading-tight">
+                    For automated testing, use whitelisted test numbers (e.g., +1 650-555-3434) in the Firebase Console.
+                  </p>
+                </div>
               </div>
             </CardContent>
           </Card>
