@@ -29,7 +29,8 @@ import {
   AlertTriangle,
   Info,
   Layers,
-  ImagePlus
+  ImagePlus,
+  Building2
 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import Image from "next/image";
@@ -46,11 +47,6 @@ const CATEGORIES = [
 ];
 
 const CONDITIONS = ["New", "Like new", "Good", "Used"];
-const DURATIONS = [
-  { value: "1", label: "1 Day (Fast Sale)" },
-  { value: "3", label: "3 Days (Balanced)" },
-  { value: "7", label: "7 Days (Max Reach)" }
-];
 
 export default function CreateListingPage() {
   const router = useRouter();
@@ -65,6 +61,7 @@ export default function CreateListingPage() {
   // Auction & Bulk States
   const [isAuction, setIsAuction] = useState(false);
   const [isBulk, setIsBulk] = useState(false);
+  const [isBusinessSeller, setIsBusinessSeller] = useState(false);
   const [quantity, setQuantity] = useState("1");
   const [auctionDuration, setAuctionDuration] = useState("3");
   const [cpaConsent, setCpaConsent] = useState(false);
@@ -172,6 +169,7 @@ export default function CreateListingPage() {
       status: isAuction ? "auction_active" : "available",
       isAuction,
       isBulk,
+      isBusinessSeller,
       quantity: parseInt(quantity),
       viewCount: 0,
       isBoosted: false,
@@ -188,7 +186,7 @@ export default function CreateListingPage() {
         title: "Listing Posted!",
         description: isAuction ? `Auction live for ${auctionDuration} days!` : "Your item is now live.",
       });
-      router.push("/auctions");
+      router.push("/search");
     }, 1000);
   };
 
@@ -199,7 +197,7 @@ export default function CreateListingPage() {
         <div className="w-full max-w-xl">
           <div className="mb-8">
             <h1 className="text-3xl font-black text-[#225BC3]">Create Listing</h1>
-            <p className="text-muted-foreground text-sm font-medium">Add multiple items or single premium goods.</p>
+            <p className="text-muted-foreground text-sm font-medium">Verified professional and peer-to-peer trades.</p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-6">
@@ -270,9 +268,22 @@ export default function CreateListingPage() {
                   />
                 </div>
 
-                {/* Bulk Lot Features */}
-                <div className="p-6 bg-slate-50 rounded-[2rem] border border-slate-100 space-y-6">
+                {/* Business & Bulk Features */}
+                <div className="p-6 bg-slate-50 rounded-[2rem] border border-slate-100 space-y-4">
                   <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-xl bg-white flex items-center justify-center shadow-sm text-[#225BC3]">
+                        <Building2 className="w-5 h-5" />
+                      </div>
+                      <div>
+                        <span className="font-black text-[#225BC3] block uppercase text-[10px] tracking-widest leading-none mb-1">Business Seller</span>
+                        <span className="text-[9px] text-muted-foreground font-bold">List as a registered company?</span>
+                      </div>
+                    </div>
+                    <Switch checked={isBusinessSeller} onCheckedChange={setIsBusinessSeller} />
+                  </div>
+
+                  <div className="flex items-center justify-between pt-4 border-t border-slate-200">
                     <div className="flex items-center gap-3">
                       <div className="w-10 h-10 rounded-xl bg-white flex items-center justify-center shadow-sm text-[#225BC3]">
                         <Layers className="w-5 h-5" />
@@ -286,7 +297,7 @@ export default function CreateListingPage() {
                   </div>
 
                   {isBulk && (
-                    <div className="space-y-2 animate-in fade-in slide-in-from-top-2">
+                    <div className="space-y-2 pt-4 animate-in fade-in slide-in-from-top-2">
                       <Label htmlFor="qty" className="font-black text-[#225BC3] uppercase text-[10px] tracking-widest">Total Items in Lot</Label>
                       <Input 
                         id="qty" 
@@ -388,7 +399,7 @@ export default function CreateListingPage() {
                       <AlertTriangle className="w-3 h-3" /> Marketplace Rules
                     </h4>
                     <p className="text-[9px] font-bold text-orange-600 leading-tight">
-                      Stolen or counterfeit goods are banned. We support SAPS in investigating high-value theft. All lots are subject to manual review.
+                      Stolen or counterfeit goods are banned. All business sellers must adhere to the Consumer Protection Act. We support law enforcement in investigating high-value theft.
                     </p>
                   </div>
 
@@ -400,8 +411,8 @@ export default function CreateListingPage() {
                         checked={cpaConsent}
                         onCheckedChange={(checked) => setCpaConsent(checked === true)}
                       />
-                      <label htmlFor="cpa" className="text-[10px] font-bold text-[#225BC3] leading-relaxed cursor-pointer">
-                        I confirm ownership and accuracy of this listing (including all items in bulk lots). I am aware of my liability under the CPA (2008).
+                      <label htmlFor="cpa" className="text-[10px] font-bold text-[#225BC3] font-body leading-relaxed cursor-pointer">
+                        I confirm ownership and accuracy of this listing. As a seller on The Exchange, I am aware of my legal obligations under the CPA (2008) and POPIA (2013).
                       </label>
                     </div>
                   </div>

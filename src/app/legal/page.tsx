@@ -20,7 +20,9 @@ import {
   MapPin,
   Shield,
   Server,
-  GlobeLock
+  GlobeLock,
+  Building2,
+  Database
 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 
@@ -51,6 +53,32 @@ export default function LegalHub() {
               Download Compliance Portfolio
             </Button>
           </div>
+
+          {/* CORPORATE STRATEGY & COMPLIANCE */}
+          <Card className="rounded-[2.5rem] border-none shadow-xl bg-white overflow-hidden ring-1 ring-slate-100">
+            <CardHeader className="bg-[#FF8C00] p-10 text-white">
+              <CardTitle className="flex items-center gap-3">
+                <Building2 className="w-8 h-8 text-white" />
+                Business Verification Framework
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-10 space-y-8">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div className="space-y-4">
+                  <h4 className="font-black text-[#225BC3] uppercase text-xs tracking-widest">Pty Ltd Verification</h4>
+                  <p className="text-sm text-slate-600 font-medium leading-relaxed">
+                    Inspired by international standards (like Globalfy), we provide professional sellers with a "Verified Pro" status. This requires CIPC registration, VAT certificates, and director biometric binding.
+                  </p>
+                </div>
+                <div className="space-y-4">
+                  <h4 className="font-black text-[#225BC3] uppercase text-xs tracking-widest">Tax & Trade Compliance</h4>
+                  <p className="text-sm text-slate-600 font-medium leading-relaxed">
+                    We ensure all bulk-lot trades are traceable for SARS reporting, providing a structured environment that protects both the platform and the legitimate trade ecosystem.
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
 
           {/* CYBERSECURITY FRAMEWORK */}
           <Card className="rounded-[2.5rem] border-none shadow-xl bg-white overflow-hidden ring-1 ring-slate-100">
@@ -141,12 +169,12 @@ export default function LegalHub() {
                   <div>
                     <p className="font-black text-[#225BC3] uppercase text-[10px] tracking-widest mb-1">Company Details</p>
                     <p className="font-bold text-slate-700">The Exchange Marketplace (Pty) Ltd</p>
-                    <p className="text-xs text-slate-500">Reg: 2023/XXXXXX/07 (Pending)</p>
+                    <p className="text-xs text-slate-500">Reg: 2023/XXXXXX/07 (In process)</p>
                   </div>
                   <div>
                     <p className="font-black text-[#225BC3] uppercase text-[10px] tracking-widest mb-1">CPA Compliance</p>
                     <p className="text-xs text-slate-600 leading-relaxed font-medium">
-                      All sellers are bound by the Consumer Protection Act. We facilitate the platform but do not act as the vendor of goods.
+                      All sellers are bound by the Consumer Protection Act. We facilitate the platform but do not act as the vendor of goods unless specified.
                     </p>
                   </div>
                 </div>
