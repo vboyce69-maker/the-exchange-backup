@@ -1,4 +1,3 @@
-
 "use client";
 
 import { Navigation } from "@/components/Navigation";
@@ -106,7 +105,7 @@ export default function LegalHub() {
                     <span className="font-black uppercase text-[9px] tracking-widest">Data at Rest (AES-256)</span>
                   </div>
                   <p className="text-[10px] text-slate-500 font-bold leading-relaxed">
-                    All PII and transaction records are encrypted using industry-standard AES-256 algorithms on secure cloud infrastructure.
+                    All PII, transaction records, and media files in Cloud Storage are encrypted using banking-grade AES-256 algorithms.
                   </p>
                 </div>
 
