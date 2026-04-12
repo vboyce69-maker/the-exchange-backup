@@ -52,21 +52,26 @@ TASKS:
 3. Perform 'Functional Testing': Verify auction bid logic (Bid must be > Price).
 4. Simulate 'Interrupt Testing': Evaluate the efficacy of local draft persistence.
 
-Provide a detailed report on the app's health and any detected vulnerabilities.`,
+Provide a detailed report on the app's health and any detected vulnerabilities. Ensure the output strictly follows the required JSON schema.`,
 });
 
 export async function runAutonomousTesting(input: { targetScenarioId?: string }): Promise<AutonomousTesterOutput> {
-  const { output } = await testerPrompt({
-    ...input,
-    scenariosJson: JSON.stringify(GOLDEN_SCENARIOS),
-    edgeCasesJson: JSON.stringify(SYNTHETIC_EDGE_CASES),
-  });
-  
-  if (!output) {
-    throw new Error("AI failed to generate a test report.");
+  try {
+    const { output } = await testerPrompt({
+      ...input,
+      scenariosJson: JSON.stringify(GOLDEN_SCENARIOS),
+      edgeCasesJson: JSON.stringify(SYNTHETIC_EDGE_CASES),
+    });
+    
+    if (!output) {
+      throw new Error("AI Agent returned an empty report.");
+    }
+    
+    return output;
+  } catch (error: any) {
+    console.error("Autonomous Tester Error:", error);
+    throw new Error(error.message || "The AI Security Agent encountered a logic error.");
   }
-  
-  return output;
 }
 
 const autonomousTesterFlow = ai.defineFlow(

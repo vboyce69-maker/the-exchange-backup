@@ -18,7 +18,9 @@ import {
   Globe,
   Lock,
   Ban,
-  Info
+  Info,
+  ChevronRight,
+  ShieldAlert
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "@/hooks/use-toast";
@@ -40,12 +42,9 @@ export default function AutonomousTestCenter() {
   const runAllTests = async () => {
     setIsRunning(true);
     setScamTests([]);
+    setResults(null);
     try {
-      // 1. Run Core Logic Audit
-      const data = await runAutonomousTesting({});
-      setResults(data);
-
-      // 2. Run Enforced Scam Blocking Tests
+      // 1. Run Enforced Scam Blocking Tests
       const scamResults = await Promise.all(
         SCAM_PHRASES_TO_TEST.map(async (text) => {
           const res = await antiScamChatProtection({ message: text });
@@ -54,12 +53,21 @@ export default function AutonomousTestCenter() {
       );
       setScamTests(scamResults);
 
+      // 2. Run Core Logic Audit (LLM Agent)
+      const data = await runAutonomousTesting({});
+      setResults(data);
+
       toast({
         title: "Advanced Audit Complete",
         description: "Security risk engine verified.",
       });
-    } catch (err) {
-      toast({ variant: "destructive", title: "Test Failed", description: "AI Agent system error." });
+    } catch (err: any) {
+      console.error(err);
+      toast({ 
+        variant: "destructive", 
+        title: "Audit Failed", 
+        description: err.message || "AI Agent system error." 
+      });
     } finally {
       setIsRunning(false);
     }
@@ -95,12 +103,12 @@ export default function AutonomousTestCenter() {
                 <Ban className="w-6 h-6 text-[#FF8C00]" />
                 Scam Blocking Efficacy Results
               </h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {scamTests.map((test, i) => (
                   <Card key={i} className="rounded-3xl border-none shadow-sm bg-white p-6 space-y-3">
                     <div className="flex justify-between items-start">
                        <Badge className="text-[8px] font-black uppercase bg-red-100 text-red-700">
-                         block
+                         {test.decision === 'block' ? 'block' : test.decision}
                        </Badge>
                        <span className="font-black text-[#225BC3] text-xs">{test.riskScore}% Risk</span>
                     </div>
@@ -135,10 +143,10 @@ export default function AutonomousTestCenter() {
                 {results.results.map((res, i) => (
                   <Card key={i} className="rounded-[2rem] border-none shadow-sm bg-white overflow-hidden ring-1 ring-slate-100">
                     <div className="flex flex-col p-6 bg-slate-50/50">
-                      <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center justify-between mb-4">
                         <span className="font-black text-slate-900 text-sm uppercase tracking-tight">{res.name}</span>
                         <Badge className={cn(
-                          "uppercase text-[10px] font-black",
+                          "uppercase text-[10px] font-black px-3 py-1",
                           res.status === 'pass' ? "bg-green-100 text-green-700" : "bg-orange-100 text-orange-700"
                         )}>
                           {res.status}
@@ -147,18 +155,22 @@ export default function AutonomousTestCenter() {
                       <div className="space-y-4">
                         <div className="flex gap-2 items-start">
                           <Info className="w-3 h-3 text-slate-400 mt-0.5 shrink-0" />
-                          <p className="text-[10px] text-slate-500 font-bold leading-relaxed">
-                            {res.findings}
-                          </p>
+                          <div className="space-y-1">
+                            <p className="text-[10px] text-slate-500 font-bold leading-relaxed">
+                              {res.findings}
+                            </p>
+                          </div>
                         </div>
                         {res.anomalies && res.anomalies.length > 0 && (
                           <div className="pt-4 border-t border-slate-100">
-                            <p className="text-[8px] font-black uppercase text-slate-400 tracking-widest mb-2">Detected Anomalies</p>
+                            <p className="text-[8px] font-black uppercase text-slate-400 tracking-widest mb-2 flex items-center gap-1">
+                              <ShieldAlert className="w-2.5 h-2.5" /> Detailed Warning Description
+                            </p>
                             <div className="flex flex-wrap gap-2">
                               {res.anomalies.map((a, j) => (
-                                <Badge key={j} variant="outline" className="text-[8px] border-orange-200 text-orange-600 bg-white px-2 py-0">
+                                <div key={j} className="text-[9px] font-bold text-orange-700 bg-orange-50 px-3 py-1 rounded-lg border border-orange-100">
                                   {a}
-                                </Badge>
+                                </div>
                               ))}
                             </div>
                           </div>
