@@ -3,6 +3,7 @@ import type {Metadata} from 'next';
 import './globals.css';
 import { FirebaseClientProvider } from '@/firebase';
 import { Toaster } from '@/components/ui/toaster';
+import { NetworkStatus } from '@/components/NetworkStatus';
 
 export const metadata: Metadata = {
   title: 'The Exchange | Premium Verified Marketplace',
@@ -23,6 +24,7 @@ export default function RootLayout({
       </head>
       <body className="antialiased selection:bg-accent/20 selection:text-accent overflow-x-hidden" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
         <FirebaseClientProvider>
+          <NetworkStatus />
           {children}
           <Toaster />
         </FirebaseClientProvider>

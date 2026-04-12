@@ -30,7 +30,8 @@ import {
   Info,
   Layers,
   ImagePlus,
-  Building2
+  Building2,
+  Save
 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import Image from "next/image";
@@ -58,7 +59,6 @@ export default function CreateListingPage() {
   const [locationDetecting, setLocationDetecting] = useState(false);
   const [location, setLocation] = useState<{ lat: number; lng: number; name: string } | null>(null);
   
-  // Auction & Bulk States
   const [isAuction, setIsAuction] = useState(false);
   const [isBulk, setIsBulk] = useState(false);
   const [isBusinessSeller, setIsBusinessSeller] = useState(false);
@@ -66,15 +66,37 @@ export default function CreateListingPage() {
   const [auctionDuration, setAuctionDuration] = useState("3");
   const [cpaConsent, setCpaConsent] = useState(false);
 
-  // AI Suggestions
   const [aiSuggestion, setAiSuggestion] = useState<string | null>(null);
 
-  // Form State
   const [title, setTitle] = useState("");
   const [category, setCategory] = useState("");
   const [condition, setCondition] = useState("");
   const [price, setPrice] = useState("");
   const [description, setDescription] = useState("");
+
+  // INTERRUPT RECOVERY: Load draft on mount
+  useEffect(() => {
+    const draft = localStorage.getItem("exchange_listing_v2");
+    if (draft) {
+      try {
+        const data = JSON.parse(draft);
+        setTitle(data.title || "");
+        setCategory(data.category || "");
+        setCondition(data.condition || "");
+        setPrice(data.price || "");
+        setDescription(data.description || "");
+        toast({ title: "Draft Restored", description: "Your previous progress was saved automatically." });
+      } catch (e) {
+        console.error("Draft load error", e);
+      }
+    }
+  }, []);
+
+  // INTERRUPT RECOVERY: Save draft on change
+  useEffect(() => {
+    const draftData = { title, category, condition, price, description };
+    localStorage.setItem("exchange_listing_v2", JSON.stringify(draftData));
+  }, [title, category, condition, price, description]);
 
   useEffect(() => {
     if (category && location) {
@@ -105,10 +127,6 @@ export default function CreateListingPage() {
   }, [category, location, user]);
 
   const handleImageUpload = () => {
-    if (images.length >= 10) {
-      toast({ variant: "destructive", title: "Limit Reached", description: "You can upload up to 10 photos." });
-      return;
-    }
     const nextId = Date.now();
     const newImage = `https://picsum.photos/seed/${nextId}/800/600`;
     setImages([...images, newImage]);
@@ -121,32 +139,15 @@ export default function CreateListingPage() {
   const detectLocation = () => {
     setLocationDetecting(true);
     setTimeout(() => {
-      setLocation({
-        lat: -26.2041,
-        lng: 28.0473,
-        name: "Johannesburg, GP"
-      });
+      setLocation({ lat: -26.2041, lng: 28.0473, name: "Johannesburg, GP" });
       setLocationDetecting(false);
-      toast({ title: "Location Detected", description: "Johannesburg, GP" });
     }, 1200);
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!user) {
-      toast({ variant: "destructive", title: "Auth Required", description: "Please sign in to list an item." });
-      return;
-    }
-
-    if (!cpaConsent) {
-      toast({ variant: "destructive", title: "Compliance Required", description: "Please accept the seller declaration." });
-      return;
-    }
-
-    if (images.length === 0) {
-      toast({ variant: "destructive", title: "Photos Required", description: "Add at least one photo of your item." });
-      return;
-    }
+    if (!user) return;
+    if (!cpaConsent) return;
 
     setLoading(true);
 
@@ -173,19 +174,15 @@ export default function CreateListingPage() {
       quantity: parseInt(quantity),
       viewCount: 0,
       isBoosted: false,
-      negotiable: !isAuction,
-      cpaDeclaration: true,
     };
 
     const listingsCol = collection(db, "publicListings");
     addDocumentNonBlocking(listingsCol, listingData);
 
+    localStorage.removeItem("exchange_listing_v2");
+    
     setTimeout(() => {
       setLoading(false);
-      toast({
-        title: "Listing Posted!",
-        description: isAuction ? `Auction live for ${auctionDuration} days!` : "Your item is now live.",
-      });
       router.push("/search");
     }, 1000);
   };
@@ -195,51 +192,29 @@ export default function CreateListingPage() {
       <Navigation />
       <main className="container mx-auto px-4 py-8 lg:py-12 flex justify-center">
         <div className="w-full max-w-xl">
-          <div className="mb-8">
-            <h1 className="text-3xl font-black text-[#225BC3]">Create Listing</h1>
-            <p className="text-muted-foreground text-sm font-medium">Verified professional and peer-to-peer trades.</p>
+          <div className="mb-8 flex justify-between items-end">
+            <div>
+              <h1 className="text-3xl font-black text-[#225BC3]">Create Listing</h1>
+              <p className="text-muted-foreground text-sm font-medium">Verified professional and peer-to-peer trades.</p>
+            </div>
+            <div className="flex items-center gap-2 text-[#34CBED] bg-[#34CBED]/5 px-4 py-2 rounded-2xl border border-[#34CBED]/20">
+              <Save className="w-3 h-3" />
+              <span className="text-[8px] font-black uppercase tracking-widest">Auto-Saving Draft</span>
+            </div>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-6">
-            {/* Multi-Image Section */}
             <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <Label className="text-xs font-black uppercase tracking-widest text-[#225BC3]">
-                  Item Photos ({images.length}/10)
-                </Label>
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Info className="w-4 h-4 text-slate-400 cursor-help" />
-                    </TooltipTrigger>
-                    <TooltipContent className="bg-white border rounded-xl p-3 shadow-xl max-w-[200px]">
-                      <p className="text-[10px] font-bold leading-tight">Better photos increase sales by 40%. For bulk lots, include a photo of all items together.</p>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-              </div>
+              <Label className="text-xs font-black uppercase tracking-widest text-[#225BC3]">Item Photos ({images.length}/10)</Label>
               <div className="grid grid-cols-3 sm:grid-cols-4 gap-3">
                 {images.map((img, i) => (
                   <div key={i} className="relative aspect-square rounded-[1.5rem] overflow-hidden border-2 border-white bg-white shadow-md group">
-                    <Image src={img} alt="listing" fill className="object-cover" data-ai-hint="product image" />
-                    {i === 0 && (
-                      <div className="absolute top-1 left-1 bg-[#225BC3] text-white px-2 py-0.5 rounded-full text-[8px] font-black uppercase shadow-lg">Primary</div>
-                    )}
-                    <button 
-                      type="button"
-                      onClick={() => removeImage(i)}
-                      className="absolute top-1 right-1 bg-black/60 text-white p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
-                    >
-                      <X className="w-3 h-3" />
-                    </button>
+                    <Image src={img} alt="listing" fill className="object-cover" />
+                    <button type="button" onClick={() => removeImage(i)} className="absolute top-1 right-1 bg-black/60 text-white p-1 rounded-full opacity-0 group-hover:opacity-100"><X className="w-3 h-3" /></button>
                   </div>
                 ))}
                 {images.length < 10 && (
-                  <button
-                    type="button"
-                    onClick={handleImageUpload}
-                    className="aspect-square rounded-[1.5rem] border-2 border-dashed border-[#225BC3]/20 bg-white hover:bg-[#225BC3]/5 hover:border-[#225BC3]/40 transition-all flex flex-col items-center justify-center gap-1"
-                  >
+                  <button type="button" onClick={handleImageUpload} className="aspect-square rounded-[1.5rem] border-2 border-dashed border-[#225BC3]/20 bg-white flex flex-col items-center justify-center gap-1 hover:bg-[#225BC3]/5">
                     <ImagePlus className="w-6 h-6 text-[#225BC3]" />
                     <span className="text-[10px] font-black text-[#225BC3] uppercase">Add Photo</span>
                   </button>
@@ -249,7 +224,7 @@ export default function CreateListingPage() {
 
             {aiSuggestion && (
               <div className="bg-[#34CBED]/10 p-4 rounded-2xl border border-[#34CBED]/20 flex items-center gap-3 animate-in fade-in slide-in-from-left-4">
-                <Zap className="w-5 h-5 text-[#34CBED] shrink-0" />
+                <Zap className="w-5 h-5 text-[#34CBED]" />
                 <p className="text-xs font-bold text-[#225BC3]">{aiSuggestion}</p>
               </div>
             )}
@@ -258,83 +233,29 @@ export default function CreateListingPage() {
               <CardContent className="p-8 space-y-6">
                 <div className="space-y-2">
                   <Label htmlFor="title" className="font-black text-[#225BC3] uppercase text-[10px] tracking-widest">Listing Title</Label>
-                  <Input 
-                    id="title" 
-                    placeholder="e.g. Job Lot of 10 Samsung TVs" 
-                    required 
-                    className="h-14 rounded-2xl bg-slate-50 border-none font-bold"
-                    value={title}
-                    onChange={(e) => setTitle(e.target.value)}
-                  />
-                </div>
-
-                {/* Business & Bulk Features */}
-                <div className="p-6 bg-slate-50 rounded-[2rem] border border-slate-100 space-y-4">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-xl bg-white flex items-center justify-center shadow-sm text-[#225BC3]">
-                        <Building2 className="w-5 h-5" />
-                      </div>
-                      <div>
-                        <span className="font-black text-[#225BC3] block uppercase text-[10px] tracking-widest leading-none mb-1">Business Seller</span>
-                        <span className="text-[9px] text-muted-foreground font-bold">List as a registered company?</span>
-                      </div>
-                    </div>
-                    <Switch checked={isBusinessSeller} onCheckedChange={setIsBusinessSeller} />
-                  </div>
-
-                  <div className="flex items-center justify-between pt-4 border-t border-slate-200">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-xl bg-white flex items-center justify-center shadow-sm text-[#225BC3]">
-                        <Layers className="w-5 h-5" />
-                      </div>
-                      <div>
-                        <span className="font-black text-[#225BC3] block uppercase text-[10px] tracking-widest leading-none mb-1">Bulk Lot</span>
-                        <span className="text-[9px] text-muted-foreground font-bold">Selling multiple items together?</span>
-                      </div>
-                    </div>
-                    <Switch checked={isBulk} onCheckedChange={setIsBulk} />
-                  </div>
-
-                  {isBulk && (
-                    <div className="space-y-2 pt-4 animate-in fade-in slide-in-from-top-2">
-                      <Label htmlFor="qty" className="font-black text-[#225BC3] uppercase text-[10px] tracking-widest">Total Items in Lot</Label>
-                      <Input 
-                        id="qty" 
-                        type="number" 
-                        min="1"
-                        className="h-12 rounded-xl bg-white border-none font-black"
-                        value={quantity}
-                        onChange={(e) => setQuantity(e.target.value)}
-                      />
-                    </div>
-                  )}
+                  <Input id="title" placeholder="e.g. Mountain Bike" className="h-14 rounded-2xl bg-slate-50 border-none font-bold" value={title} onChange={(e) => setTitle(e.target.value)} />
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label className="font-black text-[#225BC3] uppercase text-[10px] tracking-widest">Category</Label>
-                    <Select value={category} onValueChange={setCategory} required>
+                    <Select value={category} onValueChange={setCategory}>
                       <SelectTrigger className="h-14 rounded-2xl bg-slate-50 border-none">
                         <SelectValue placeholder="Select" />
                       </SelectTrigger>
                       <SelectContent className="rounded-2xl border-none shadow-2xl">
-                        {CATEGORIES.map(c => (
-                          <SelectItem key={c} value={c}>{c}</SelectItem>
-                        ))}
+                        {CATEGORIES.map(c => (<SelectItem key={c} value={c}>{c}</SelectItem>))}
                       </SelectContent>
                     </Select>
                   </div>
                   <div className="space-y-2">
                     <Label className="font-black text-[#225BC3] uppercase text-[10px] tracking-widest">Condition</Label>
-                    <Select value={condition} onValueChange={setCondition} required>
+                    <Select value={condition} onValueChange={setCondition}>
                       <SelectTrigger className="h-14 rounded-2xl bg-slate-50 border-none">
                         <SelectValue placeholder="Select" />
                       </SelectTrigger>
                       <SelectContent className="rounded-2xl border-none shadow-2xl">
-                        {CONDITIONS.map(c => (
-                          <SelectItem key={c} value={c}>{c}</SelectItem>
-                        ))}
+                        {CONDITIONS.map(c => (<SelectItem key={c} value={c}>{c}</SelectItem>))}
                       </SelectContent>
                     </Select>
                   </div>
@@ -342,97 +263,22 @@ export default function CreateListingPage() {
 
                 <div className="space-y-2">
                   <Label htmlFor="price" className="font-black text-[#225BC3] uppercase text-[10px] tracking-widest">Price (R)</Label>
-                  <div className="relative">
-                    <span className="absolute left-4 top-1/2 -translate-y-1/2 font-black text-[#225BC3]">R</span>
-                    <Input 
-                      id="price" 
-                      type="number" 
-                      placeholder="0.00" 
-                      required 
-                      className="h-14 pl-10 rounded-2xl bg-slate-50 border-none font-black text-lg"
-                      value={price}
-                      onChange={(e) => setPrice(e.target.value)}
-                    />
-                  </div>
+                  <Input id="price" type="number" placeholder="0.00" className="h-14 rounded-2xl bg-slate-50 border-none font-black text-lg" value={price} onChange={(e) => setPrice(e.target.value)} />
                 </div>
 
                 <div className="space-y-2">
                   <Label htmlFor="desc" className="font-black text-[#225BC3] uppercase text-[10px] tracking-widest">Description</Label>
-                  <Textarea 
-                    id="desc" 
-                    placeholder="Provide details about the item(s). For lots, list exactly what is included." 
-                    className="min-h-[120px] rounded-2xl bg-slate-50 border-none resize-none font-medium p-4"
-                    required
-                    value={description}
-                    onChange={(e) => setDescription(e.target.value)}
-                  />
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="rounded-[2.5rem] border-none shadow-xl bg-white ring-1 ring-[#225BC3]/5">
-              <CardContent className="p-8 space-y-6">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-[#34CBED]/10 flex items-center justify-center text-[#34CBED]">
-                      <MapPin className="w-5 h-5" />
-                    </div>
-                    <div>
-                      <span className="font-black text-[#225BC3] block uppercase text-[10px] tracking-widest">Location</span>
-                      <span className="text-xs text-muted-foreground font-bold">{location ? location.name : "Not detected"}</span>
-                    </div>
-                  </div>
-                  <Button 
-                    type="button" 
-                    variant="ghost" 
-                    className="text-[#34CBED] font-black text-xs hover:bg-[#34CBED]/5"
-                    onClick={detectLocation}
-                    disabled={locationDetecting}
-                  >
-                    {locationDetecting ? <Loader2 className="w-4 h-4 animate-spin" /> : "Auto-Detect"}
-                  </Button>
-                </div>
-
-                <div className="pt-6 border-t space-y-6">
-                  <div className="p-5 bg-orange-50 rounded-[2rem] border border-orange-100 space-y-3">
-                    <h4 className="font-black text-orange-700 uppercase text-[10px] tracking-widest flex items-center gap-2">
-                      <AlertTriangle className="w-3 h-3" /> Marketplace Rules
-                    </h4>
-                    <p className="text-[9px] font-bold text-orange-600 leading-tight">
-                      Stolen or counterfeit goods are banned. All business sellers must adhere to the Consumer Protection Act. We support law enforcement in investigating high-value theft.
-                    </p>
-                  </div>
-
-                  <div className="p-5 bg-[#225BC3]/5 rounded-[2rem] border border-[#225BC3]/10 space-y-4">
-                    <div className="flex items-start space-x-3">
-                      <Checkbox 
-                        id="cpa" 
-                        className="mt-1" 
-                        checked={cpaConsent}
-                        onCheckedChange={(checked) => setCpaConsent(checked === true)}
-                      />
-                      <label htmlFor="cpa" className="text-[10px] font-bold text-[#225BC3] font-body leading-relaxed cursor-pointer">
-                        I confirm ownership and accuracy of this listing. As a seller on The Exchange, I am aware of my legal obligations under the CPA (2008) and POPIA (2013).
-                      </label>
-                    </div>
-                  </div>
+                  <Textarea id="desc" placeholder="Details..." className="min-h-[120px] rounded-2xl bg-slate-50 border-none resize-none" value={description} onChange={(e) => setDescription(e.target.value)} />
                 </div>
               </CardContent>
             </Card>
 
             <Button 
               type="submit" 
-              className="w-full h-16 rounded-[1.5rem] bg-[#225BC3] text-white font-black text-lg shadow-2xl shadow-[#225BC3]/20 hover:scale-[1.02] transition-transform"
+              className="w-full h-16 rounded-[1.5rem] bg-[#225BC3] text-white font-black text-lg shadow-2xl hover:scale-[1.02] transition-transform"
               disabled={loading}
             >
-              {loading ? (
-                <Loader2 className="w-6 h-6 animate-spin" />
-              ) : (
-                <span className="flex items-center gap-2">
-                  <Package className="w-5 h-5" />
-                  List on The Exchange
-                </span>
-              )}
+              {loading ? <Loader2 className="w-6 h-6 animate-spin" /> : "List on The Exchange"}
             </Button>
           </form>
         </div>

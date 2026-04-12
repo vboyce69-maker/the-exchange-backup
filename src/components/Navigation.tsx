@@ -81,7 +81,7 @@ export function Navigation() {
             <ShieldCheck className="w-5 h-5 text-white" />
           </div>
           <div className="flex flex-col -space-y-1">
-            <span className="font-black text-xl text-[#225BC3] tracking-tighter uppercase hidden xs:block">THE <span className="text-[#34CBED]">EXCHANGE</span></span>
+            <span className="font-black text-xl text-[#225BC3] tracking-tighter uppercase">THE <span className="text-[#34CBED]">EXCHANGE</span></span>
             <span className="text-[7px] font-black text-[#225BC3]/60 tracking-widest uppercase hidden xs:block">Premium Marketplace</span>
           </div>
         </Link>
@@ -91,7 +91,7 @@ export function Navigation() {
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-[#225BC3] transition-colors" />
           <input 
             type="text" 
-            placeholder="Search for items, brands or categories..." 
+            placeholder="Search for items, brands..." 
             value={searchVal}
             onChange={(e) => setSearchVal(e.target.value)}
             className="w-full h-11 pl-10 pr-4 rounded-2xl bg-slate-50 border-none focus:ring-2 focus:ring-[#225BC3]/10 outline-none font-medium text-sm transition-all"
@@ -100,16 +100,15 @@ export function Navigation() {
 
         <div className="flex items-center gap-2 sm:gap-4">
           <Link href="/create">
-            <Button className="bg-[#FF8C00] hover:bg-[#FF8C00]/90 text-white font-black rounded-2xl h-11 px-4 sm:px-6 shadow-lg shadow-orange-500/20 uppercase text-[9px] tracking-widest">
+            <Button className="bg-[#FF8C00] hover:bg-[#FF8C00]/90 text-white font-black rounded-2xl h-10 px-4 sm:px-6 shadow-lg shadow-orange-500/20 uppercase text-xs tracking-tighter active:scale-95 transition-transform">
               <PlusCircle className="w-4 h-4 sm:mr-2" />
               <span className="hidden sm:inline">List Item</span>
             </Button>
           </Link>
 
-          {/* Marketplace Hub */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <button className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-[#225BC3] hover:text-[#34CBED] outline-none h-11 px-4 rounded-2xl bg-[#225BC3]/5 hover:bg-[#225BC3]/10 transition-colors border border-[#225BC3]/10 shadow-sm">
+              <button className="flex items-center gap-2 text-xs font-black uppercase tracking-tighter text-[#225BC3] hover:text-[#34CBED] outline-none h-10 px-4 rounded-2xl bg-[#225BC3]/5 hover:bg-[#225BC3]/10 transition-colors border border-[#225BC3]/10 active:scale-95">
                 Hub <ChevronDown className="w-3 h-3" />
               </button>
             </DropdownMenuTrigger>
@@ -138,7 +137,7 @@ export function Navigation() {
           {user ? (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button size="icon" variant="ghost" className="rounded-2xl h-11 w-11 bg-slate-50 overflow-hidden border border-slate-100">
+                <Button size="icon" variant="ghost" className="rounded-2xl h-10 w-10 bg-slate-50 overflow-hidden border border-slate-100 active:scale-95">
                   {user.photoURL ? (
                     <img src={user.photoURL} alt="user" className="w-full h-full object-cover" />
                   ) : (
@@ -147,32 +146,6 @@ export function Navigation() {
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-64 rounded-[2rem] p-3 shadow-2xl border-none ring-1 ring-black/5 mt-2 bg-white">
-                <DropdownMenuLabel className="font-black text-[10px] uppercase tracking-widest text-muted-foreground px-4 py-3">Your Account</DropdownMenuLabel>
-                <DropdownMenuSeparator className="bg-slate-100" />
-                
-                <DropdownMenuItem className="rounded-xl p-3 font-bold gap-3 focus:bg-[#225BC3]/5 focus:text-[#225BC3] cursor-pointer" asChild>
-                  <Link href={`/profile/${user.uid}`}>
-                    <UserCircle className="w-4 h-4" />
-                    My Profile
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem className="rounded-xl p-3 font-bold gap-3 focus:bg-[#225BC3]/5 focus:text-[#225BC3] cursor-pointer" asChild>
-                  <Link href="/messages">
-                    <MessageSquare className="w-4 h-4" />
-                    Messages
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem className="rounded-xl p-3 font-bold gap-3 focus:bg-[#225BC3]/5 focus:text-[#225BC3] cursor-pointer">
-                  <Heart className="w-4 h-4 text-pink-500" />
-                  Saved Items
-                </DropdownMenuItem>
-                <DropdownMenuItem className="rounded-xl p-3 font-bold gap-3 focus:bg-[#225BC3]/5 focus:text-[#225BC3] cursor-pointer" asChild>
-                  <Link href="/verify">
-                    <ShieldCheck className="w-4 h-4 text-[#34CBED]" />
-                    Get Verified
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuSeparator className="bg-slate-100" />
                 <DropdownMenuItem onClick={handleSignOut} className="rounded-xl p-3 font-bold gap-3 text-red-500 focus:bg-red-50 focus:text-red-600 cursor-pointer">
                   <LogOut className="w-4 h-4" />
                   Sign Out
@@ -181,7 +154,7 @@ export function Navigation() {
             </DropdownMenu>
           ) : (
             <Link href="/login">
-              <Button variant="ghost" className="rounded-2xl h-11 font-black uppercase text-[10px] tracking-widest text-[#225BC3] gap-2 border border-[#225BC3]/10">
+              <Button variant="ghost" className="rounded-2xl h-10 font-black uppercase text-xs tracking-tighter text-[#225BC3] gap-2 border border-[#225BC3]/10 active:scale-95">
                 <LogIn className="w-4 h-4" />
                 Sign In
               </Button>
