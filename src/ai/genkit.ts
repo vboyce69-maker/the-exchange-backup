@@ -3,10 +3,10 @@ import { googleAI } from '@genkit-ai/google-genai';
 
 /**
  * Centralized Model Configuration for 'The Exchange'.
- * Using stable models supported by the @genkit-ai/google-genai plugin.
+ * Using stable model aliases supported by the @genkit-ai/google-genai plugin.
  */
-export const PRIMARY_MODEL = 'googleai/gemini-1.5-flash';
-export const FALLBACK_MODEL = 'googleai/gemini-1.5-pro';
+export const PRIMARY_MODEL = 'gemini-1.5-flash';
+export const FALLBACK_MODEL = 'gemini-1.5-pro';
 
 export const ai = genkit({
   plugins: [googleAI()],

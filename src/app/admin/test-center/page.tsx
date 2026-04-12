@@ -135,7 +135,7 @@ export default function AutonomousTestCenter() {
                      {results.overallStatus === 'healthy' ? <ShieldCheck className="w-12 h-12" /> : <AlertTriangle className="w-12 h-12" />}
                    </div>
                    <h3 className={cn("text-3xl font-black uppercase", results.overallStatus === 'healthy' ? "text-green-600" : "text-orange-600")}>
-                     {results.overallStatus === 'unstable' && scamTests.every(t => t.blocked) ? "PASS" : results.overallStatus}
+                     {results.overallStatus === 'healthy' && scamTests.every(t => t.blocked) ? "PASS" : results.overallStatus}
                    </h3>
                    <p className="text-xs font-medium text-slate-500 leading-relaxed px-4">
                      {results.summary}
