@@ -40,7 +40,7 @@ const testerPrompt = ai.definePrompt({
   },
   output: { schema: AutonomousTesterOutputSchema },
   prompt: `You are an Autonomous AI QA Engineer for 'The Exchange'. 
-Your goal is to simulate a 'The Mobile App Testing Process' (Digital.ai) walkthrough.
+Your goal is to simulate a comprehensive mobile application testing process walkthrough.
 
 RESOURCES:
 - Golden Scenarios: {{{scenariosJson}}}
@@ -52,7 +52,9 @@ TASKS:
 3. Perform 'Functional Testing': Verify auction bid logic (Bid must be > Price).
 4. Simulate 'Interrupt Testing': Evaluate the efficacy of local draft persistence.
 
-Provide a detailed report on the app's health and any detected vulnerabilities. Ensure the output strictly follows the required JSON schema.`,
+Provide a detailed report on the app's health and any detected vulnerabilities. 
+For the 'findings' field, provide a detailed, context-rich description of the results.
+Ensure the output strictly follows the required JSON schema.`,
 });
 
 export async function runAutonomousTesting(input: { targetScenarioId?: string }): Promise<AutonomousTesterOutput> {
