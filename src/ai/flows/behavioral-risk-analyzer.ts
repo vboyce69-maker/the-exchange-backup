@@ -1,21 +1,19 @@
-
 'use server';
 /**
  * @fileOverview Behavioral Risk AI Agent (EDR/XDR Mindset).
  * 
- * Inspired by CrowdStrike Falcon and Bitdefender GravityZone.
- * Analyzes session metadata and user actions to detect high-risk anomalies.
+ * Inspired by CrowdStrike Falcon. Analyzes session behavior to detect
+ * high-risk anomalies like Account Takeover (ATO) and Velocity Attacks.
  */
 
 import { ai } from '@/ai/genkit';
-import { z } from 'zod';
+import { z } from 'genkit';
 
 const BehavioralRiskInputSchema = z.object({
   userId: z.string(),
-  actionType: z.string().describe("The action being performed (e.g., 'login', 'high_value_bid', 'profile_update')"),
-  locationContext: z.string().optional().describe("Geographic or IP context."),
+  actionType: z.string().describe("Action being performed (e.g., 'listing_creation', 'bid_acceptance', 'profile_edit')"),
+  metadata: z.record(z.any()).optional().describe("Contextual data like IP, location, or price delta."),
   previousRiskScore: z.number().optional().default(0),
-  deviceFingerprint: z.string().optional().describe("Mocked device identifier."),
 });
 
 const BehavioralRiskOutputSchema = z.object({
@@ -23,7 +21,7 @@ const BehavioralRiskOutputSchema = z.object({
   confidence: z.number().min(0).max(100),
   recommendation: z.enum(['allow', 'flag', 'mfa_challenge', 'block']),
   reasoning: z.string().describe("Explanation of the threat detection logic."),
-  threatIndicators: z.array(z.string()).describe("Specific indicators triggered (e.g., 'impossible_travel', 'credential_stuffing_pattern')"),
+  threatIndicators: z.array(z.string()).describe("Specific indicators triggered."),
 });
 
 export type BehavioralRiskInput = z.infer<typeof BehavioralRiskInputSchema>;
@@ -33,20 +31,20 @@ const riskPrompt = ai.definePrompt({
   name: 'behavioralRiskPrompt',
   input: { schema: BehavioralRiskInputSchema },
   output: { schema: BehavioralRiskOutputSchema },
-  prompt: `You are an AI Security Operations Center (SOC) Analyst for 'The Exchange'.
-Your goal is to perform real-time Behavioral Risk Analysis, similar to CrowdStrike Falcon EDR.
+  prompt: `You are an AI Security Operations Center (SOC) Analyst.
+Perform real-time Behavioral Risk Analysis for 'The Exchange'.
 
-SCENARIO DATA:
-- User ID: {{{userId}}}
+ANALYZE FOR:
+1. VELOCITY ATTACK: User creating more than 5 high-value listings in under 10 minutes.
+2. PRICE MANIPULATION: Sudden 50%+ drop in listing price followed by immediate bid acceptance (potential laundering/scam).
+3. IMPOSSIBLE TRAVEL: Actions performed from two distinct geographic regions in South Africa (e.g., JHB then CTN) within 5 minutes.
+4. ACCOUNT TAKEOVER (ATO): Change of bank details/phone followed immediately by bid acceptance or high-value bidding.
+5. METADATA ANOMALY: Use of Tor, VPNs, or proxy IP ranges during sensitive transactions.
+
+Context:
 - Action: {{{actionType}}}
-- Context: {{#if locationContext}}{{{locationContext}}}{{else}}Standard Environment{{/if}}
-- Previous Score: {{{previousRiskScore}}}
-
-THREAT DETECTION LOGIC:
-1. IMPOSSIBLE TRAVEL: If location has changed drastically in minutes.
-2. BRUTE FORCE: Repeated high-value bid attempts from new devices.
-3. ACCOUNT TAKEOVER (ATO): Sensitive profile changes immediately followed by a withdrawal or high-value purchase.
-4. BOT BEHAVIOR: Rapid-fire listing creation (spam/scam).
+- Score History: {{{previousRiskScore}}}
+- Metadata: ${JSON.stringify('{{{metadata}}}')}
 
 Evaluate the risk level and provide a security recommendation.`,
 });
@@ -55,3 +53,14 @@ export async function analyzeBehavioralRisk(input: BehavioralRiskInput): Promise
   const { output } = await riskPrompt(input);
   return output!;
 }
+
+const behavioralRiskFlow = ai.defineFlow(
+  {
+    name: 'behavioralRiskFlow',
+    inputSchema: BehavioralRiskInputSchema,
+    outputSchema: BehavioralRiskOutputSchema,
+  },
+  async (input) => {
+    return analyzeBehavioralRisk(input);
+  }
+);

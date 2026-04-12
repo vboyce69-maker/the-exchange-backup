@@ -1,26 +1,25 @@
-
 'use server';
 /**
- * @fileOverview An AI agent for detecting and flagging suspicious content in chat messages.
+ * @fileOverview Advanced AI Security Agent for Chat Fraud Prevention.
  * 
- * - antiScamChatProtection - A function that analyzes chat messages for scam indicators.
- * - Layered defense: Blocks high-risk phrases and identifies behavioral anomalies.
+ * - antiScamChatProtection - Performs multi-layered contextual analysis.
+ * - Detects: Social Engineering, Overpayment Scams, Proof of Payment (PoP) Fraud, and Phishing.
  */
 
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
 
 const AntiScamChatProtectionInputSchema = z.object({
-  message: z.string().describe('The chat message to be analyzed for suspicious content.'),
+  message: z.string().describe('The chat message to be analyzed for fraud indicators.'),
 });
 export type AntiScamChatProtectionInput = z.infer<typeof AntiScamChatProtectionInputSchema>;
 
 const AntiScamChatProtectionOutputSchema = z.object({
-  isSuspicious: z.boolean().describe('True if the message is deemed suspicious, false otherwise.'),
-  reason: z.string().optional().describe('An explanation of why the message is suspicious.'),
-  riskLevel: z.enum(['low', 'medium', 'high']).describe('The severity of the scam risk.'),
-  securityAction: z.enum(['none', 'warn', 'block', 'flag_for_review']).describe('The automated action to take.'),
-  blockedPhrases: z.array(z.string()).optional().describe('Phrases that triggered blocking.'),
+  isSuspicious: z.boolean().describe('True if the message contains fraud indicators.'),
+  reason: z.string().optional().describe('Contextual explanation for the security action.'),
+  riskLevel: z.enum(['low', 'medium', 'high', 'critical']).describe('Calculated risk score.'),
+  securityAction: z.enum(['none', 'warn', 'block', 'flag_for_review']).describe('Automated response.'),
+  detectedPatterns: z.array(z.string()).optional().describe('Specific scam patterns identified.'),
 });
 export type AntiScamChatProtectionOutput = z.infer<typeof AntiScamChatProtectionOutputSchema>;
 
@@ -28,25 +27,26 @@ const AntiScamChatProtectionPrompt = ai.definePrompt({
   name: 'antiScamChatProtectionPrompt',
   input: {schema: AntiScamChatProtectionInputSchema},
   output: {schema: AntiScamChatProtectionOutputSchema},
-  prompt: `You are an AI Cyber Security Officer for 'The Exchange' marketplace. 
-Your goal is to protect users from marketplace fraud, phishing, and off-platform payment scams (defense-in-depth).
+  prompt: `You are a Senior AI Cyber-Fraud Analyst for 'The Exchange'. 
+Your task is to detect sophisticated marketplace scams that bypass simple keyword filters.
 
-CRITICAL SECURITY PATTERNS:
-1. OFF-PLATFORM REQUESTS: "WhatsApp me", "Email me directly", "Call me at", "Payment outside the app".
-2. DEPOSIT SCAMS: "Pay a deposit to hold", "Booking fee required first", "Courier fee".
-3. PHISHING: Links to fake login pages, "Verify your account here [link]".
-4. URGENCY/PRESSURE: "Need to sell today", "Send money now or I sell to someone else".
-5. BANK DETAILS: Asking for CVV, PIN, or OTP codes.
+ANALYZE FOR THESE SOPHISTICATED PATTERNS:
+1. OVERPAYMENT SCAM: "I'll send extra money for the courier, just pay them the difference."
+2. PROOF OF PAYMENT (PoP) FRAUD: "I've sent the money, here is the screenshot [fake link]. Please release the item."
+3. COURIER DEPOSIT: "I'm sending a courier with cash, but you need to pay the 'insurance fee' first."
+4. SOCIAL ENGINEERING: "My child is sick, I need this laptop for school, can I pay half now and half later?"
+5. OFF-PLATFORM STEALTH: Redirection attempts using obfuscation (e.g., "W-H-A-T-S-A-P-P", "0 8 2 ...", "insta-gram").
+6. FAKE SUPPORT: "The Exchange Support: Your payment is held, click here to verify."
 
 Analyze this message:
 "{{{message}}}"
 
-SCORING LOGIC:
-- If PHISHING or BANK DETAILS are detected: isSuspicious=true, riskLevel='high', securityAction='block'.
-- If OFF-PLATFORM or DEPOSIT requests are detected: isSuspicious=true, riskLevel='high', securityAction='block'.
-- If general suspicious behavior is detected: isSuspicious=true, riskLevel='medium', securityAction='warn'.
+SCORING RULES:
+- If PHISHING, FAKE SUPPORT, or COURIER DEPOSITS detected: isSuspicious=true, riskLevel='critical', securityAction='block'.
+- If OFF-PLATFORM or OVERPAYMENT detected: isSuspicious=true, riskLevel='high', securityAction='block'.
+- If suspicious urgency or emotional manipulation detected: isSuspicious=true, riskLevel='medium', securityAction='warn'.
 
-Provide a concise, helpful reason that educates the user on why the message was flagged.`,
+Provide a reason that educates the user on the specific scam type detected.`,
 });
 
 export async function antiScamChatProtection(input: AntiScamChatProtectionInput): Promise<AntiScamChatProtectionOutput> {
