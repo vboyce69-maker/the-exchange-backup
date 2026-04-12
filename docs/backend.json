@@ -2,72 +2,48 @@
 {
   "entities": {
     "UserProfile": {
-      "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "UserProfile",
       "type": "object",
-      "description": "Represents a user within the LocalBid Exchange platform, storing their profile information, verification status, and aggregated performance metrics as a seller.",
+      "description": "User profile with verification status.",
       "properties": {
         "id": { "type": "string" },
         "username": { "type": "string" },
-        "email": { "type": "string", "format": "email" },
-        "phone": { "type": "string" },
-        "firstName": { "type": "string" },
-        "lastName": { "type": "string" },
-        "bio": { "type": "string" },
-        "profileImageUrl": { "type": "string", "format": "uri" },
-        "locationLatitude": { "type": "number" },
-        "locationLongitude": { "type": "number" },
         "isIdVerified": { "type": "boolean" },
-        "totalSalesCount": { "type": "number" },
         "reliabilityScore": { "type": "number" },
         "registrationDate": { "type": "string", "format": "date-time" }
       },
-      "required": ["id", "username", "firstName", "lastName", "isIdVerified", "totalSalesCount", "reliabilityScore", "registrationDate"]
+      "required": ["id", "username", "isIdVerified", "reliabilityScore", "registrationDate"]
     },
     "ProductListing": {
-      "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "ProductListing",
       "type": "object",
-      "description": "Represents an item listed for sale or auction on the platform.",
+      "description": "Item listed for sale or auction.",
       "properties": {
         "id": { "type": "string" },
         "sellerId": { "type": "string" },
-        "categoryId": { "type": "string" },
         "title": { "type": "string" },
-        "description": { "type": "string" },
-        "condition": { "type": "string", "enum": ["New", "Like new", "Good", "Used"] },
         "price": { "type": "number" },
-        "highestBid": { "type": "number" },
-        "highestBidderId": { "type": "string" },
-        "currency": { "type": "string" },
-        "imageUrls": { "type": "array", "items": { "type": "string" } },
-        "listingLocationLatitude": { "type": "number" },
-        "listingLocationLongitude": { "type": "number" },
-        "postedDate": { "type": "string", "format": "date-time" },
-        "auctionEndDate": { "type": "string", "format": "date-time" },
-        "status": { "type": "string", "enum": ["available", "sold", "auction_active", "auction_ended", "pending_meetup"] },
-        "isAuction": { "type": "boolean" },
-        "isBulk": { "type": "boolean" },
-        "quantity": { "type": "number" },
-        "isBoosted": { "type": "boolean" },
-        "viewCount": { "type": "number" }
+        "status": { "type": "string" },
+        "isAuction": { "type": "boolean" }
       },
-      "required": ["id", "sellerId", "categoryId", "title", "description", "condition", "price", "currency", "imageUrls", "postedDate", "status", "isAuction", "isBulk", "quantity", "isBoosted", "viewCount"]
+      "required": ["id", "sellerId", "title", "price", "status"]
     },
-    "TestLog": {
-      "$schema": "http://json-schema.org/draft-07/schema#",
-      "title": "TestLog",
+    "ModerationRecord": {
+      "title": "ModerationRecord",
       "type": "object",
-      "description": "Logs from the autonomous AI testing agent.",
+      "description": "Log of flagged or blocked content for security review.",
       "properties": {
         "id": { "type": "string" },
+        "userId": { "type": "string" },
+        "content": { "type": "string" },
+        "normalizedContent": { "type": "string" },
+        "riskScore": { "type": "number" },
+        "decision": { "type": "string" },
+        "reason": { "type": "string" },
         "timestamp": { "type": "string", "format": "date-time" },
-        "scenarioId": { "type": "string" },
-        "status": { "type": "enum", "enum": ["pass", "fail", "warning"] },
-        "summary": { "type": "string" },
-        "detectedAnomalies": { "type": "array", "items": { "type": "string" } }
+        "status": { "type": "string", "enum": ["pending_review", "resolved", "dismissed"] }
       },
-      "required": ["id", "timestamp", "scenarioId", "status", "summary"]
+      "required": ["userId", "content", "riskScore", "decision", "timestamp", "status"]
     }
   },
   "auth": {
@@ -80,7 +56,7 @@
         "definition": {
           "entityName": "UserProfile",
           "schema": { "$ref": "#/backend/entities/UserProfile" },
-          "description": "User profile information."
+          "description": "User profile data."
         }
       },
       {
@@ -88,15 +64,15 @@
         "definition": {
           "entityName": "ProductListing",
           "schema": { "$ref": "#/backend/entities/ProductListing" },
-          "description": "Active and sold product listings."
+          "description": "Marketplace listings."
         }
       },
       {
-        "path": "/testLogs/{logId}",
+        "path": "/moderationQueue/{recordId}",
         "definition": {
-          "entityName": "TestLog",
-          "schema": { "$ref": "#/backend/entities/TestLog" },
-          "description": "Autonomous AI Agent test results."
+          "entityName": "ModerationRecord",
+          "schema": { "$ref": "#/backend/entities/ModerationRecord" },
+          "description": "Queue for flagged and blocked content."
         }
       }
     ]

@@ -1,42 +1,26 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState } from "react";
 import { Navigation } from "@/components/Navigation";
-import { antiScamChatProtection, AntiScamChatProtectionOutput } from "@/ai/flows/anti-scam-chat-protection";
+import { useScamDetection } from "@/hooks/use-scam-detection";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Textarea } from "@/components/ui/textarea";
 import { 
   ShieldAlert, 
   Send, 
-  MapPin, 
   ShieldCheck,
-  Calendar,
-  CheckCircle2,
-  AlertTriangle,
-  ThumbsUp,
   Lock,
-  Shield,
   Loader2,
-  Star,
   Globe,
-  Ban
+  AlertTriangle
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { VerifiedBadge } from "@/components/VerifiedBadge";
-import { toast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
-import {
-  Dialog,
-  DialogContent,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import { useUser, useDoc, useFirestore, useMemoFirebase } from "@/firebase";
-import { doc, collection } from "firebase/firestore";
-import { Progress } from "@/components/ui/progress";
+import { useUser, useFirestore } from "@/firebase";
+import { collection } from "firebase/firestore";
 import { addDocumentNonBlocking } from "@/firebase/non-blocking-updates";
 
 interface Message {
@@ -50,82 +34,58 @@ interface Message {
 export default function MessagesPage() {
   const { user } = useUser();
   const db = useFirestore();
+  const { checkContent, isValidating } = useScamDetection();
 
   const [messages, setMessages] = useState<Message[]>([
     { id: "1", senderId: "seller", text: "Hey! Are you still interested in the Mountain Bike?", timestamp: "10:30 AM" },
   ]);
   const [inputValue, setInputValue] = useState("");
-  const [isSending, setIsSending] = useState(false);
-  const [scamWarning, setScamWarning] = useState<AntiScamChatProtectionOutput | null>(null);
-  const [showFeedback, setShowFeedback] = useState(false);
-  const [isEscrowActive, setIsEscrowActive] = useState(true);
-  
-  const [rating, setRating] = useState(0);
-  const [reviewComment, setReviewComment] = useState("");
-  const [isSubmittingReview, setIsSubmittingReview] = useState(false);
-
-  const [meetingRequest, setMeetingRequest] = useState({
-    status: 'pending',
-    location: "Shell Garage Main Road",
-    time: "Tomorrow 13:00",
-    requester: "Alex Rivera",
-    sellerId: "seller_123",
-    listingId: "listing_123",
-    listingTitle: "Premium Mountain Bike",
-  });
+  const [scamAudit, setScamAudit] = useState<any>(null);
 
   const handleSend = async () => {
-    if (!inputValue.trim() || isSending) return;
-    setIsSending(true);
+    if (!inputValue.trim() || isValidating) return;
 
-    try {
-      // 1. Contextual Risk Analysis
-      const scanResult = await antiScamChatProtection({ message: inputValue });
-      
-      // 2. Logging high-risk attempts to Security Events
-      if (scanResult.riskScore >= 60) {
-        addDocumentNonBlocking(collection(db, "securityLogs"), {
-          userId: user?.uid || "anonymous",
-          type: "SUSPICIOUS_MESSAGE",
-          message: inputValue,
-          riskScore: scanResult.riskScore,
-          decision: scanResult.decision,
-          timestamp: new Date().toISOString()
-        });
-      }
+    // 1. Run Advanced Multi-Layered Security Check
+    const result = await checkContent(inputValue);
+    
+    if (!result) return;
 
-      // 3. Enforce Blocking Logic
-      if (scanResult.decision === 'block') {
-        toast({
-          variant: "destructive",
-          title: "Message Blocked",
-          description: scanResult.reason,
-        });
-        setIsSending(false);
-        return; 
-      }
-
-      // 4. Handle Warnings
-      if (scanResult.decision === 'warn' || scanResult.decision === 'hold') {
-        setScamWarning(scanResult);
-      } else {
-        setScamWarning(null);
-      }
-
-      // 5. Success Path
-      setMessages([...messages, { 
-        id: Date.now().toString(), 
-        senderId: "buyer", 
-        text: inputValue, 
-        timestamp: "Now",
-        riskScore: scanResult.riskScore
-      }]);
-      setInputValue("");
-    } catch (err) {
-      toast({ variant: "destructive", title: "System Error", description: "Security filter failed to respond." });
-    } finally {
-      setIsSending(false);
+    // 2. Log Moderation Event to Firestore (Moderation Queue)
+    if (result.decision === 'block' || result.decision === 'flag') {
+      addDocumentNonBlocking(collection(db, "moderationQueue"), {
+        userId: user?.uid || "anonymous",
+        content: inputValue,
+        normalizedContent: result.audit.normalizedText,
+        riskScore: result.riskScore,
+        decision: result.decision,
+        reason: result.reason,
+        timestamp: new Date().toISOString(),
+        status: 'pending_review'
+      });
     }
+
+    // 3. Reject if blocked
+    if (result.decision === 'block') {
+      setScamAudit(result);
+      return; 
+    }
+
+    // 4. Update UI with warning if flagged
+    if (result.decision === 'flag') {
+      setScamAudit(result);
+    } else {
+      setScamAudit(null);
+    }
+
+    // 5. Append message
+    setMessages([...messages, { 
+      id: Date.now().toString(), 
+      senderId: "buyer", 
+      text: inputValue, 
+      timestamp: "Now",
+      riskScore: result.riskScore
+    }]);
+    setInputValue("");
   };
 
   return (
@@ -142,7 +102,7 @@ export default function MessagesPage() {
             <Avatar className="h-12 w-12 border-2 border-white shadow-sm"><AvatarImage src="https://picsum.photos/seed/user1/200/200" /></Avatar>
             <div className="flex-1 min-w-0">
               <span className="font-bold text-sm">Alex Rivera</span>
-              <p className="text-[10px] text-muted-foreground truncate uppercase font-black">Hold Active</p>
+              <p className="text-[10px] text-muted-foreground truncate uppercase font-black">Escrow Active</p>
             </div>
           </div>
         </aside>
@@ -159,13 +119,14 @@ export default function MessagesPage() {
           </div>
 
           <div className="flex-1 overflow-y-auto p-6 space-y-6 bg-slate-50/30">
-            {/* Risk Engine Warnings */}
-            {scamWarning && (
-              <Alert variant="destructive" className="bg-red-50 border-red-200 rounded-3xl animate-in slide-in-from-top-4">
-                <AlertTriangle className="h-5 w-5 text-red-600" />
-                <AlertTitle className="font-black uppercase text-[10px] tracking-widest text-red-700">High Risk Indicator ({scamWarning.riskScore}%)</AlertTitle>
-                <AlertDescription className="text-xs font-medium text-red-600 leading-relaxed">
-                  {scamWarning.reason}
+            {scamAudit && scamAudit.decision !== 'allow' && (
+              <Alert variant="destructive" className={cn("rounded-3xl animate-in slide-in-from-top-4", scamAudit.decision === 'block' ? "bg-red-50 border-red-200" : "bg-orange-50 border-orange-200")}>
+                <AlertTriangle className={cn("h-5 w-5", scamAudit.decision === 'block' ? "text-red-600" : "text-orange-600")} />
+                <AlertTitle className={cn("font-black uppercase text-[10px] tracking-widest", scamAudit.decision === 'block' ? "text-red-700" : "text-orange-700")}>
+                  Security Risk: {scamAudit.decision.toUpperCase()} (Score: {scamAudit.riskScore})
+                </AlertTitle>
+                <AlertDescription className={cn("text-xs font-medium leading-relaxed", scamAudit.decision === 'block' ? "text-red-600" : "text-orange-600")}>
+                  {scamAudit.reason}
                 </AlertDescription>
               </Alert>
             )}
@@ -174,7 +135,7 @@ export default function MessagesPage() {
               <div key={m.id} className={cn("flex flex-col max-w-[80%] space-y-1", m.senderId === "buyer" ? "ml-auto items-end" : "items-start")}>
                 <div className={cn("px-5 py-3 rounded-[1.5rem] text-sm shadow-sm", m.senderId === "buyer" ? "bg-[#225BC3] text-white rounded-tr-none" : "bg-white border border-slate-100 rounded-tl-none")}>{m.text}</div>
                 <div className="flex items-center gap-2">
-                   {m.riskScore && m.riskScore > 30 && <ShieldAlert className="w-3 h-3 text-orange-500" />}
+                   {m.riskScore && m.riskScore >= 4 && <ShieldAlert className="w-3 h-3 text-orange-500" />}
                    <span className="text-[10px] text-muted-foreground font-bold">{m.timestamp}</span>
                 </div>
               </div>
@@ -184,19 +145,19 @@ export default function MessagesPage() {
           <div className="p-6 border-t bg-white space-y-4">
             <div className="flex gap-3">
               <Input 
-                placeholder="Secure marketplace chat..." 
+                placeholder="Type a message..." 
                 className="rounded-full bg-slate-50 border-none h-14 px-6 font-medium" 
                 value={inputValue} 
                 onChange={(e) => setInputValue(e.target.value)} 
                 onKeyDown={(e) => e.key === "Enter" && handleSend()} 
               />
-              <Button size="icon" className="rounded-full bg-[#225BC3] shrink-0 h-14 w-14" onClick={handleSend} disabled={isSending}>
-                {isSending ? <Loader2 className="w-5 h-5 animate-spin" /> : <Send className="w-5 h-5" />}
+              <Button size="icon" className="rounded-full bg-[#225BC3] shrink-0 h-14 w-14" onClick={handleSend} disabled={isValidating}>
+                {isValidating ? <Loader2 className="w-5 h-5 animate-spin" /> : <Send className="w-5 h-5" />}
               </Button>
             </div>
             <div className="flex items-center justify-center gap-2 opacity-40">
                <ShieldCheck className="w-3 h-3 text-[#34CBED]" />
-               <span className="text-[8px] font-black uppercase tracking-widest">AI Threat Monitor: active</span>
+               <span className="text-[8px] font-black uppercase tracking-widest">Falcon AI Protection Enabled</span>
             </div>
           </div>
         </div>
