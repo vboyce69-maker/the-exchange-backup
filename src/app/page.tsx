@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState } from "react";
@@ -82,7 +81,7 @@ export default function LandingPage() {
     );
   }, [db]);
 
-  const { data: listings, isLoading } = useCollection(trendingQuery);
+  const { data: listings, isLoading, error } = useCollection(trendingQuery);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -103,6 +102,7 @@ export default function LandingPage() {
             alt="Marketplace Hero" 
             fill 
             className="object-cover"
+            priority
             data-ai-hint="marketplace trade"
           />
         </div>
@@ -271,6 +271,7 @@ export default function LandingPage() {
             <div className="text-center py-24 bg-white rounded-[4rem] shadow-sm border border-dashed border-slate-200">
                <Package className="w-16 h-16 text-slate-100 mx-auto mb-4" />
                <p className="font-black text-[#225BC3] uppercase tracking-widest text-sm">No listings currently trending</p>
+               {error && <p className="text-red-500 text-xs mt-2">Error sync: {error.message}</p>}
             </div>
           )}
         </section>
@@ -284,18 +285,18 @@ export default function LandingPage() {
                 <div className="w-12 h-12 bg-white/20 backdrop-blur-md rounded-xl flex items-center justify-center mx-auto md:mx-0 shadow-xl">
                    <ShieldCheck className="w-8 h-8 text-[#34CBED]" />
                 </div>
-                <h2 className="text-2xl md:text-4xl font-black leading-tight tracking-tighter">Shop with total confidence.</h2>
-                <p className="text-white/70 text-base font-medium leading-relaxed">
+                <h2 className="text-xl md:text-3xl font-black leading-tight tracking-tighter">Shop with total confidence.</h2>
+                <p className="text-white/70 text-sm font-medium leading-relaxed">
                   Verified Sellers, Secure Deals, No Scams, Just Good Trades.
                 </p>
                 <div className="flex flex-wrap gap-4 justify-center md:justify-start pt-2">
                    <Link href="/verify">
-                     <Button className="bg-[#34CBED] hover:bg-[#34CBED]/90 text-white font-black h-12 px-6 rounded-xl shadow-xl text-sm">
+                     <Button className="bg-[#34CBED] hover:bg-[#34CBED]/90 text-white font-black h-10 px-6 rounded-xl shadow-xl text-xs">
                        Get Verified Badge
                      </Button>
                    </Link>
                    <Link href="/legal">
-                     <Button variant="ghost" className="text-white/80 hover:text-white font-black h-12 px-6 rounded-xl text-sm">
+                     <Button variant="ghost" className="text-white/80 hover:text-white font-black h-10 px-6 rounded-xl text-xs">
                        Safety Center
                      </Button>
                    </Link>
