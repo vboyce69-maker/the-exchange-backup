@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useRef, useEffect } from "react";
@@ -11,7 +10,6 @@ import {
   ShieldCheck, 
   Upload, 
   CheckCircle2, 
-  AlertCircle, 
   Loader2, 
   Camera, 
   ScanFace,
@@ -21,7 +19,6 @@ import {
   Eye,
   Lock
 } from "lucide-react";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Progress } from "@/components/ui/progress";
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "@/hooks/use-toast";
@@ -122,7 +119,7 @@ export default function VerificationPage() {
       <main className="container mx-auto px-4 py-12 flex justify-center">
         <div className="max-w-xl w-full">
           <div className="text-center mb-8">
-            <div className="inline-flex items-center justify-center w-20 h-20 bg-[#225BC3]/10 rounded-[2rem] mb-6">
+            <div className="inline-flex items-center justify-center w-20 h-20 bg-[#225BC3]/10 rounded-[2rem] mb-6 shadow-xl">
               <ScanFace className="w-10 h-10 text-[#225BC3]" />
             </div>
             <h1 className="text-4xl font-black text-[#225BC3] tracking-tighter">Biometric KYC</h1>
@@ -168,7 +165,7 @@ export default function VerificationPage() {
                     </div>
                   </div>
                   <Button 
-                    className="w-full bg-[#225BC3] hover:bg-[#225BC3]/90 text-white font-black h-16 rounded-2xl shadow-xl" 
+                    className="w-full bg-[#225BC3] hover:bg-[#225BC3]/90 text-white font-black h-16 rounded-2xl shadow-xl active:scale-[0.98] transition-transform" 
                     onClick={() => setStep(2)}
                     disabled={!fullName || !idNumber}
                   >
@@ -208,7 +205,7 @@ export default function VerificationPage() {
                   )}
 
                   <Button 
-                    className="w-full bg-[#225BC3] text-white font-black h-16 rounded-2xl shadow-xl" 
+                    className="w-full bg-[#225BC3] text-white font-black h-16 rounded-2xl shadow-xl active:scale-[0.98] transition-transform" 
                     onClick={() => setStep(3)}
                     disabled={!idPhoto}
                   >
@@ -259,7 +256,7 @@ export default function VerificationPage() {
                   <div className="flex flex-col gap-3">
                     {!selfie ? (
                       <Button 
-                        className="w-full h-16 bg-[#34CBED] hover:bg-[#34CBED]/90 text-white font-black rounded-2xl shadow-xl"
+                        className="w-full h-16 bg-[#34CBED] hover:bg-[#34CBED]/90 text-white font-black rounded-2xl shadow-xl active:scale-[0.98] transition-transform"
                         onClick={captureSelfie}
                         disabled={hasCameraPermission === false || !popiaConsent}
                       >
@@ -267,7 +264,7 @@ export default function VerificationPage() {
                       </Button>
                     ) : (
                       <Button 
-                        className="w-full h-16 bg-[#225BC3] text-white font-black rounded-2xl shadow-xl"
+                        className="w-full h-16 bg-[#225BC3] text-white font-black rounded-2xl shadow-xl active:scale-[0.98] transition-transform"
                         onClick={runVerification}
                         disabled={isProcessing || !popiaConsent}
                       >
@@ -285,27 +282,27 @@ export default function VerificationPage() {
 
               {step === 4 && (
                 <div className="space-y-6 text-center animate-in fade-in zoom-in-95">
-                  <div className="inline-flex items-center justify-center w-20 h-20 bg-red-100 rounded-[2rem] mb-6">
+                  <div className="inline-flex items-center justify-center w-20 h-20 bg-red-100 rounded-[2rem] mb-6 shadow-xl">
                     <XCircle className="w-10 h-10 text-red-600" />
                   </div>
                   <h2 className="text-3xl font-black text-slate-900">Verification Failed</h2>
                   <p className="text-sm text-muted-foreground font-medium px-4">
                     {verificationResult?.reason || "Our AI could not verify your identity. Please ensure clear lighting and that your face matches your ID."}
                   </p>
-                  <Button variant="outline" className="w-full h-16 rounded-2xl border-2 border-[#225BC3]" onClick={() => setStep(1)}>Retry Process</Button>
+                  <Button variant="outline" className="w-full h-16 rounded-2xl border-2 border-[#225BC3] font-black uppercase text-xs" onClick={() => setStep(1)}>Retry Process</Button>
                 </div>
               )}
 
               {step === 5 && (
                 <div className="space-y-6 text-center animate-in fade-in zoom-in-95">
-                  <div className="inline-flex items-center justify-center w-20 h-20 bg-green-100 rounded-[2rem] mb-6">
+                  <div className="inline-flex items-center justify-center w-20 h-20 bg-green-100 rounded-[2rem] mb-6 shadow-xl">
                     <CheckCircle2 className="w-10 h-10 text-green-600" />
                   </div>
                   <h2 className="text-3xl font-black text-slate-900">Verification Complete</h2>
                   <p className="text-sm text-muted-foreground font-medium px-4">
                     Your identity has been authenticated. You now carry the "Verified Person" badge and your reliability score has increased.
                   </p>
-                  <Button className="w-full h-16 bg-[#225BC3] text-white font-black rounded-2xl shadow-xl" onClick={() => window.location.href = '/'}>Return to The Exchange</Button>
+                  <Button className="w-full h-16 bg-[#225BC3] text-white font-black rounded-2xl shadow-xl active:scale-[0.98] transition-transform" onClick={() => window.location.href = '/'}>Return to The Exchange</Button>
                 </div>
               )}
             </CardContent>
@@ -313,6 +310,7 @@ export default function VerificationPage() {
           
           <div className="mt-8 flex items-center justify-center gap-6 opacity-40 grayscale">
              <div className="flex items-center gap-1 text-[8px] font-black uppercase tracking-widest"><Lock className="w-3 h-3" /> POPIA Compliant</div>
+             <div className="flex items-center gap-1 text-[8px] font-black uppercase tracking-widest"><ShieldCheck className="w-3 h-3" /> RSA Hosting</div>
              <div className="flex items-center gap-1 text-[8px] font-black uppercase tracking-widest"><Eye className="w-3 h-3" /> Encrypted Storage</div>
           </div>
         </div>

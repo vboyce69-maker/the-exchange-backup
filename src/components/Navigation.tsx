@@ -1,4 +1,3 @@
-
 "use client";
 
 import Link from "next/link";
@@ -7,27 +6,20 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { 
   PlusCircle, 
-  MessageSquare, 
   User, 
   TrendingUp, 
   Gavel,
   ShieldCheck,
-  Home,
   LogOut,
-  UserCircle,
-  Scale,
   LogIn,
   ChevronDown,
   Lock,
   MapPin,
-  Star,
-  ShieldAlert,
-  Layers,
-  Fingerprint,
   Briefcase,
-  Heart,
   ShoppingBag,
-  Search
+  Search,
+  Fingerprint,
+  Scale
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
@@ -42,7 +34,6 @@ import { useUser, useAuth } from "@/firebase";
 import { signOut } from "firebase/auth";
 
 export function Navigation() {
-  const pathname = usePathname();
   const router = useRouter();
   const { user } = useUser();
   const auth = useAuth();
@@ -76,8 +67,8 @@ export function Navigation() {
   return (
     <nav className="sticky top-0 z-50 w-full border-b bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/60 px-4">
       <div className="container mx-auto h-20 flex items-center justify-between">
-        <Link href="/" className="flex items-center gap-2 shrink-0">
-          <div className="bg-[#225BC3] p-2 rounded-xl shadow-lg shadow-blue-500/20">
+        <Link href="/" className="flex items-center gap-2 shrink-0 group">
+          <div className="bg-[#225BC3] p-2 rounded-xl shadow-lg shadow-blue-500/20 group-hover:scale-110 transition-transform">
             <ShieldCheck className="w-5 h-5 text-white" />
           </div>
           <div className="flex flex-col -space-y-1">
