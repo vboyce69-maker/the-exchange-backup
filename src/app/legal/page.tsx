@@ -1,3 +1,4 @@
+
 "use client";
 
 import { Navigation } from "@/components/Navigation";
@@ -21,7 +22,9 @@ import {
   Server,
   GlobeLock,
   Building2,
-  Database
+  Database,
+  Activity,
+  Cpu
 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 
@@ -42,7 +45,7 @@ export default function LegalHub() {
           <div className="flex flex-col md:flex-row items-center justify-between gap-6">
             <div className="text-center md:text-left space-y-2">
               <h1 className="text-4xl font-black text-[#225BC3] tracking-tighter uppercase">Compliance & Security Hub</h1>
-              <p className="text-muted-foreground font-medium uppercase text-[10px] tracking-widest">Frameworks: OWASP MAS, POPIA, CPA, ECTA</p>
+              <p className="text-muted-foreground font-medium uppercase text-[10px] tracking-widest">EDR/XDR Framework: AI-DRIVEN THREAT DETECTION</p>
             </div>
             <Button 
               className="bg-[#FF8C00] text-white font-black rounded-2xl h-12 gap-2 shadow-xl hover:scale-105 transition-transform"
@@ -53,26 +56,32 @@ export default function LegalHub() {
             </Button>
           </div>
 
-          {/* CORPORATE STRATEGY & COMPLIANCE */}
+          {/* AI DEFENSE FRAMEWORK */}
           <Card className="rounded-[2.5rem] border-none shadow-xl bg-white overflow-hidden ring-1 ring-slate-100">
-            <CardHeader className="bg-[#FF8C00] p-10 text-white">
+            <CardHeader className="bg-[#225BC3] p-10 text-white">
               <CardTitle className="flex items-center gap-3">
-                <Building2 className="w-8 h-8 text-white" />
-                Business Verification Framework
+                <Cpu className="w-8 h-8 text-[#34CBED]" />
+                AI Behavioral Defense (Falcon-X Mindset)
               </CardTitle>
             </CardHeader>
             <CardContent className="p-10 space-y-8">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                 <div className="space-y-4">
-                  <h4 className="font-black text-[#225BC3] uppercase text-xs tracking-widest">Pty Ltd Verification</h4>
+                  <div className="flex items-center gap-2">
+                    <Activity className="w-5 h-5 text-[#34CBED]" />
+                    <h4 className="font-black text-[#225BC3] uppercase text-xs tracking-widest">Real-Time Behavioral Scanning</h4>
+                  </div>
                   <p className="text-sm text-slate-600 font-medium leading-relaxed">
-                    Inspired by international standards (like Globalfy), we provide professional sellers with a "Verified Pro" status. This requires CIPC registration, VAT certificates, and director biometric binding.
+                    Our Genkit-powered AI monitors interaction patterns to detect account takeovers (ATO) and impossible travel anomalies, ensuring your session remains secure from endpoint to cloud.
                   </p>
                 </div>
                 <div className="space-y-4">
-                  <h4 className="font-black text-[#225BC3] uppercase text-xs tracking-widest">Tax & Trade Compliance</h4>
+                  <div className="flex items-center gap-2">
+                    <ShieldAlert className="w-5 h-5 text-[#FF8C00]" />
+                    <h4 className="font-black text-[#225BC3] uppercase text-xs tracking-widest">Proactive Threat Hunting</h4>
+                  </div>
                   <p className="text-sm text-slate-600 font-medium leading-relaxed">
-                    We ensure all bulk-lot trades are traceable for SARS reporting, providing a structured environment that protects both the platform and the legitimate trade ecosystem.
+                    Inspired by Aqua Security, we implement automated cloud native security. Every listing is scanned for phishing signatures and metadata manipulation before it goes live.
                   </p>
                 </div>
               </div>
@@ -81,10 +90,10 @@ export default function LegalHub() {
 
           {/* CYBERSECURITY FRAMEWORK */}
           <Card className="rounded-[2.5rem] border-none shadow-xl bg-white overflow-hidden ring-1 ring-slate-100">
-            <CardHeader className="bg-[#225BC3] p-10 text-white">
-              <CardTitle className="flex items-center gap-3">
+            <CardHeader className="bg-slate-50 p-10 border-b">
+              <CardTitle className="flex items-center gap-3 text-[#225BC3]">
                 <GlobeLock className="w-8 h-8 text-[#34CBED]" />
-                Defense-in-Depth Framework
+                Infrastructure Hardening
               </CardTitle>
             </CardHeader>
             <CardContent className="p-10 space-y-8">
@@ -92,64 +101,32 @@ export default function LegalHub() {
                 <div className="p-6 bg-slate-50 rounded-3xl border border-slate-100 space-y-3">
                   <div className="flex items-center gap-2 text-[#225BC3]">
                     <Shield className="w-5 h-5" />
-                    <span className="font-black uppercase text-[9px] tracking-widest">OWASP MAS Alignment</span>
+                    <span className="font-black uppercase text-[9px] tracking-widest">Snyk SAST Alignment</span>
                   </div>
                   <p className="text-[10px] text-slate-500 font-bold leading-relaxed">
-                    Adherence to Mobile Application Security Verification Standards (MASVS) for data storage, crypto, and network security.
+                    Codebase and Firestore rules are scanned for configuration vulnerabilities and insecure data patterns.
                   </p>
                 </div>
                 
                 <div className="p-6 bg-slate-50 rounded-3xl border border-slate-100 space-y-3">
                   <div className="flex items-center gap-2 text-[#225BC3]">
                     <Server className="w-5 h-5" />
-                    <span className="font-black uppercase text-[9px] tracking-widest">Data at Rest (AES-256)</span>
+                    <span className="font-black uppercase text-[9px] tracking-widest">Aqua Native Security</span>
                   </div>
                   <p className="text-[10px] text-slate-500 font-bold leading-relaxed">
-                    All PII, transaction records, and media files in Cloud Storage are encrypted using banking-grade AES-256 algorithms.
+                    Cloud-native container and API security protocols inspired by Forcepoint to prevent backend data exfiltration.
                   </p>
                 </div>
 
                 <div className="p-6 bg-slate-50 rounded-3xl border border-slate-100 space-y-3">
                   <div className="flex items-center gap-2 text-[#225BC3]">
                     <Lock className="w-5 h-5" />
-                    <span className="font-black uppercase text-[9px] tracking-widest">TLS 1.2+ In Transit</span>
+                    <span className="font-black uppercase text-[9px] tracking-widest">Zero-Trust Access</span>
                   </div>
                   <p className="text-[10px] text-slate-500 font-bold leading-relaxed">
-                    All communication between your device and our servers is secured via TLS 1.2 or higher to prevent interception.
+                    No implicit trust. Every transaction requires multi-factor biometric validation (KYC) before fund release.
                   </p>
                 </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* INTELLECTUAL PROPERTY */}
-          <Card className="rounded-[2.5rem] border-none shadow-xl bg-white overflow-hidden ring-1 ring-slate-100">
-            <CardHeader className="bg-slate-50 p-8 border-b">
-              <CardTitle className="flex items-center gap-3 text-[#225BC3]">
-                <Copyright className="w-6 h-6 text-[#34CBED]" />
-                Proprietary IP Notice
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="p-10 space-y-8">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="p-6 bg-slate-50 rounded-3xl border border-slate-100 space-y-3">
-                    <div className="flex items-center gap-2 text-[#225BC3]">
-                      <Fingerprint className="w-5 h-5" />
-                      <span className="font-black uppercase text-[10px] tracking-widest">Biometric KYC Flow</span>
-                    </div>
-                    <p className="text-[11px] text-slate-500 font-bold leading-relaxed">
-                      Original AI-powered identity matching workflow comparing government documents with live facial scans.
-                    </p>
-                  </div>
-                  <div className="p-6 bg-slate-50 rounded-3xl border border-slate-100 space-y-3">
-                    <div className="flex items-center gap-2 text-[#225BC3]">
-                      <Zap className="w-5 h-5" />
-                      <span className="font-black uppercase text-[10px] tracking-widest">Reliability Score Algorithm</span>
-                    </div>
-                    <p className="text-[11px] text-slate-500 font-bold leading-relaxed">
-                      A unique multi-factor weighting system calculating trust through GPS punctuality, biometric verification, and peer feedback.
-                    </p>
-                  </div>
               </div>
             </CardContent>
           </Card>
@@ -159,28 +136,23 @@ export default function LegalHub() {
             <CardHeader className="bg-slate-50 p-8 border-b">
               <CardTitle className="flex items-center gap-3 text-[#225BC3]">
                 <Gavel className="w-6 h-6 text-[#34CBED]" />
-                ECTA & CPA Disclosures
+                Regulatory Framework
               </CardTitle>
             </CardHeader>
             <CardContent className="p-8 space-y-6 text-sm">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                 <div className="space-y-4">
                   <div>
-                    <p className="font-black text-[#225BC3] uppercase text-[10px] tracking-widest mb-1">Company Details</p>
-                    <p className="font-bold text-slate-700">The Exchange Marketplace (Pty) Ltd</p>
-                    <p className="text-xs text-slate-500">Reg: 2023/XXXXXX/07 (In process)</p>
-                  </div>
-                  <div>
-                    <p className="font-black text-[#225BC3] uppercase text-[10px] tracking-widest mb-1">CPA Compliance</p>
+                    <p className="font-black text-[#225BC3] uppercase text-[10px] tracking-widest mb-1">CPA & POPIA Alignment</p>
                     <p className="text-xs text-slate-600 leading-relaxed font-medium">
-                      All sellers are bound by the Consumer Protection Act. We facilitate the platform but do not act as the vendor of goods unless specified.
+                      All AI data processing is conducted within South African borders or in GDPR-compliant zones as per the Protection of Personal Information Act.
                     </p>
                   </div>
                 </div>
                 <div className="space-y-4">
                   <div>
-                    <p className="font-black text-[#225BC3] uppercase text-[10px] tracking-widest mb-1">Data Officer (POPIA)</p>
-                    <p className="font-bold text-slate-700">compliance@theexchange.co.za</p>
+                    <p className="font-black text-[#225BC3] uppercase text-[10px] tracking-widest mb-1">Security Incident Response</p>
+                    <p className="font-bold text-slate-700">threat-intel@theexchange.co.za</p>
                   </div>
                 </div>
               </div>
