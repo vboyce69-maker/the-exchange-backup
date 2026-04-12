@@ -44,12 +44,13 @@ ANALYSIS TASK:
    - 60 to 79: hold
    - 80+: block
 
-DECISION LOGIC:
-- If PHISHING or CREDENTIAL THEFT (OTP) is detected: Score must be at least 80, Decision MUST be 'block'.
-- If OVERPAYMENT or COURIER FRAUD is detected: Score must be at least 60.
-- If multiple suspicious patterns co-occur (e.g., Courier + Insurance), boost the score significantly.
+DECISION LOGIC (ENFORCED):
+- If PHISHING, CREDENTIAL THEFT (OTP), or BANK DETAILS request is detected: Score must be at least 85, Decision MUST be 'block'.
+- If OVERPAYMENT or COURIER FRAUD is detected: Score must be at least 70, Decision MUST be 'block' or 'hold'.
+- If multiple suspicious patterns co-occur (e.g., Courier + Insurance, OTP + Code, Refund + Driver), boost the score significantly and ENFORCE a 'block'.
+- Use the provided Co-occurrence Boosts to calculate the final score.
 
-Provide the final analysis including the total calculated risk score and a reason that educates the user.`,
+Provide the final analysis including the total calculated risk score and a reason that clearly explains the policy violation.`,
 });
 
 export async function antiScamChatProtection(input: AntiScamChatProtectionInput): Promise<AntiScamChatProtectionOutput> {

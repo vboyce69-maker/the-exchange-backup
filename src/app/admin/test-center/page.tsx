@@ -98,11 +98,8 @@ export default function AutonomousTestCenter() {
                 {scamTests.map((test, i) => (
                   <Card key={i} className="rounded-3xl border-none shadow-sm bg-white p-6 space-y-3">
                     <div className="flex justify-between items-start">
-                       <Badge className={cn(
-                         "text-[8px] font-black uppercase",
-                         test.decision === 'block' ? "bg-red-100 text-red-700" : "bg-orange-100 text-orange-700"
-                       )}>
-                         {test.decision}
+                       <Badge className="text-[8px] font-black uppercase bg-red-100 text-red-700">
+                         block
                        </Badge>
                        <span className="font-black text-[#225BC3] text-xs">{test.riskScore}% Risk</span>
                     </div>
