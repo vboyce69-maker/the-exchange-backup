@@ -1,4 +1,3 @@
-
 'use server';
 /**
  * @fileOverview Autonomous AI Testing Agent.
@@ -33,14 +32,19 @@ export type AutonomousTesterOutput = z.infer<typeof AutonomousTesterOutputSchema
 
 const testerPrompt = ai.definePrompt({
   name: 'autonomousTesterPrompt',
-  input: { schema: AutonomousTesterInputSchema },
+  input: { 
+    schema: AutonomousTesterInputSchema.extend({
+      scenariosJson: z.string(),
+      edgeCasesJson: z.string(),
+    }) 
+  },
   output: { schema: AutonomousTesterOutputSchema },
   prompt: `You are an Autonomous AI QA Engineer for 'The Exchange'. 
 Your goal is to simulate a 'The Mobile App Testing Process' (Digital.ai) walkthrough.
 
 RESOURCES:
-- Golden Scenarios: ${JSON.stringify(GOLDEN_SCENARIOS)}
-- Synthetic Edge Cases: ${JSON.stringify(SYNTHETIC_EDGE_CASES)}
+- Golden Scenarios: {{{scenariosJson}}}
+- Synthetic Edge Cases: {{{edgeCasesJson}}}
 
 TASKS:
 1. Evaluate 'Requirement Analysis': Does the logic support 'Scam-Proof' commerce?
@@ -52,8 +56,17 @@ Provide a detailed report on the app's health and any detected vulnerabilities.`
 });
 
 export async function runAutonomousTesting(input: { targetScenarioId?: string }): Promise<AutonomousTesterOutput> {
-  const { output } = await testerPrompt(input);
-  return output!;
+  const { output } = await testerPrompt({
+    ...input,
+    scenariosJson: JSON.stringify(GOLDEN_SCENARIOS),
+    edgeCasesJson: JSON.stringify(SYNTHETIC_EDGE_CASES),
+  });
+  
+  if (!output) {
+    throw new Error("AI failed to generate a test report.");
+  }
+  
+  return output;
 }
 
 const autonomousTesterFlow = ai.defineFlow(

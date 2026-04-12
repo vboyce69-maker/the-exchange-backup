@@ -29,7 +29,11 @@ export type BehavioralRiskOutput = z.infer<typeof BehavioralRiskOutputSchema>;
 
 const riskPrompt = ai.definePrompt({
   name: 'behavioralRiskPrompt',
-  input: { schema: BehavioralRiskInputSchema },
+  input: { 
+    schema: BehavioralRiskInputSchema.extend({
+      metadataJson: z.string(),
+    }) 
+  },
   output: { schema: BehavioralRiskOutputSchema },
   prompt: `You are an AI Security Operations Center (SOC) Analyst.
 Perform real-time Behavioral Risk Analysis for 'The Exchange'.
@@ -44,13 +48,16 @@ ANALYZE FOR:
 Context:
 - Action: {{{actionType}}}
 - Score History: {{{previousRiskScore}}}
-- Metadata: ${JSON.stringify('{{{metadata}}}')}
+- Metadata: {{{metadataJson}}}
 
 Evaluate the risk level and provide a security recommendation.`,
 });
 
 export async function analyzeBehavioralRisk(input: BehavioralRiskInput): Promise<BehavioralRiskOutput> {
-  const { output } = await riskPrompt(input);
+  const { output } = await riskPrompt({
+    ...input,
+    metadataJson: JSON.stringify(input.metadata || {}),
+  });
   return output!;
 }
 
