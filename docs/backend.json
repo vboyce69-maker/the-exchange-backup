@@ -7,76 +7,22 @@
       "type": "object",
       "description": "Represents a user within the LocalBid Exchange platform, storing their profile information, verification status, and aggregated performance metrics as a seller.",
       "properties": {
-        "id": {
-          "type": "string",
-          "description": "Unique identifier for the UserProfile entity."
-        },
-        "username": {
-          "type": "string",
-          "description": "Unique username chosen by the user."
-        },
-        "email": {
-          "type": "string",
-          "description": "User's email address, used for communication and login.",
-          "format": "email"
-        },
-        "phone": {
-          "type": "string",
-          "description": "User's phone number for OTP verification."
-        },
-        "firstName": {
-          "type": "string",
-          "description": "User's first name."
-        },
-        "lastName": {
-          "type": "string",
-          "description": "User's last name."
-        },
-        "bio": {
-          "type": "string",
-          "description": "A short biographical description provided by the user."
-        },
-        "profileImageUrl": {
-          "type": "string",
-          "description": "URL to the user's profile picture.",
-          "format": "uri"
-        },
-        "locationLatitude": {
-          "type": "number",
-          "description": "The latitude coordinate of the user's primary location."
-        },
-        "locationLongitude": {
-          "type": "number",
-          "description": "The longitude coordinate of the user's primary location."
-        },
-        "isIdVerified": {
-          "type": "boolean",
-          "description": "Indicates if the user has completed the ID verification process."
-        },
-        "totalSalesCount": {
-          "type": "number",
-          "description": "The total number of successful sales made by this user."
-        },
-        "reliabilityScore": {
-          "type": "number",
-          "description": "An aggregate score reflecting the seller's reliability."
-        },
-        "registrationDate": {
-          "type": "string",
-          "description": "The date and time when the user registered.",
-          "format": "date-time"
-        }
+        "id": { "type": "string" },
+        "username": { "type": "string" },
+        "email": { "type": "string", "format": "email" },
+        "phone": { "type": "string" },
+        "firstName": { "type": "string" },
+        "lastName": { "type": "string" },
+        "bio": { "type": "string" },
+        "profileImageUrl": { "type": "string", "format": "uri" },
+        "locationLatitude": { "type": "number" },
+        "locationLongitude": { "type": "number" },
+        "isIdVerified": { "type": "boolean" },
+        "totalSalesCount": { "type": "number" },
+        "reliabilityScore": { "type": "number" },
+        "registrationDate": { "type": "string", "format": "date-time" }
       },
-      "required": [
-        "id",
-        "username",
-        "firstName",
-        "lastName",
-        "isIdVerified",
-        "totalSalesCount",
-        "reliabilityScore",
-        "registrationDate"
-      ]
+      "required": ["id", "username", "firstName", "lastName", "isIdVerified", "totalSalesCount", "reliabilityScore", "registrationDate"]
     },
     "ProductListing": {
       "$schema": "http://json-schema.org/draft-07/schema#",
@@ -84,134 +30,44 @@
       "type": "object",
       "description": "Represents an item listed for sale or auction on the platform.",
       "properties": {
-        "id": {
-          "type": "string",
-          "description": "Unique identifier for the ProductListing."
-        },
-        "sellerId": {
-          "type": "string",
-          "description": "Reference to the UserProfile of the seller."
-        },
-        "categoryId": {
-          "type": "string",
-          "description": "Reference to the Category."
-        },
-        "title": {
-          "type": "string",
-          "description": "The title of the product listing."
-        },
-        "description": {
-          "type": "string",
-          "description": "A detailed description of the product."
-        },
-        "condition": {
-          "type": "string",
-          "enum": ["New", "Like new", "Good", "Used"],
-          "description": "The physical condition of the item."
-        },
-        "price": {
-          "type": "number",
-          "description": "The asking price or starting bid."
-        },
-        "highestBid": {
-          "type": "number",
-          "description": "The current highest bid amount."
-        },
-        "highestBidderId": {
-          "type": "string",
-          "description": "The UID of the user with the current highest bid."
-        },
-        "currency": {
-          "type": "string",
-          "description": "The currency code (e.g., 'ZAR')."
-        },
-        "imageUrls": {
-          "type": "array",
-          "description": "An array of URLs pointing to images of the product.",
-          "items": {
-            "type": "string"
-          }
-        },
-        "listingLocationLatitude": {
-          "type": "number",
-          "description": "The latitude coordinate of the product's location."
-        },
-        "listingLocationLongitude": {
-          "type": "number",
-          "description": "The longitude coordinate of the product's location."
-        },
-        "postedDate": {
-          "type": "string",
-          "description": "The date and time when the product was listed.",
-          "format": "date-time"
-        },
-        "auctionEndDate": {
-          "type": "string",
-          "description": "The date and time when the auction ends.",
-          "format": "date-time"
-        },
-        "status": {
-          "type": "string",
-          "enum": ["available", "sold", "auction_active", "auction_ended", "pending_meetup"],
-          "description": "Current status of the listing."
-        },
-        "isAuction": {
-          "type": "boolean",
-          "description": "Indicates if the listing is an auction."
-        },
-        "isBulk": {
-          "type": "boolean",
-          "description": "Indicates if the listing is a bulk lot (multiple items)."
-        },
-        "quantity": {
-          "type": "number",
-          "description": "The number of items included in this listing."
-        },
-        "isBoosted": {
-          "type": "boolean",
-          "description": "Indicates if the listing is boosted (monetization)."
-        },
-        "viewCount": {
-          "type": "number",
-          "description": "The number of views."
-        }
-      },
-      "required": [
-        "id",
-        "sellerId",
-        "categoryId",
-        "title",
-        "description",
-        "condition",
-        "price",
-        "currency",
-        "imageUrls",
-        "postedDate",
-        "status",
-        "isAuction",
-        "isBulk",
-        "quantity",
-        "isBoosted",
-        "viewCount"
-      ]
-    },
-    "Review": {
-      "$schema": "http://json-schema.org/draft-07/schema#",
-      "title": "Review",
-      "type": "object",
-      "description": "A review left by a buyer for a seller after a completed transaction.",
-      "properties": {
         "id": { "type": "string" },
         "sellerId": { "type": "string" },
-        "buyerId": { "type": "string" },
-        "buyerName": { "type": "string" },
-        "listingId": { "type": "string" },
-        "listingTitle": { "type": "string" },
-        "rating": { "type": "number", "minimum": 1, "maximum": 5 },
-        "comment": { "type": "string" },
-        "createdAt": { "type": "string", "format": "date-time" }
+        "categoryId": { "type": "string" },
+        "title": { "type": "string" },
+        "description": { "type": "string" },
+        "condition": { "type": "string", "enum": ["New", "Like new", "Good", "Used"] },
+        "price": { "type": "number" },
+        "highestBid": { "type": "number" },
+        "highestBidderId": { "type": "string" },
+        "currency": { "type": "string" },
+        "imageUrls": { "type": "array", "items": { "type": "string" } },
+        "listingLocationLatitude": { "type": "number" },
+        "listingLocationLongitude": { "type": "number" },
+        "postedDate": { "type": "string", "format": "date-time" },
+        "auctionEndDate": { "type": "string", "format": "date-time" },
+        "status": { "type": "string", "enum": ["available", "sold", "auction_active", "auction_ended", "pending_meetup"] },
+        "isAuction": { "type": "boolean" },
+        "isBulk": { "type": "boolean" },
+        "quantity": { "type": "number" },
+        "isBoosted": { "type": "boolean" },
+        "viewCount": { "type": "number" }
       },
-      "required": ["id", "sellerId", "buyerId", "rating", "comment", "createdAt"]
+      "required": ["id", "sellerId", "categoryId", "title", "description", "condition", "price", "currency", "imageUrls", "postedDate", "status", "isAuction", "isBulk", "quantity", "isBoosted", "viewCount"]
+    },
+    "TestLog": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "TestLog",
+      "type": "object",
+      "description": "Logs from the autonomous AI testing agent.",
+      "properties": {
+        "id": { "type": "string" },
+        "timestamp": { "type": "string", "format": "date-time" },
+        "scenarioId": { "type": "string" },
+        "status": { "type": "enum", "enum": ["pass", "fail", "warning"] },
+        "summary": { "type": "string" },
+        "detectedAnomalies": { "type": "array", "items": { "type": "string" } }
+      },
+      "required": ["id", "timestamp", "scenarioId", "status", "summary"]
     }
   },
   "auth": {
@@ -236,11 +92,11 @@
         }
       },
       {
-        "path": "/userProfiles/{userId}/reviews/{reviewId}",
+        "path": "/testLogs/{logId}",
         "definition": {
-          "entityName": "Review",
-          "schema": { "$ref": "#/backend/entities/Review" },
-          "description": "Buyer reviews for a specific seller."
+          "entityName": "TestLog",
+          "schema": { "$ref": "#/backend/entities/TestLog" },
+          "description": "Autonomous AI Agent test results."
         }
       }
     ]

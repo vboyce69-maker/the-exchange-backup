@@ -1,3 +1,4 @@
+
 "use client";
 
 import Link from "next/link";
@@ -19,7 +20,8 @@ import {
   ShoppingBag,
   Search,
   Fingerprint,
-  Scale
+  Scale,
+  Settings
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
@@ -61,7 +63,7 @@ export function Navigation() {
     { name: "Protected Payments", description: "Escrow-Style Hold", icon: Lock, href: "/legal", color: "text-green-500" },
     { name: "Market Insights", description: "Seller Demand Data", icon: TrendingUp, href: "/insights", color: "text-purple-500" },
     { name: "Safe Zones", description: "Vetted Meetup Points", icon: MapPin, href: "/messages", color: "text-orange-500" },
-    { name: "Legal Hub", description: "CPA & POPIA Compliance", icon: Scale, href: "/legal", color: "text-slate-600" },
+    { name: "AI Test Center", description: "Autonomous QA Agent", icon: Settings, href: "/admin/test-center", color: "text-red-500" },
   ];
 
   return (
