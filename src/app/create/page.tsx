@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect } from "react";
@@ -9,15 +8,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Switch } from "@/components/ui/switch";
-import { 
-  Select, 
-  SelectContent, 
-  SelectItem, 
-  SelectTrigger, 
-  SelectValue 
-} from "@/components/ui/select";
 import { 
   Camera, 
   MapPin, 
@@ -30,8 +20,8 @@ import {
   Info,
   Layers,
   ImagePlus,
-  Building2,
-  Save
+  Save,
+  ShieldCheck
 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import Image from "next/image";
@@ -39,7 +29,6 @@ import { collection } from "firebase/firestore";
 import { useFirestore, useUser } from "@/firebase";
 import { addDocumentNonBlocking } from "@/firebase/non-blocking-updates";
 import { getSellerDemandInsights } from "@/ai/flows/seller-demand-insights";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 const CATEGORIES = [
   "Vehicles", "Electronics", "Real Estate", "Clothing", 
@@ -56,16 +45,11 @@ export default function CreateListingPage() {
 
   const [images, setImages] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
-  const [locationDetecting, setLocationDetecting] = useState(false);
   const [location, setLocation] = useState<{ lat: number; lng: number; name: string } | null>(null);
   
   const [isAuction, setIsAuction] = useState(false);
   const [isBulk, setIsBulk] = useState(false);
-  const [isBusinessSeller, setIsBusinessSeller] = useState(false);
   const [quantity, setQuantity] = useState("1");
-  const [auctionDuration, setAuctionDuration] = useState("3");
-  const [cpaConsent, setCpaConsent] = useState(false);
-
   const [aiSuggestion, setAiSuggestion] = useState<string | null>(null);
 
   const [title, setTitle] = useState("");
@@ -98,34 +82,6 @@ export default function CreateListingPage() {
     localStorage.setItem("exchange_listing_v2", JSON.stringify(draftData));
   }, [title, category, condition, price, description]);
 
-  useEffect(() => {
-    if (category && location) {
-      async function checkDemand() {
-        try {
-          const insights = await getSellerDemandInsights({
-            sellerId: user?.uid || "anon",
-            currentListingsCategories: [category],
-            sellerLocation: { latitude: location!.lat, longitude: location!.lng }
-          });
-          
-          if (insights?.optimalListingCategories) {
-            const optimal = insights.optimalListingCategories.find(c => 
-              c.categoryName.toLowerCase().includes(category.toLowerCase())
-            );
-            if (optimal && optimal.demandScore > 80) {
-              setAiSuggestion(`High Demand! 1-day auction recommended for this category in your area.`);
-            } else {
-              setAiSuggestion(`Standard demand. 3-7 day listing recommended.`);
-            }
-          }
-        } catch (e) {
-          console.error("AI Insight failed", e);
-        }
-      }
-      checkDemand();
-    }
-  }, [category, location, user]);
-
   const handleImageUpload = () => {
     const nextId = Date.now();
     const newImage = `https://picsum.photos/seed/${nextId}/800/600`;
@@ -136,23 +92,10 @@ export default function CreateListingPage() {
     setImages(images.filter((_, i) => i !== index));
   };
 
-  const detectLocation = () => {
-    setLocationDetecting(true);
-    setTimeout(() => {
-      setLocation({ lat: -26.2041, lng: 28.0473, name: "Johannesburg, GP" });
-      setLocationDetecting(false);
-    }, 1200);
-  };
-
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!user) return;
-    if (!cpaConsent) return;
-
     setLoading(true);
-
-    const endDate = new Date();
-    endDate.setDate(endDate.getDate() + parseInt(auctionDuration));
 
     const listingData = {
       sellerId: user.uid,
@@ -166,11 +109,9 @@ export default function CreateListingPage() {
       listingLocationLatitude: location?.lat || 0,
       listingLocationLongitude: location?.lng || 0,
       postedDate: new Date().toISOString(),
-      auctionEndDate: isAuction ? endDate.toISOString() : null,
       status: isAuction ? "auction_active" : "available",
       isAuction,
       isBulk,
-      isBusinessSeller,
       quantity: parseInt(quantity),
       viewCount: 0,
       isBoosted: false,
@@ -178,7 +119,6 @@ export default function CreateListingPage() {
 
     const listingsCol = collection(db, "publicListings");
     addDocumentNonBlocking(listingsCol, listingData);
-
     localStorage.removeItem("exchange_listing_v2");
     
     setTimeout(() => {
@@ -204,60 +144,39 @@ export default function CreateListingPage() {
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-6">
-            <div className="space-y-4">
-              <Label className="text-xs font-black uppercase tracking-widest text-[#225BC3]">Item Photos ({images.length}/10)</Label>
-              <div className="grid grid-cols-3 sm:grid-cols-4 gap-3">
-                {images.map((img, i) => (
-                  <div key={i} className="relative aspect-square rounded-[1.5rem] overflow-hidden border-2 border-white bg-white shadow-md group">
-                    <Image src={img} alt="listing" fill className="object-cover" />
-                    <button type="button" onClick={() => removeImage(i)} className="absolute top-1 right-1 bg-black/60 text-white p-1 rounded-full opacity-0 group-hover:opacity-100"><X className="w-3 h-3" /></button>
-                  </div>
-                ))}
-                {images.length < 10 && (
-                  <button type="button" onClick={handleImageUpload} className="aspect-square rounded-[1.5rem] border-2 border-dashed border-[#225BC3]/20 bg-white flex flex-col items-center justify-center gap-1 hover:bg-[#225BC3]/5">
-                    <ImagePlus className="w-6 h-6 text-[#225BC3]" />
-                    <span className="text-[10px] font-black text-[#225BC3] uppercase">Add Photo</span>
-                  </button>
-                )}
-              </div>
-            </div>
-
-            {aiSuggestion && (
-              <div className="bg-[#34CBED]/10 p-4 rounded-2xl border border-[#34CBED]/20 flex items-center gap-3 animate-in fade-in slide-in-from-left-4">
-                <Zap className="w-5 h-5 text-[#34CBED]" />
-                <p className="text-xs font-bold text-[#225BC3]">{aiSuggestion}</p>
-              </div>
-            )}
-
             <Card className="rounded-[2.5rem] border-none shadow-xl bg-white ring-1 ring-[#225BC3]/5">
               <CardContent className="p-8 space-y-6">
+                <div className="space-y-4">
+                  <Label className="text-xs font-black uppercase tracking-widest text-[#225BC3]">Photos ({images.length}/10)</Label>
+                  <div className="grid grid-cols-3 sm:grid-cols-4 gap-3">
+                    {images.map((img, i) => (
+                      <div key={i} className="relative aspect-square rounded-[1.5rem] overflow-hidden border-2 border-white bg-white shadow-md group">
+                        <Image src={img} alt="listing" fill className="object-cover" />
+                        <button type="button" onClick={() => removeImage(i)} className="absolute top-1 right-1 bg-black/60 text-white p-1 rounded-full opacity-0 group-hover:opacity-100"><X className="w-3 h-3" /></button>
+                      </div>
+                    ))}
+                    {images.length < 10 && (
+                      <button type="button" onClick={handleImageUpload} className="aspect-square rounded-[1.5rem] border-2 border-dashed border-[#225BC3]/20 bg-white flex flex-col items-center justify-center gap-1 hover:bg-[#225BC3]/5">
+                        <ImagePlus className="w-6 h-6 text-[#225BC3]" />
+                        <span className="text-[10px] font-black text-[#225BC3] uppercase">Add Photo</span>
+                      </button>
+                    )}
+                  </div>
+                </div>
+
                 <div className="space-y-2">
-                  <Label htmlFor="title" className="font-black text-[#225BC3] uppercase text-[10px] tracking-widest">Listing Title</Label>
-                  <Input id="title" placeholder="e.g. Mountain Bike" className="h-14 rounded-2xl bg-slate-50 border-none font-bold" value={title} onChange={(e) => setTitle(e.target.value)} />
+                  <Label htmlFor="title" className="font-black text-[#225BC3] uppercase text-[10px] tracking-widest">Title</Label>
+                  <Input id="title" placeholder="Listing Title" className="h-14 rounded-2xl bg-slate-50 border-none font-bold" value={title} onChange={(e) => setTitle(e.target.value)} />
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label className="font-black text-[#225BC3] uppercase text-[10px] tracking-widest">Category</Label>
-                    <Select value={category} onValueChange={setCategory}>
-                      <SelectTrigger className="h-14 rounded-2xl bg-slate-50 border-none">
-                        <SelectValue placeholder="Select" />
-                      </SelectTrigger>
-                      <SelectContent className="rounded-2xl border-none shadow-2xl">
-                        {CATEGORIES.map(c => (<SelectItem key={c} value={c}>{c}</SelectItem>))}
-                      </SelectContent>
-                    </Select>
+                    <Input id="category" placeholder="Category" className="h-14 rounded-2xl bg-slate-50 border-none font-bold" value={category} onChange={(e) => setCategory(e.target.value)} />
                   </div>
                   <div className="space-y-2">
                     <Label className="font-black text-[#225BC3] uppercase text-[10px] tracking-widest">Condition</Label>
-                    <Select value={condition} onValueChange={setCondition}>
-                      <SelectTrigger className="h-14 rounded-2xl bg-slate-50 border-none">
-                        <SelectValue placeholder="Select" />
-                      </SelectTrigger>
-                      <SelectContent className="rounded-2xl border-none shadow-2xl">
-                        {CONDITIONS.map(c => (<SelectItem key={c} value={c}>{c}</SelectItem>))}
-                      </SelectContent>
-                    </Select>
+                    <Input id="condition" placeholder="Condition" className="h-14 rounded-2xl bg-slate-50 border-none font-bold" value={condition} onChange={(e) => setCondition(e.target.value)} />
                   </div>
                 </div>
 
@@ -268,7 +187,7 @@ export default function CreateListingPage() {
 
                 <div className="space-y-2">
                   <Label htmlFor="desc" className="font-black text-[#225BC3] uppercase text-[10px] tracking-widest">Description</Label>
-                  <Textarea id="desc" placeholder="Details..." className="min-h-[120px] rounded-2xl bg-slate-50 border-none resize-none" value={description} onChange={(e) => setDescription(e.target.value)} />
+                  <Textarea id="desc" placeholder="Tell us about the item..." className="min-h-[120px] rounded-2xl bg-slate-50 border-none resize-none" value={description} onChange={(e) => setDescription(e.target.value)} />
                 </div>
               </CardContent>
             </Card>

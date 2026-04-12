@@ -73,11 +73,10 @@ export function Navigation() {
           </div>
           <div className="flex flex-col -space-y-1">
             <span className="font-black text-xl text-[#225BC3] tracking-tighter uppercase">THE <span className="text-[#34CBED]">EXCHANGE</span></span>
-            <span className="text-[7px] font-black text-[#225BC3]/60 tracking-widest uppercase hidden xs:block">Premium Marketplace</span>
+            <span className="text-[7px] font-black text-[#225BC3]/60 tracking-widest uppercase">Premium Marketplace</span>
           </div>
         </Link>
 
-        {/* Global Search - Amazon style */}
         <form onSubmit={handleSearchSubmit} className="hidden lg:flex flex-1 max-w-md mx-8 relative group">
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-[#225BC3] transition-colors" />
           <input 
@@ -91,7 +90,7 @@ export function Navigation() {
 
         <div className="flex items-center gap-2 sm:gap-4">
           <Link href="/create">
-            <Button className="bg-[#FF8C00] hover:bg-[#FF8C00]/90 text-white font-black rounded-2xl h-10 px-4 sm:px-6 shadow-lg shadow-orange-500/20 uppercase text-xs tracking-tighter active:scale-95 transition-transform">
+            <Button className="bg-[#FF8C00] hover:bg-[#FF8C00]/90 text-white font-black rounded-2xl h-10 px-4 sm:px-6 shadow-lg shadow-orange-500/20 uppercase text-[10px] tracking-tighter active:scale-95 transition-transform">
               <PlusCircle className="w-4 h-4 sm:mr-2" />
               <span className="hidden sm:inline">List Item</span>
             </Button>
@@ -99,7 +98,7 @@ export function Navigation() {
 
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <button className="flex items-center gap-2 text-xs font-black uppercase tracking-tighter text-[#225BC3] hover:text-[#34CBED] outline-none h-10 px-4 rounded-2xl bg-[#225BC3]/5 hover:bg-[#225BC3]/10 transition-colors border border-[#225BC3]/10 active:scale-95">
+              <button className="flex items-center gap-2 text-[10px] font-black uppercase tracking-tighter text-[#225BC3] hover:text-[#34CBED] outline-none h-10 px-4 rounded-2xl bg-[#225BC3]/5 hover:bg-[#225BC3]/10 transition-colors border border-[#225BC3]/10 active:scale-95">
                 Hub <ChevronDown className="w-3 h-3" />
               </button>
             </DropdownMenuTrigger>
@@ -145,7 +144,7 @@ export function Navigation() {
             </DropdownMenu>
           ) : (
             <Link href="/login">
-              <Button variant="ghost" className="rounded-2xl h-10 font-black uppercase text-xs tracking-tighter text-[#225BC3] gap-2 border border-[#225BC3]/10 active:scale-95">
+              <Button variant="ghost" className="rounded-2xl h-10 font-black uppercase text-[10px] tracking-tighter text-[#225BC3] gap-2 border border-[#225BC3]/10 active:scale-95">
                 <LogIn className="w-4 h-4" />
                 Sign In
               </Button>

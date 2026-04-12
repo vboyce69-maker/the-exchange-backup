@@ -1,8 +1,7 @@
-
 "use client";
 
 import { useState, useEffect } from "react";
-import { WifiOff, ShieldAlert, Loader2 } from "lucide-react";
+import { WifiOff, ShieldAlert, Loader2, Lock } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export function NetworkStatus() {
@@ -22,7 +21,6 @@ export function NetworkStatus() {
     window.addEventListener("online", handleOnline);
     window.addEventListener("offline", handleOffline);
 
-    // Initial check
     if (!navigator.onLine) setIsOffline(true);
 
     return () => {
@@ -43,20 +41,22 @@ export function NetworkStatus() {
       <div className={cn(
         "flex items-center gap-3 px-6 py-3 rounded-2xl shadow-2xl border backdrop-blur-md transition-all",
         isOffline 
-          ? "bg-red-600 border-red-500 text-white" 
-          : "bg-green-600 border-green-500 text-white"
+          ? "bg-[#225BC3] border-[#225BC3]/20 text-white" 
+          : "bg-[#34CBED] border-[#34CBED]/20 text-white"
       )}>
         {isReconnecting ? (
           <>
-            <Loader2 className="w-4 h-4 animate-spin" />
-            <span className="text-[10px] font-black uppercase tracking-widest">Restoring Connection...</span>
+            <Loader2 className="w-4 h-4 animate-spin text-white" />
+            <span className="text-[9px] font-black uppercase tracking-widest">Restoring Secure Connection...</span>
           </>
         ) : (
           <>
-            <WifiOff className="w-4 h-4" />
+            <WifiOff className="w-4 h-4 text-[#34CBED]" />
             <div className="flex flex-col">
-              <span className="text-[10px] font-black uppercase tracking-widest leading-none mb-1">Connection Lost</span>
-              <span className="text-[9px] font-bold opacity-80 leading-none">Bidding and messaging may be delayed.</span>
+              <span className="text-[9px] font-black uppercase tracking-widest leading-none mb-1 flex items-center gap-1">
+                <Lock className="w-3 h-3" /> Connection Offline
+              </span>
+              <span className="text-[8px] font-bold opacity-80 leading-none">Bids and payments are currently frozen.</span>
             </div>
           </>
         )}
