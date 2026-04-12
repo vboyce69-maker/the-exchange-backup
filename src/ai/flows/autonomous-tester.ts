@@ -32,6 +32,7 @@ export type AutonomousTesterOutput = z.infer<typeof AutonomousTesterOutputSchema
 
 const testerPrompt = ai.definePrompt({
   name: 'autonomousTesterPrompt',
+  model: 'googleai/gemini-1.5-flash',
   input: { 
     schema: AutonomousTesterInputSchema.extend({
       scenariosJson: z.string(),
@@ -75,12 +76,12 @@ export async function runAutonomousTesting(input: { targetScenarioId?: string })
     // Return a structured error response instead of crashing the server action
     return {
       overallStatus: 'unstable',
-      summary: `System Stability Error: ${error.message || "The AI Security Agent encountered a connectivity issue."}`,
+      summary: `System Stability Warning: ${error.message || "The AI Security Agent encountered a connectivity issue."}`,
       results: [{
-        scenarioId: "ERROR",
-        name: "Security Engine Audit",
-        status: "fail",
-        findings: "The AI model encountered an error. Please verify API key permissions and model availability.",
+        scenarioId: "AUTO_AUDIT_FAIL",
+        name: "Security Engine Integrity Audit",
+        status: 'fail',
+        findings: "The autonomous testing agent could not complete its analysis due to an upstream model error. Manual verification of the risk engine is required.",
         anomalies: [error.message || "Unknown API Error"]
       }]
     };

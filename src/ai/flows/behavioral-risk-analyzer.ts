@@ -29,6 +29,7 @@ export type BehavioralRiskOutput = z.infer<typeof BehavioralRiskOutputSchema>;
 
 const riskPrompt = ai.definePrompt({
   name: 'behavioralRiskPrompt',
+  model: 'googleai/gemini-1.5-flash',
   input: { 
     schema: BehavioralRiskInputSchema.extend({
       metadataJson: z.string(),
