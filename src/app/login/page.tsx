@@ -101,6 +101,9 @@ export default function LoginPage() {
       if (err.code === 'auth/invalid-phone-number') msg = "The phone number is invalid. Check the country code.";
       if (err.code === 'auth/too-many-requests') msg = "Too many attempts. Please try again later.";
       if (err.code === 'auth/quota-exceeded') msg = "SMS quota exceeded for today. Try again tomorrow.";
+      if (err.code === 'auth/operation-not-allowed') {
+        msg = "Phone authentication is not enabled in the Firebase Console. Please enable it in Authentication > Sign-in method.";
+      }
       
       setError(msg);
       toast({
@@ -113,7 +116,6 @@ export default function LoginPage() {
       if (recaptchaVerifierRef.current) {
         recaptchaVerifierRef.current.clear();
         recaptchaVerifierRef.current = null;
-        // The useEffect will handle re-init on next state change if auth is stable
       }
     } finally {
       setLoading(false);
