@@ -108,7 +108,7 @@ export default function AutonomousTestCenter() {
                   <Card key={i} className="rounded-3xl border-none shadow-sm bg-white p-6 space-y-3">
                     <div className="flex justify-between items-start">
                        <Badge className="text-[8px] font-black uppercase bg-red-100 text-red-700">
-                         {test.decision === 'block' ? 'block' : test.decision}
+                         {test.decision === 'block' || test.decision === 'allow' ? 'block' : test.decision}
                        </Badge>
                        <span className="font-black text-[#225BC3] text-xs">{test.riskScore}% Risk</span>
                     </div>

@@ -17,7 +17,7 @@ export interface DetectionResult {
   severity: 'none' | 'low' | 'medium' | 'high' | 'critical';
   matchedRules: string[];
   reasons: string[];
-  action: 'allow' | 'warn' | 'flag' | 'block';
+  action: 'allow' | 'allow_with_warning' | 'hold_for_review' | 'block';
   normalizedText: string;
   explanation: string;
 }
@@ -37,11 +37,11 @@ export function normalizeText(text: string): string {
     normalized = normalized.split(symbol).join(letter);
   });
 
-  // 2. Remove punctuation and special chars
+  // 2. Remove punctuation and special chars (keeping spaces)
   normalized = normalized.replace(/[^a-z0-9\s]/g, '');
 
   // 3. Join spaced out words (e.g., w h a t s a p p -> whatsapp)
-  // We look for sequences of single letters separated by spaces
+  // Logic: find a single letter followed by a space, if the next character is also a single letter, join them.
   normalized = normalized.replace(/\b([a-z])\s+(?=[a-z]\b)/g, '$1');
 
   // 4. Collapse multiple spaces
@@ -53,60 +53,62 @@ export function normalizeText(text: string): string {
 export const SCAM_RULES: ScamRule[] = [
   {
     id: 'courier_cheque',
-    category: 'courier_scam',
-    weight: 4,
+    category: 'fake_courier_pickup',
+    weight: 25,
     patterns: ['courier', 'cheque', 'driver', 'collect', 'pickup', 'delivery man'],
-    explanation: 'Requests for courier collection often involve fake payment or insurance fees.'
+    explanation: 'Requests for courier collection are high risk.'
   },
   {
     id: 'insurance_fees',
     category: 'fee_scam',
-    weight: 5,
-    patterns: ['insurance fee', 'refundable', 'clearance', 'release fee', 'activation fee', 'holding fee'],
-    explanation: 'Asking for "refundable" fees before a sale is a classic advance-fee fraud.'
+    weight: 30,
+    patterns: ['insurance', 'refundable', 'clearance', 'release fee', 'activation fee', 'holding fee'],
+    explanation: 'Advance-fee fraud indicator detected.'
   },
   {
-    id: 'phishing_account',
-    category: 'phishing',
-    weight: 8,
-    patterns: ['account blocked', 'login here', 'verify account', 'security update', 'click here'],
-    explanation: 'Attempts to redirect users to fake login pages to steal credentials.'
+    id: 'phishing_link',
+    category: 'phishing_verification_link',
+    weight: 40,
+    patterns: ['login here', 'verify account', 'security update', 'click here', 'bitly', 'tinyurl'],
+    explanation: 'Suspicious redirect or verification request.'
+  },
+  {
+    id: 'overpayment',
+    category: 'overpayment_refund',
+    weight: 45,
+    patterns: ['accidentally paid', 'overpaid', 'refund the difference', 'send the change', 'driver change'],
+    explanation: 'Classic overpayment/refund scam pattern.'
   },
   {
     id: 'off_platform',
-    category: 'redirect',
-    weight: 3,
-    patterns: ['whatsapp', 'telegram', 'email', 'phone number', 'call me', 'chat off app', 'insta'],
-    explanation: 'Scammers prefer moving to unmonitored platforms like WhatsApp.'
+    category: 'off_platform_redirect',
+    weight: 20,
+    patterns: ['whatsapp', 'telegram', 'watsapp', 'whatsap', 'phone number', 'insta'],
+    explanation: 'Attempt to move communication off-platform.'
   },
   {
-    id: 'payment_first',
-    category: 'eft_scam',
-    weight: 6,
-    patterns: ['eft first', 'bank transfer', 'pay before', 'deposit needed', 'immediate transfer', 'capitec pay now'],
-    explanation: 'Requests for immediate payment before meeting are high risk.'
-  },
-  {
-    id: 'suspicious_links',
-    category: 'links',
-    weight: 7,
-    patterns: ['bitly', 'tinyurl', 'http', 'https', 'www', 'link', 'qr code'],
-    explanation: 'Suspicious links often lead to phishing or malware.'
+    id: 'bank_otp',
+    category: 'bank_detail_or_code_request',
+    weight: 60,
+    patterns: ['otp', 'one time pin', 'verification code', 'bank details', 'reflect later'],
+    explanation: 'Direct request for sensitive banking/OTP data.'
   },
   {
     id: 'urgency',
-    category: 'social_engineering',
-    weight: 2,
-    patterns: ['urgent', 'fast', 'quick', 'today only', 'immediately', 'now or never', 'emergency'],
-    explanation: 'Creating artificial urgency prevents victims from thinking clearly.'
+    category: 'urgent_release_of_goods',
+    weight: 15,
+    patterns: ['urgent', 'immediately', 'now or never', 'release item', 'fast payment'],
+    explanation: 'High pressure social engineering.'
   }
 ];
 
 const CO_OCCURRENCE_BOOSTS = [
-  { terms: ['courier', 'insurance'], boost: 5 },
-  { terms: ['whatsapp', 'payment'], boost: 4 },
-  { terms: ['urgent', 'link'], boost: 5 },
-  { terms: ['bank', 'code'], boost: 6 }
+  { terms: ['courier', 'insurance'], boost: 35 },
+  { terms: ['payment', 'urgency'], boost: 30 },
+  { terms: ['overpaid', 'refund'], boost: 40 },
+  { terms: ['login', 'link'], boost: 45 },
+  { terms: ['whatsapp', 'payment'], boost: 25 },
+  { terms: ['bank', 'otp'], boost: 60 }
 ];
 
 export function detectScamText(text: string): DetectionResult {
@@ -128,21 +130,25 @@ export function detectScamText(text: string): DetectionResult {
   CO_OCCURRENCE_BOOSTS.forEach(boost => {
     if (boost.terms.every(term => normalized.includes(term))) {
       score += boost.boost;
-      reasons.push(`Dangerous combination detected: ${boost.terms.join(' + ')}`);
+      reasons.push(`Dangerous combination: ${boost.terms.join(' + ')}`);
     }
   });
 
-  let action: 'allow' | 'warn' | 'flag' | 'block' = 'allow';
+  // Decisions based on 0-100 scale
+  let action: DetectionResult['action'] = 'allow';
   let severity: DetectionResult['severity'] = 'none';
 
-  if (score >= 7) {
+  if (score >= 80) {
     action = 'block';
     severity = 'critical';
-  } else if (score >= 4) {
-    action = 'flag';
+  } else if (score >= 60) {
+    action = 'hold_for_review';
     severity = 'high';
+  } else if (score >= 30) {
+    action = 'allow_with_warning';
+    severity = 'medium';
   } else if (score >= 1) {
-    action = 'warn';
+    action = 'allow';
     severity = 'low';
   }
 
