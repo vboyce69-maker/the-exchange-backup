@@ -129,8 +129,8 @@ export default function LandingPage() {
         </div>
       </section>
 
-      <main className="container mx-auto px-6 py-12">
-        <section className="mb-16 -mt-24 relative z-30">
+      <main className="container mx-auto px-6 pt-5 pb-12">
+        <section className="mb-16 relative z-30">
           <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-4">
             {CATEGORIES.map((cat) => {
               const Icon = cat.icon;
