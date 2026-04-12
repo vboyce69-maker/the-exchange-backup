@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
@@ -69,7 +68,7 @@ export default function ListingDetailPage() {
   const [bidAmount, setBidAmount] = useState("");
   const [isBidding, setIsBidding] = useState(false);
   const [isAccepting, setIsAccepting] = useState(false);
-  const [now, setNow] = useState(new Date());
+  const [now, setNow] = useState<Date | null>(null);
 
   const listingRef = useMemoFirebase(() => {
     return id ? doc(db, "publicListings", id as string) : null;
@@ -78,18 +77,19 @@ export default function ListingDetailPage() {
   const { data: listing, isLoading } = useDoc(listingRef);
 
   useEffect(() => {
+    setNow(new Date());
     const timer = setInterval(() => setNow(new Date()), 10000);
     return () => clearInterval(timer);
   }, []);
 
   const isSeller = user?.uid === listing?.sellerId;
   const isAuctionEnded = useMemo(() => {
-    if (!listing?.isAuction || !listing?.auctionEndDate) return false;
+    if (!listing?.isAuction || !listing?.auctionEndDate || !now) return false;
     return new Date(listing.auctionEndDate) <= now;
   }, [listing, now]);
 
   const timeLeft = useMemo(() => {
-    if (!listing?.auctionEndDate) return "";
+    if (!listing?.auctionEndDate || !now) return "";
     const diff = new Date(listing.auctionEndDate).getTime() - now.getTime();
     if (diff <= 0) return "Auction Ended";
     const h = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));

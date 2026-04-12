@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
@@ -29,7 +28,7 @@ import {
   Shield,
   Loader2,
   Star,
-  GlobeLock
+  Globe
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { VerifiedBadge } from "@/components/VerifiedBadge";
@@ -198,7 +197,7 @@ export default function MessagesPage() {
         <aside className="hidden lg:block w-80 bg-white border rounded-[2rem] shadow-sm overflow-hidden h-[calc(100vh-10rem)]">
           <div className="p-6 border-b bg-[#225BC3]/5 flex items-center justify-between">
             <h2 className="font-headline font-bold text-lg text-[#225BC3]">Conversations</h2>
-            <GlobeLock className="w-4 h-4 text-[#34CBED]" />
+            <Globe className="w-4 h-4 text-[#34CBED]" />
           </div>
           <div className="p-5 bg-blue-50/50 border-l-4 border-[#225BC3] flex gap-3 cursor-pointer">
             <Avatar className="h-12 w-12 border-2 border-white shadow-sm"><AvatarImage src="https://picsum.photos/seed/user1/200/200" /></Avatar>
@@ -228,7 +227,7 @@ export default function MessagesPage() {
                <Alert className="bg-white border-none shadow-xl rounded-2xl ring-1 ring-[#225BC3]/10 overflow-hidden p-0">
                   <div className="bg-[#225BC3] px-4 py-2 flex items-center justify-between">
                     <span className="text-[8px] font-black text-white uppercase tracking-widest flex items-center gap-1">
-                      <GlobeLock className="w-3 h-3" /> AI Security Monitor Active
+                      <Globe className="w-3 h-3" /> AI Security Monitor Active
                     </span>
                     <Badge className="bg-[#34CBED] text-[#225BC3] border-none text-[8px] font-black">OWASP Level 1</Badge>
                   </div>
@@ -341,7 +340,7 @@ export default function MessagesPage() {
             </div>
             <div className="flex items-center justify-center gap-2 mt-4 opacity-40">
                <Lock className="w-2 h-2" />
-               <span className="text-[8px] font-black uppercase tracking-tighter">Encrypted by AES-256</span>
+               <span className="text-[8px] font-black uppercase tracking-tighter">Encrypted Connection</span>
             </div>
           </div>
         </div>

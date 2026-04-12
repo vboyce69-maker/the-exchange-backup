@@ -17,7 +17,8 @@ import {
   UserCheck,
   XCircle,
   Eye,
-  Lock
+  Lock,
+  Globe
 } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -311,7 +312,7 @@ export default function VerificationPage() {
           <div className="mt-8 flex items-center justify-center gap-6 opacity-40 grayscale">
              <div className="flex items-center gap-1 text-[8px] font-black uppercase tracking-widest"><Lock className="w-3 h-3" /> POPIA Compliant</div>
              <div className="flex items-center gap-1 text-[8px] font-black uppercase tracking-widest"><ShieldCheck className="w-3 h-3" /> RSA Hosting</div>
-             <div className="flex items-center gap-1 text-[8px] font-black uppercase tracking-widest"><Eye className="w-3 h-3" /> Encrypted Storage</div>
+             <div className="flex items-center gap-1 text-[8px] font-black uppercase tracking-widest"><Globe className="w-3 h-3" /> Secure Infrastructure</div>
           </div>
         </div>
       </main>

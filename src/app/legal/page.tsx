@@ -1,4 +1,3 @@
-
 "use client";
 
 import { Navigation } from "@/components/Navigation";
@@ -20,11 +19,11 @@ import {
   MapPin,
   Shield,
   Server,
-  GlobeLock,
   Building2,
   Database,
   Activity,
-  Cpu
+  Cpu,
+  Globe
 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 
@@ -92,7 +91,7 @@ export default function LegalHub() {
           <Card className="rounded-[2.5rem] border-none shadow-xl bg-white overflow-hidden ring-1 ring-slate-100">
             <CardHeader className="bg-slate-50 p-10 border-b">
               <CardTitle className="flex items-center gap-3 text-[#225BC3]">
-                <GlobeLock className="w-8 h-8 text-[#34CBED]" />
+                <Globe className="w-8 h-8 text-[#34CBED]" />
                 Infrastructure Hardening
               </CardTitle>
             </CardHeader>
