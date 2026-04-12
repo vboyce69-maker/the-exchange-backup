@@ -100,6 +100,9 @@ export default function LoginPage() {
       if (err.code === 'auth/invalid-phone-number') msg = "The phone number is invalid. Check the country code.";
       if (err.code === 'auth/too-many-requests') msg = "Too many attempts. Please try again later.";
       if (err.code === 'auth/quota-exceeded') msg = "SMS quota exceeded for today. Try again tomorrow.";
+      if (err.code === 'auth/billing-not-enabled') {
+        msg = "Billing is not enabled on this Firebase project. Action Required: Go to the Firebase Console and upgrade to the 'Blaze' plan to use Phone Authentication.";
+      }
       if (err.code === 'auth/operation-not-allowed') {
         msg = "Phone authentication is NOT ENABLED. Action Required: Go to Firebase Console > Authentication > Sign-in method and enable 'Phone'.";
       }
