@@ -21,7 +21,8 @@ import {
   Search,
   Fingerprint,
   Scale,
-  Settings
+  Settings,
+  X
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
@@ -40,6 +41,7 @@ export function Navigation() {
   const { user } = useUser();
   const auth = useAuth();
   const [searchVal, setSearchVal] = useState("");
+  const [isMobileSearchOpen, setIsMobileSearchOpen] = useState(false);
 
   const handleSignOut = async () => {
     try {
@@ -53,6 +55,7 @@ export function Navigation() {
     e.preventDefault();
     if (searchVal.trim()) {
       router.push(`/search?q=${encodeURIComponent(searchVal)}`);
+      setIsMobileSearchOpen(false);
     }
   };
 
@@ -68,17 +71,18 @@ export function Navigation() {
 
   return (
     <nav className="sticky top-0 z-50 w-full border-b bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/60 px-4">
-      <div className="container mx-auto h-20 flex items-center justify-between">
+      <div className="container mx-auto h-16 lg:h-20 flex items-center justify-between gap-2">
         <Link href="/" className="flex items-center gap-2 shrink-0 group">
-          <div className="bg-[#225BC3] p-2 rounded-xl shadow-lg shadow-blue-500/20 group-hover:scale-110 transition-transform">
-            <ShieldCheck className="w-5 h-5 text-white" />
+          <div className="bg-[#225BC3] p-1.5 lg:p-2 rounded-xl shadow-lg shadow-blue-500/20 group-hover:scale-110 transition-transform">
+            <ShieldCheck className="w-4 h-4 lg:w-5 lg:h-5 text-white" />
           </div>
           <div className="flex flex-col -space-y-1">
-            <span className="font-black text-xl text-[#225BC3] tracking-tighter uppercase">THE <span className="text-[#34CBED]">EXCHANGE</span></span>
-            <span className="text-[7px] font-black text-[#225BC3]/60 tracking-widest uppercase">Premium Marketplace</span>
+            <span className="font-black text-lg lg:text-xl text-[#225BC3] tracking-tighter uppercase">THE <span className="text-[#34CBED]">EXCHANGE</span></span>
+            <span className="text-[6px] lg:text-[7px] font-black text-[#225BC3]/60 tracking-widest uppercase">Verified Marketplace</span>
           </div>
         </Link>
 
+        {/* Desktop Search */}
         <form onSubmit={handleSearchSubmit} className="hidden lg:flex flex-1 max-w-md mx-8 relative group">
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-[#225BC3] transition-colors" />
           <input 
@@ -90,17 +94,27 @@ export function Navigation() {
           />
         </form>
 
-        <div className="flex items-center gap-2 sm:gap-4">
+        <div className="flex items-center gap-1.5 lg:gap-4">
+          {/* Mobile Search Toggle */}
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            className="lg:hidden rounded-xl h-10 w-10 text-[#225BC3] active:scale-95"
+            onClick={() => setIsMobileSearchOpen(!isMobileSearchOpen)}
+          >
+            <Search className="w-5 h-5" />
+          </Button>
+
           <Link href="/create">
-            <Button className="bg-[#FF8C00] hover:bg-[#FF8C00]/90 text-white font-black rounded-2xl h-10 px-4 sm:px-6 shadow-lg shadow-orange-500/20 uppercase text-[10px] tracking-tighter active:scale-95 transition-transform">
-              <PlusCircle className="w-4 h-4 sm:mr-2" />
+            <Button className="bg-[#FF8C00] hover:bg-[#FF8C00]/90 text-white font-black rounded-2xl h-10 px-3 lg:px-6 shadow-lg shadow-orange-500/20 uppercase text-[9px] lg:text-[10px] tracking-tighter active:scale-95 transition-transform">
+              <PlusCircle className="w-4 h-4 lg:mr-2" />
               <span className="hidden sm:inline">List Item</span>
             </Button>
           </Link>
 
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <button className="flex items-center gap-2 text-[10px] font-black uppercase tracking-tighter text-[#225BC3] hover:text-[#34CBED] outline-none h-10 px-4 rounded-2xl bg-[#225BC3]/5 hover:bg-[#225BC3]/10 transition-colors border border-[#225BC3]/10 active:scale-95">
+              <button className="flex items-center gap-1.5 text-[9px] lg:text-[10px] font-black uppercase tracking-tighter text-[#225BC3] hover:text-[#34CBED] outline-none h-10 px-3 lg:px-4 rounded-2xl bg-[#225BC3]/5 hover:bg-[#225BC3]/10 transition-colors border border-[#225BC3]/10 active:scale-95">
                 Hub <ChevronDown className="w-3 h-3" />
               </button>
             </DropdownMenuTrigger>
@@ -146,14 +160,39 @@ export function Navigation() {
             </DropdownMenu>
           ) : (
             <Link href="/login">
-              <Button variant="ghost" className="rounded-2xl h-10 font-black uppercase text-[10px] tracking-tighter text-[#225BC3] gap-2 border border-[#225BC3]/10 active:scale-95">
+              <Button variant="ghost" className="rounded-2xl h-10 font-black uppercase text-[9px] lg:text-[10px] tracking-tighter text-[#225BC3] gap-1.5 border border-[#225BC3]/10 active:scale-95">
                 <LogIn className="w-4 h-4" />
-                Sign In
+                <span className="hidden xs:inline">Sign In</span>
               </Button>
             </Link>
           )}
         </div>
       </div>
+
+      {/* Mobile Search Bar Expansion */}
+      {isMobileSearchOpen && (
+        <div className="lg:hidden absolute left-0 right-0 top-16 bg-white p-4 shadow-xl border-b animate-in slide-in-from-top-4">
+          <form onSubmit={handleSearchSubmit} className="relative">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+            <input 
+              autoFocus
+              type="text" 
+              placeholder="Search marketplace..." 
+              value={searchVal}
+              onChange={(e) => setSearchVal(e.target.value)}
+              className="w-full h-12 pl-12 pr-12 rounded-2xl bg-slate-50 border-none outline-none font-bold text-sm"
+            />
+            <Button 
+              type="button" 
+              variant="ghost" 
+              className="absolute right-2 top-1/2 -translate-y-1/2 h-8 w-8 p-0"
+              onClick={() => setIsMobileSearchOpen(false)}
+            >
+              <X className="w-4 h-4" />
+            </Button>
+          </form>
+        </div>
+      )}
     </nav>
   );
 }

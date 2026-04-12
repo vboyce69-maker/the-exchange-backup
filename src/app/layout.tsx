@@ -22,6 +22,7 @@ export const viewport: Viewport = {
   initialScale: 1,
   maximumScale: 1,
   userScalable: false,
+  viewportFit: 'cover',
 };
 
 export default function RootLayout({
@@ -40,7 +41,9 @@ export default function RootLayout({
       <body className="antialiased selection:bg-accent/20 selection:text-accent overflow-x-hidden touch-pan-y" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
         <FirebaseClientProvider>
           <NetworkStatus />
-          {children}
+          <div className="flex flex-col min-h-screen">
+            {children}
+          </div>
           <Toaster />
         </FirebaseClientProvider>
       </body>
