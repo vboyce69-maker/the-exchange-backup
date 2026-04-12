@@ -111,7 +111,15 @@
         },
         "price": {
           "type": "number",
-          "description": "The asking price."
+          "description": "The asking price or starting bid."
+        },
+        "highestBid": {
+          "type": "number",
+          "description": "The current highest bid amount."
+        },
+        "highestBidderId": {
+          "type": "string",
+          "description": "The UID of the user with the current highest bid."
         },
         "currency": {
           "type": "string",
@@ -137,9 +145,14 @@
           "description": "The date and time when the product was listed.",
           "format": "date-time"
         },
+        "auctionEndDate": {
+          "type": "string",
+          "description": "The date and time when the auction ends.",
+          "format": "date-time"
+        },
         "status": {
           "type": "string",
-          "enum": ["available", "sold", "auction_active"],
+          "enum": ["available", "sold", "auction_active", "auction_ended", "pending_meetup"],
           "description": "Current status of the listing."
         },
         "isAuction": {

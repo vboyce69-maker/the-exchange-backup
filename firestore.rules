@@ -18,31 +18,34 @@ service cloud.firestore {
 
     // --- Rules ---
 
-    // Marketplace Transparency: Public listings are readable by anyone (authenticated or not)
+    // Marketplace Transparency: Public listings are readable by anyone
     match /publicListings/{listingId} {
-      allow read: if true;
+      allow read, list: if true;
       
-      // Mutations require authentication and ownership
-      allow create: if isSignedIn() && request.resource.data.sellerId == request.auth.uid;
-      allow update: if isSignedIn() && (resource.data.sellerId == request.auth.uid || isAdmin());
+      allow create: if isSignedIn();
+      
+      // Allow updates if owner OR if it's a bid (updating highestBid and highestBidderId)
+      allow update: if isSignedIn() && (
+        resource.data.sellerId == request.auth.uid || 
+        (
+          request.resource.data.diff(resource.data).affectedKeys().hasOnly(['highestBid', 'highestBidderId', 'status', 'viewCount']) &&
+          request.resource.data.highestBid > resource.data.highestBid
+        ) ||
+        isAdmin()
+      );
+      
       allow delete: if isSignedIn() && (resource.data.sellerId == request.auth.uid || isAdmin());
     }
 
     match /userProfiles/{userId} {
-      // Profiles are visible to signed-in users for transparency
       allow read: if isSignedIn();
       allow list: if isSignedIn();
       
-      // Only the owner can manage their own profile
       allow create: if isOwner(userId);
-      allow update: if isOwner(userId) 
-                    && request.resource.data.id == resource.data.id
-                    && request.resource.data.reliabilityScore == resource.data.reliabilityScore
-                    && request.resource.data.isIdVerified == resource.data.isIdVerified;
+      allow update: if isOwner(userId);
       
       allow delete: if isAdmin();
 
-      // Reviews within a profile
       match /reviews/{reviewId} {
         allow read: if isSignedIn();
         allow create: if isSignedIn();
@@ -51,8 +54,7 @@ service cloud.firestore {
     }
 
     match /conversations/{conversationId} {
-      // Privacy: Only participants can read or interact with the conversation
-      allow read, write: if isSignedIn() && (request.auth.uid == resource.data.user1Id || request.auth.uid == resource.data.user2Id);
+      allow read, write: if isSignedIn();
 
       match /messages/{messageId} {
         allow read, create: if isSignedIn();

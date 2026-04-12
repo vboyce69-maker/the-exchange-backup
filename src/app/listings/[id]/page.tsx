@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { Navigation } from "@/components/Navigation";
 import { Button } from "@/components/ui/button";
@@ -26,7 +26,11 @@ import {
   AlertTriangle,
   Scale,
   Layers,
-  Box
+  Box,
+  TrendingUp,
+  Clock,
+  ArrowRight,
+  Loader2
 } from "lucide-react";
 import Image from "next/image";
 import { VerifiedBadge } from "@/components/VerifiedBadge";
@@ -34,6 +38,7 @@ import { toast } from "@/hooks/use-toast";
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import {
   Carousel,
@@ -42,14 +47,9 @@ import {
   CarouselNext,
   CarouselPrevious,
 } from "@/components/ui/carousel";
-import { useDoc, useFirestore, useMemoFirebase } from "@/firebase";
-import { doc } from "firebase/firestore";
-
-const SAFE_ZONES = [
-  { id: "sz1", name: "Central Police Station", type: "Security", distance: "1.2 km", address: "123 Law Ave" },
-  { id: "sz2", name: "Mall Entrance A", type: "Shopping", distance: "2.0 km", address: "456 Retail Way" },
-  { id: "sz3", name: "Shell Garage Main Road", type: "Petrol Station", distance: "0.8 km", address: "789 Petrol St" },
-];
+import { useDoc, useFirestore, useMemoFirebase, useUser } from "@/firebase";
+import { doc, updateDoc } from "firebase/firestore";
+import { updateDocumentNonBlocking } from "@/firebase/non-blocking-updates";
 
 const PAYMENT_METHODS = [
   { id: "card", name: "Credit/Debit Card", icon: CreditCard, description: "Visa, Mastercard, American Express" },
@@ -61,17 +61,41 @@ export default function ListingDetailPage() {
   const { id } = useParams();
   const router = useRouter();
   const db = useFirestore();
+  const { user } = useUser();
 
-  const [isBookingOpen, setIsBookingOpen] = useState(false);
   const [isPaymentOpen, setIsPaymentOpen] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState("card");
   const [isPaying, setIsPaying] = useState(false);
+  const [bidAmount, setBidAmount] = useState("");
+  const [isBidding, setIsBidding] = useState(false);
+  const [isAccepting, setIsAccepting] = useState(false);
+  const [now, setNow] = useState(new Date());
 
   const listingRef = useMemoFirebase(() => {
     return id ? doc(db, "publicListings", id as string) : null;
   }, [db, id]);
 
   const { data: listing, isLoading } = useDoc(listingRef);
+
+  useEffect(() => {
+    const timer = setInterval(() => setNow(new Date()), 10000);
+    return () => clearInterval(timer);
+  }, []);
+
+  const isSeller = user?.uid === listing?.sellerId;
+  const isAuctionEnded = useMemo(() => {
+    if (!listing?.isAuction || !listing?.auctionEndDate) return false;
+    return new Date(listing.auctionEndDate) <= now;
+  }, [listing, now]);
+
+  const timeLeft = useMemo(() => {
+    if (!listing?.auctionEndDate) return "";
+    const diff = new Date(listing.auctionEndDate).getTime() - now.getTime();
+    if (diff <= 0) return "Auction Ended";
+    const h = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+    const m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+    return `${h}h ${m}m remaining`;
+  }, [listing, now]);
 
   const handlePayment = () => {
     setIsPaying(true);
@@ -84,6 +108,53 @@ export default function ListingDetailPage() {
       });
       router.push('/messages');
     }, 2000);
+  };
+
+  const handlePlaceBid = async () => {
+    if (!user) {
+      toast({ variant: "destructive", title: "Authentication Required", description: "Please sign in to place a bid." });
+      return;
+    }
+    const amount = parseFloat(bidAmount);
+    const currentMax = listing?.highestBid || listing?.price || 0;
+    
+    if (isNaN(amount) || amount <= currentMax) {
+      toast({ variant: "destructive", title: "Invalid Bid", description: `Your bid must be higher than R ${currentMax.toLocaleString()}.` });
+      return;
+    }
+
+    setIsBidding(true);
+    const listingDoc = doc(db, "publicListings", id as string);
+    updateDocumentNonBlocking(listingDoc, {
+      highestBid: amount,
+      highestBidderId: user.uid,
+      status: "auction_active"
+    });
+
+    setTimeout(() => {
+      setIsBidding(false);
+      setBidAmount("");
+      toast({ title: "Bid Placed!", description: `You are now the highest bidder at R ${amount.toLocaleString()}.` });
+    }, 800);
+  };
+
+  const handleAcceptHighestBid = async () => {
+    if (!listingRef || !listing) return;
+    setIsAccepting(true);
+    
+    // Transition status to pending meetup
+    updateDocumentNonBlocking(listingRef, {
+      status: "pending_meetup"
+    });
+
+    setTimeout(() => {
+      setIsAccepting(false);
+      toast({
+        title: "Bid Accepted",
+        description: "The buyer has been notified. Starting the secure meetup process.",
+      });
+      router.push('/messages');
+    }, 1500);
   };
 
   if (isLoading) {
@@ -175,19 +246,13 @@ export default function ListingDetailPage() {
                       <span className="font-bold text-slate-500 text-xs uppercase tracking-wider">Type</span>
                       <span className="font-black text-[#225BC3] text-sm">{listing.isBulk ? 'Bulk Lot' : 'Single Item'}</span>
                     </div>
-                    {listing.isBulk && (
-                      <div className="flex justify-between p-4 bg-slate-50 rounded-2xl border border-slate-100">
-                        <span className="font-bold text-slate-500 text-xs uppercase tracking-wider">Quantity</span>
-                        <span className="font-black text-[#225BC3] text-sm">{listing.quantity} Units</span>
-                      </div>
-                    )}
                   </div>
                 </TabsContent>
               </Card>
             </Tabs>
           </div>
 
-          {/* Checkout/Action Sidebar */}
+          {/* Action Sidebar */}
           <div className="lg:col-span-5 space-y-6">
             <Card className="rounded-[3rem] border-none shadow-2xl bg-white overflow-hidden ring-1 ring-slate-100">
               <div className="bg-[#225BC3] p-8 text-white">
@@ -202,8 +267,8 @@ export default function ListingDetailPage() {
                    </div>
                    {listing.isAuction && (
                      <div className="text-right">
-                        <p className="text-[10px] font-black uppercase tracking-widest text-white/60 mb-1">Time Left</p>
-                        <p className="text-xl font-black">Ends Soon</p>
+                        <p className="text-[10px] font-black uppercase tracking-widest text-white/60 mb-1">Status</p>
+                        <p className="text-xl font-black">{isAuctionEnded ? "Auction Ended" : "Live Bidding"}</p>
                      </div>
                    )}
                 </div>
@@ -217,17 +282,71 @@ export default function ListingDetailPage() {
                 <div className="flex justify-between items-center">
                   <div>
                     <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-1">
-                      {listing.isAuction ? 'Current Bid' : 'Price'}
+                      {listing.isAuction ? (listing.highestBid ? 'Highest Bid' : 'Starting Bid') : 'Price'}
                     </span>
-                    <span className="text-5xl font-black text-[#225BC3]">R {listing.price?.toLocaleString()}</span>
+                    <span className="text-5xl font-black text-[#225BC3]">R {(listing.highestBid || listing.price || 0).toLocaleString()}</span>
                   </div>
                   <VerifiedBadge />
                 </div>
 
-                <div className="space-y-3">
-                  <Button className="w-full bg-[#FF8C00] hover:bg-[#FF8C00]/90 text-white font-black h-16 rounded-2xl shadow-xl text-lg" onClick={() => setIsPaymentOpen(true)}>
-                    Buy with Protection Hold
-                  </Button>
+                {/* Bidding/Buying Logic */}
+                <div className="space-y-4">
+                  {listing.isAuction ? (
+                    isAuctionEnded ? (
+                      isSeller ? (
+                        <div className="space-y-4">
+                          <div className="p-6 bg-blue-50 rounded-2xl border border-blue-100">
+                            <p className="text-xs font-bold text-blue-700 mb-2">Auction completed successfully!</p>
+                            <p className="text-[10px] text-blue-600 font-medium">Accept the highest bid to start the safe meetup process. Funds will be held in platform escrow once the buyer pays.</p>
+                          </div>
+                          <Button 
+                            className="w-full h-16 bg-[#FF8C00] text-white font-black rounded-2xl text-lg shadow-xl"
+                            onClick={handleAcceptHighestBid}
+                            disabled={isAccepting || !listing.highestBid}
+                          >
+                            {isAccepting ? <Loader2 className="w-6 h-6 animate-spin" /> : "Accept Highest Bid & Start Meetup"}
+                          </Button>
+                        </div>
+                      ) : user?.uid === listing.highestBidderId ? (
+                        <div className="p-6 bg-green-50 rounded-2xl border border-green-100 text-center">
+                           <ShieldCheck className="w-10 h-10 text-green-600 mx-auto mb-2" />
+                           <p className="text-lg font-black text-green-800">You Won!</p>
+                           <p className="text-xs text-green-700 font-medium">Waiting for the seller to accept your bid and initiate the trade.</p>
+                        </div>
+                      ) : (
+                        <div className="p-6 bg-slate-50 rounded-2xl border border-slate-100 text-center">
+                           <Gavel className="w-10 h-10 text-slate-300 mx-auto mb-2" />
+                           <p className="text-lg font-black text-slate-400">Auction Ended</p>
+                        </div>
+                      )
+                    ) : (
+                      <div className="space-y-4">
+                        <div className="flex items-center gap-3 text-sm font-black text-[#FF8C00] uppercase tracking-widest">
+                          <Clock className="w-4 h-4" /> {timeLeft}
+                        </div>
+                        <div className="flex gap-3">
+                          <Input 
+                            type="number" 
+                            placeholder="Enter bid amount" 
+                            className="h-14 rounded-xl font-bold bg-slate-50 border-none"
+                            value={bidAmount}
+                            onChange={(e) => setBidAmount(e.target.value)}
+                          />
+                          <Button 
+                            className="h-14 px-8 bg-[#225BC3] text-white font-black rounded-xl"
+                            onClick={handlePlaceBid}
+                            disabled={isBidding}
+                          >
+                            {isBidding ? <Loader2 className="w-5 h-5 animate-spin" /> : "Place Bid"}
+                          </Button>
+                        </div>
+                      </div>
+                    )
+                  ) : (
+                    <Button className="w-full bg-[#FF8C00] hover:bg-[#FF8C00]/90 text-white font-black h-16 rounded-2xl shadow-xl text-lg" onClick={() => setIsPaymentOpen(true)}>
+                      Buy with Protection Hold
+                    </Button>
+                  )}
                   
                   <div className="grid grid-cols-2 gap-3">
                     <Button variant="ghost" className="h-14 rounded-2xl bg-slate-50 font-bold text-slate-600" onClick={() => router.push('/messages')}>
@@ -236,7 +355,7 @@ export default function ListingDetailPage() {
                     <Button 
                       variant="ghost" 
                       className="h-14 rounded-2xl bg-slate-50 font-bold text-slate-600"
-                      onClick={() => setIsBookingOpen(true)}
+                      onClick={() => router.push('/messages')}
                     >
                       <Calendar className="w-5 h-5 mr-2" /> Book Meet
                     </Button>
@@ -246,10 +365,10 @@ export default function ListingDetailPage() {
                 <div className="p-6 bg-green-50 rounded-[2rem] border border-green-100 space-y-3">
                    <div className="flex items-center gap-3">
                       <ShieldCheck className="w-8 h-8 text-green-600 shrink-0" />
-                      <h4 className="font-black text-green-800 uppercase text-[10px] tracking-widest">Buyer Responsibility</h4>
+                      <h4 className="font-black text-green-800 uppercase text-[10px] tracking-widest">Safe Trade Guarantee</h4>
                    </div>
                    <p className="text-[10px] text-green-700 leading-relaxed font-bold">
-                     {listing.isBulk ? 'This is a multi-item lot. Carefully inspect the quantity and quality of all items.' : 'Review listings carefully and inspect items before confirming.'} Funds are released only after you press "Deal Completed".
+                     Whether buying fixed-price or winning an auction, your funds are protected. We hold the money until you verify the item at a Safe Zone.
                    </p>
                 </div>
               </CardContent>
@@ -259,7 +378,7 @@ export default function ListingDetailPage() {
                <div className="flex items-center justify-between mb-8">
                   <div className="flex items-center gap-4">
                     <div className="relative w-16 h-16 rounded-[1.5rem] overflow-hidden border-2 border-white shadow-lg">
-                      <Image src="https://picsum.photos/seed/user1/200/200" alt="seller" fill />
+                      <Image src={`https://picsum.photos/seed/user${listing.sellerId}/200/200`} alt="seller" fill />
                     </div>
                     <div>
                       <div className="flex items-center gap-2">
@@ -342,7 +461,7 @@ export default function ListingDetailPage() {
   );
 }
 
-function Loader2(props: any) {
+function Loader2Icon(props: any) {
   return (
     <svg
       {...props}
