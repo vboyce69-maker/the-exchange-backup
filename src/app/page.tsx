@@ -8,6 +8,13 @@ import { ListingCard } from "@/components/ListingCard";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { 
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { 
   Car, 
   Smartphone, 
   Home, 
@@ -45,9 +52,25 @@ const CATEGORIES = [
   { name: "Photography", icon: Camera, color: "bg-red-500", description: "Cameras & Glass" },
 ];
 
+const SA_CITIES = [
+  { id: "jhb", name: "Johannesburg", province: "GP" },
+  { id: "cpt", name: "Cape Town", province: "WC" },
+  { id: "dbn", name: "Durban", province: "KZN" },
+  { id: "pta", name: "Pretoria", province: "GP" },
+  { id: "plz", name: "Gqeberha", province: "EC" },
+  { id: "bfn", name: "Bloemfontein", province: "FS" },
+  { id: "els", name: "East London", province: "EC" },
+  { id: "nlp", name: "Nelspruit", province: "MP" },
+  { id: "kim", name: "Kimberley", province: "NC" },
+  { id: "pol", name: "Polokwane", province: "LP" },
+  { id: "pmb", name: "Pietermaritzburg", province: "KZN" },
+  { id: "rtb", name: "Rustenburg", province: "NW" },
+];
+
 export default function LandingPage() {
   const router = useRouter();
   const [activeRadius, setActiveRadius] = useState(25);
+  const [selectedCity, setSelectedCity] = useState("jhb");
   const [searchQuery, setSearchQuery] = useState("");
   const db = useFirestore();
 
@@ -130,7 +153,7 @@ export default function LandingPage() {
       </section>
 
       <main className="container mx-auto px-6 pt-5 pb-12">
-        <section className="mb-16 relative z-30">
+        <section className="mb-16 relative z-30 pt-5">
           <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-4">
             {CATEGORIES.map((cat) => {
               const Icon = cat.icon;
@@ -156,10 +179,19 @@ export default function LandingPage() {
           <div className="flex-1 w-full space-y-4">
             <h3 className="font-black text-[#225BC3] uppercase text-[10px] tracking-[0.2em]">Nearby Discovery</h3>
             <div className="flex flex-col sm:flex-row items-center gap-4">
-               <div className="w-full sm:w-64 h-14 px-6 rounded-2xl flex items-center gap-3 bg-slate-50">
-                  <MapPin className="w-5 h-5 text-[#225BC3]" />
-                  <span className="font-bold text-sm text-slate-700">Johannesburg, GP</span>
-               </div>
+               <Select value={selectedCity} onValueChange={setSelectedCity}>
+                 <SelectTrigger className="w-full sm:w-64 h-14 px-6 rounded-2xl bg-slate-50 border-none font-bold text-sm text-slate-700 flex items-center gap-3">
+                    <MapPin className="w-5 h-5 text-[#225BC3]" />
+                    <SelectValue placeholder="Select City" />
+                 </SelectTrigger>
+                 <SelectContent className="rounded-2xl border-none shadow-2xl">
+                    {SA_CITIES.map((city) => (
+                      <SelectItem key={city.id} value={city.id} className="font-bold text-slate-700 rounded-xl">
+                        {city.name}, {city.province}
+                      </SelectItem>
+                    ))}
+                 </SelectContent>
+               </Select>
                <div className="flex flex-1 bg-slate-100 p-1.5 rounded-2xl h-14 w-full">
                   {[5, 10, 25, 50, 100].map(r => (
                      <button 
