@@ -17,7 +17,8 @@ import {
   Zap,
   Globe,
   Lock,
-  Ban
+  Ban,
+  Info
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "@/hooks/use-toast";
@@ -124,17 +125,45 @@ export default function AutonomousTestCenter() {
                    <h3 className={cn("text-3xl font-black uppercase", results.overallStatus === 'healthy' ? "text-green-600" : "text-orange-600")}>
                      {results.overallStatus}
                    </h3>
+                   <p className="text-xs font-medium text-slate-500 leading-relaxed px-4">
+                     {results.summary}
+                   </p>
                 </div>
               </Card>
 
               <div className="lg:col-span-2 space-y-6">
                 {results.results.map((res, i) => (
                   <Card key={i} className="rounded-[2rem] border-none shadow-sm bg-white overflow-hidden ring-1 ring-slate-100">
-                    <div className="flex items-center justify-between p-6 bg-slate-50/50">
-                      <span className="font-black text-slate-900 text-sm uppercase tracking-tight">{res.name}</span>
-                      <Badge className={res.status === 'pass' ? "bg-green-100 text-green-700" : "bg-orange-100 text-orange-700"}>
-                        {res.status}
-                      </Badge>
+                    <div className="flex flex-col p-6 bg-slate-50/50">
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="font-black text-slate-900 text-sm uppercase tracking-tight">{res.name}</span>
+                        <Badge className={cn(
+                          "uppercase text-[10px] font-black",
+                          res.status === 'pass' ? "bg-green-100 text-green-700" : "bg-orange-100 text-orange-700"
+                        )}>
+                          {res.status}
+                        </Badge>
+                      </div>
+                      <div className="space-y-4">
+                        <div className="flex gap-2 items-start">
+                          <Info className="w-3 h-3 text-slate-400 mt-0.5 shrink-0" />
+                          <p className="text-[10px] text-slate-500 font-bold leading-relaxed">
+                            {res.findings}
+                          </p>
+                        </div>
+                        {res.anomalies && res.anomalies.length > 0 && (
+                          <div className="pt-4 border-t border-slate-100">
+                            <p className="text-[8px] font-black uppercase text-slate-400 tracking-widest mb-2">Detected Anomalies</p>
+                            <div className="flex flex-wrap gap-2">
+                              {res.anomalies.map((a, j) => (
+                                <Badge key={j} variant="outline" className="text-[8px] border-orange-200 text-orange-600 bg-white px-2 py-0">
+                                  {a}
+                                </Badge>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                      </div>
                     </div>
                   </Card>
                 ))}
