@@ -2,12 +2,12 @@
 /**
  * @fileOverview Advanced AI Security Agent for Chat Fraud Prevention.
  * 
- * - antiScamChatProtection - Performs multi-layered contextual analysis.
- * - Detects: Social Engineering, Overpayment Scams, Proof of Payment (PoP) Fraud, and Phishing.
+ * - antiScamChatProtection - Performs multi-layered contextual analysis and weighted risk scoring.
  */
 
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
+import { normalizeText, SCAM_RULES, CO_OCCURRENCE_BOOSTS } from '@/lib/scam-rules';
 
 const AntiScamChatProtectionInputSchema = z.object({
   message: z.string().describe('The chat message to be analyzed for fraud indicators.'),
@@ -16,9 +16,9 @@ export type AntiScamChatProtectionInput = z.infer<typeof AntiScamChatProtectionI
 
 const AntiScamChatProtectionOutputSchema = z.object({
   isSuspicious: z.boolean().describe('True if the message contains fraud indicators.'),
-  reason: z.string().optional().describe('Contextual explanation for the security action.'),
-  riskLevel: z.enum(['low', 'medium', 'high', 'critical']).describe('Calculated risk score.'),
-  securityAction: z.enum(['none', 'warn', 'block', 'flag_for_review']).describe('Automated response.'),
+  riskScore: z.number().describe('Calculated risk score from 0 to 100.'),
+  decision: z.enum(['allow', 'warn', 'hold', 'block']).describe('Automated response decision.'),
+  reason: z.string().describe('Contextual explanation for the security action.'),
   detectedPatterns: z.array(z.string()).optional().describe('Specific scam patterns identified.'),
 });
 export type AntiScamChatProtectionOutput = z.infer<typeof AntiScamChatProtectionOutputSchema>;
@@ -27,26 +27,29 @@ const AntiScamChatProtectionPrompt = ai.definePrompt({
   name: 'antiScamChatProtectionPrompt',
   input: {schema: AntiScamChatProtectionInputSchema},
   output: {schema: AntiScamChatProtectionOutputSchema},
-  prompt: `You are a Senior AI Cyber-Fraud Analyst for 'The Exchange'. 
-Your task is to detect sophisticated marketplace scams that bypass simple keyword filters.
+  prompt: `You are a Senior AI Cyber-Fraud Analyst for 'The Exchange'.
+Analyze the following chat message for sophisticated marketplace fraud.
 
-ANALYZE FOR THESE SOPHISTICATED PATTERNS:
-1. OVERPAYMENT SCAM: "I'll send extra money for the courier, just pay them the difference."
-2. PROOF OF PAYMENT (PoP) FRAUD: "I've sent the money, here is the screenshot [fake link]. Please release the item."
-3. COURIER DEPOSIT: "I'm sending a courier with cash, but you need to pay the 'insurance fee' first."
-4. SOCIAL ENGINEERING: "My child is sick, I need this laptop for school, can I pay half now and half later?"
-5. OFF-PLATFORM STEALTH: Redirection attempts using obfuscation (e.g., "W-H-A-T-S-A-P-P", "0 8 2 ...", "insta-gram").
-6. FAKE SUPPORT: "The Exchange Support: Your payment is held, click here to verify."
+INPUT DATA:
+Normalized Message: {{{normalizedMessage}}}
+Scam Rules: ${JSON.stringify(SCAM_RULES)}
+Co-occurrence Boosts: ${JSON.stringify(CO_OCCURRENCE_BOOSTS)}
 
-Analyze this message:
-"{{{message}}}"
+ANALYSIS TASK:
+1. Identify if any patterns from the Scam Rules are present in the normalized message.
+2. Calculate a Risk Score (0-100) based on base scores and co-occurrence boosts.
+3. Determine a decision based on these thresholds:
+   - 0 to 29: allow
+   - 30 to 59: warn
+   - 60 to 79: hold
+   - 80+: block
 
-SCORING RULES:
-- If PHISHING, FAKE SUPPORT, or COURIER DEPOSITS detected: isSuspicious=true, riskLevel='critical', securityAction='block'.
-- If OFF-PLATFORM or OVERPAYMENT detected: isSuspicious=true, riskLevel='high', securityAction='block'.
-- If suspicious urgency or emotional manipulation detected: isSuspicious=true, riskLevel='medium', securityAction='warn'.
+DECISION LOGIC:
+- If PHISHING or CREDENTIAL THEFT (OTP) is detected: Score must be at least 80, Decision MUST be 'block'.
+- If OVERPAYMENT or COURIER FRAUD is detected: Score must be at least 60.
+- If multiple suspicious patterns co-occur (e.g., Courier + Insurance), boost the score significantly.
 
-Provide a reason that educates the user on the specific scam type detected.`,
+Provide the final analysis including the total calculated risk score and a reason that educates the user.`,
 });
 
 export async function antiScamChatProtection(input: AntiScamChatProtectionInput): Promise<AntiScamChatProtectionOutput> {
@@ -60,7 +63,11 @@ const antiScamChatProtectionFlow = ai.defineFlow(
     outputSchema: AntiScamChatProtectionOutputSchema,
   },
   async (input) => {
-    const {output} = await AntiScamChatProtectionPrompt(input);
+    const normalized = normalizeText(input.message);
+    const {output} = await AntiScamChatProtectionPrompt({
+      ...input,
+      normalizedMessage: normalized
+    });
     return output!;
   }
 );
