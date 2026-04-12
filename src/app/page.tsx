@@ -153,7 +153,7 @@ export default function LandingPage() {
       </section>
 
       <main className="container mx-auto px-6 pt-5 pb-12">
-        <section className="mb-16 relative z-30 pt-5">
+        <section className="mb-16 mt-5">
           <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-4">
             {CATEGORIES.map((cat) => {
               const Icon = cat.icon;
@@ -276,26 +276,26 @@ export default function LandingPage() {
         </section>
 
         <section className="mb-16">
-          <div className="bg-[#225BC3] rounded-[4rem] p-16 text-white relative overflow-hidden shadow-2xl shadow-[#225BC3]/20">
+          <div className="bg-[#225BC3] rounded-[3rem] p-10 md:p-14 text-white relative overflow-hidden shadow-2xl shadow-[#225BC3]/20">
              <div className="absolute -right-20 -top-20 w-80 h-80 bg-white/5 rounded-full blur-3xl" />
              <div className="absolute -left-20 -bottom-20 w-64 h-64 bg-[#34CBED]/10 rounded-full blur-2xl" />
              
-             <div className="max-w-2xl relative z-10 space-y-8 text-center md:text-left mx-auto md:mx-0">
-                <div className="w-20 h-20 bg-white/20 backdrop-blur-md rounded-[2rem] flex items-center justify-center mx-auto md:mx-0 shadow-2xl">
-                   <ShieldCheck className="w-12 h-12 text-[#34CBED]" />
+             <div className="max-w-xl relative z-10 space-y-6 text-center md:text-left mx-auto md:mx-0">
+                <div className="w-16 h-16 bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-center mx-auto md:mx-0 shadow-xl">
+                   <ShieldCheck className="w-10 h-10 text-[#34CBED]" />
                 </div>
-                <h2 className="text-4xl md:text-6xl font-black leading-[1.1] tracking-tighter">Shop with total confidence.</h2>
-                <p className="text-white/70 text-xl font-medium leading-relaxed">
+                <h2 className="text-3xl md:text-5xl font-black leading-tight tracking-tighter">Shop with total confidence.</h2>
+                <p className="text-white/70 text-lg font-medium leading-relaxed">
                   Verified Sellers, Secure Deals, No Scams, Just Good Trades.
                 </p>
-                <div className="flex flex-wrap gap-4 justify-center md:justify-start">
+                <div className="flex flex-wrap gap-4 justify-center md:justify-start pt-2">
                    <Link href="/verify">
-                     <Button className="bg-[#34CBED] hover:bg-[#34CBED]/90 text-white font-black h-16 px-10 rounded-[1.5rem] shadow-xl text-lg">
+                     <Button className="bg-[#34CBED] hover:bg-[#34CBED]/90 text-white font-black h-14 px-8 rounded-2xl shadow-xl text-base">
                        Get Verified Badge
                      </Button>
                    </Link>
                    <Link href="/legal">
-                     <Button variant="ghost" className="text-white/80 hover:text-white font-black h-16 px-10 rounded-[1.5rem] text-lg">
+                     <Button variant="ghost" className="text-white/80 hover:text-white font-black h-14 px-8 rounded-2xl text-base">
                        Safety Center
                      </Button>
                    </Link>
