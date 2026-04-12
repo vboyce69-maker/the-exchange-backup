@@ -3,9 +3,9 @@ import { googleAI } from '@genkit-ai/google-genai';
 
 /**
  * Centralized Model Configuration for 'The Exchange'.
- * Using stable model aliases supported by the @genkit-ai/google-genai plugin.
+ * Using latest stable model aliases supported by the @genkit-ai/google-genai plugin.
  */
-export const PRIMARY_MODEL = 'gemini-1.5-flash';
+export const PRIMARY_MODEL = 'gemini-2.0-flash';
 export const FALLBACK_MODEL = 'gemini-1.5-pro';
 
 export const ai = genkit({
@@ -28,25 +28,37 @@ export async function runWithModelSafe<T>(
     const result = await promptFn({ model: PRIMARY_MODEL });
     return { ok: true, output: result, modelUsed: PRIMARY_MODEL };
   } catch (error: any) {
-    console.warn(`[AI SECURITY] Primary model (${PRIMARY_MODEL}) failed: ${error.message}. Attempting fallback to ${FALLBACK_MODEL}...`);
+    const errorMessage = error.message || String(error);
+    const isRecoverable = errorMessage.includes('404') || errorMessage.includes('429') || errorMessage.includes('500') || errorMessage.includes('not found');
     
-    try {
-      // Attempt with Fallback Model
-      const fallbackResult = await promptFn({ model: FALLBACK_MODEL });
-      return { 
-        ok: true, 
-        output: fallbackResult, 
-        modelUsed: FALLBACK_MODEL, 
-        error: `Recovered with fallback: ${error.message}` 
-      };
-    } catch (fallbackError: any) {
-      console.error(`[AI SECURITY] Critical: Fallback model (${FALLBACK_MODEL}) also failed: ${fallbackError.message}`);
-      return { 
-        ok: false, 
-        output: null, 
-        error: fallbackError.message, 
-        modelUsed: FALLBACK_MODEL 
-      };
+    if (isRecoverable) {
+      console.warn(`[AI SECURITY] Primary model (${PRIMARY_MODEL}) failed: ${errorMessage}. Attempting fallback to ${FALLBACK_MODEL}...`);
+      try {
+        // Attempt with Fallback Model
+        const fallbackResult = await promptFn({ model: FALLBACK_MODEL });
+        return { 
+          ok: true, 
+          output: fallbackResult, 
+          modelUsed: FALLBACK_MODEL, 
+          error: `Recovered with fallback: ${errorMessage}` 
+        };
+      } catch (fallbackError: any) {
+        console.error(`[AI SECURITY] Critical: Fallback model (${FALLBACK_MODEL}) also failed: ${fallbackError.message}`);
+        return { 
+          ok: false, 
+          output: null, 
+          error: fallbackError.message, 
+          modelUsed: FALLBACK_MODEL 
+        };
+      }
     }
+
+    // For non-recoverable errors (e.g. invalid prompt schema), fail fast
+    return { 
+      ok: false, 
+      output: null, 
+      error: errorMessage, 
+      modelUsed: PRIMARY_MODEL 
+    };
   }
 }
