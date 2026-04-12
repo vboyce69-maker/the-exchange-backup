@@ -41,7 +41,6 @@ export function normalizeText(text: string): string {
   normalized = normalized.replace(/[^a-z0-9\s]/g, '');
 
   // 3. Join spaced out words (e.g., w h a t s a p p -> whatsapp)
-  // We apply this recursively to catch long sequences
   let prev;
   do {
     prev = normalized;

@@ -30,6 +30,11 @@ service cloud.firestore {
     match /userProfiles/{userId} {
       allow read: if isSignedIn();
       allow create, update: if isOwner(userId);
+      
+      match /reviews/{reviewId} {
+        allow read: if true;
+        allow create: if isSignedIn() && request.auth.uid != userId;
+      }
     }
 
     match /conversations/{conversationId} {
@@ -46,6 +51,11 @@ service cloud.firestore {
       // Users can only write their own security events
       allow create: if isSignedIn();
       allow read: if isAdmin();
+    }
+
+    match /moderationQueue/{recordId} {
+      allow read: if isAdmin();
+      allow create: if isSignedIn();
     }
 
     match /roles_admin/{userId} {
