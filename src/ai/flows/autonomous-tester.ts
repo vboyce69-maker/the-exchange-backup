@@ -72,7 +72,18 @@ export async function runAutonomousTesting(input: { targetScenarioId?: string })
     return output;
   } catch (error: any) {
     console.error("Autonomous Tester Error:", error);
-    throw new Error(error.message || "The AI Security Agent encountered a logic error.");
+    // Return a structured error response instead of crashing the server action
+    return {
+      overallStatus: 'unstable',
+      summary: `System Stability Error: ${error.message || "The AI Security Agent encountered a connectivity issue."}`,
+      results: [{
+        scenarioId: "ERROR",
+        name: "Security Engine Audit",
+        status: "fail",
+        findings: "The AI model encountered an error. Please verify API key permissions and model availability.",
+        anomalies: [error.message || "Unknown API Error"]
+      }]
+    };
   }
 }
 
