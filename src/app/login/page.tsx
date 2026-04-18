@@ -20,7 +20,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Smartphone, Mail, Lock, Loader2, CheckCircle2, AlertCircle, Info, ArrowRight } from "lucide-react";
+import { Smartphone, Mail, Lock, Loader2, CheckCircle2, AlertCircle, Info, ArrowRight, ShieldCheck } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
