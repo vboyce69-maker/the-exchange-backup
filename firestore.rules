@@ -16,14 +16,11 @@ service cloud.firestore {
     }
 
     // --- Scam Blocking Rules ---
-    // Reject messages that are flagged as high risk by the client-side/AI engine
     function isSafeMessage(data) {
       return data.riskScore == null || data.riskScore < 80;
     }
 
     // --- Collection: Public Listings ---
-    // Explicitly allow public read access for the marketplace
-    // Updated to ensure "list" and "get" are clearly permitted for guest users
     match /publicListings/{listingId} {
       allow get, list: if true; 
       allow create: if isSignedIn() && request.resource.data.price > 0;
@@ -32,7 +29,6 @@ service cloud.firestore {
     }
 
     // --- Collection: User Profiles ---
-    // Profiles are visible to registered users only to prevent scraping
     match /userProfiles/{userId} {
       allow read: if isSignedIn();
       allow create, update: if isOwner(userId);
@@ -44,7 +40,6 @@ service cloud.firestore {
     }
 
     // --- Collection: Conversations ---
-    // Restricted to authenticated participants
     match /conversations/{conversationId} {
       allow read: if isSignedIn();
       
@@ -54,7 +49,12 @@ service cloud.firestore {
       }
     }
 
-    // --- Collection: Security & Moderation ---
+    // --- Collection: System Monitoring & Errors ---
+    match /systemErrors/{errorId} {
+      allow create: if true; // Allow client-side crash reporting
+      allow read, update: if isAdmin();
+    }
+
     match /securityLogs/{logId} {
       allow create: if isSignedIn();
       allow read: if isAdmin();

@@ -1,10 +1,11 @@
-
 "use client";
 
 import { useEffect } from "react";
 import { Navigation } from "@/components/Navigation";
 import { Button } from "@/components/ui/button";
 import { ShieldAlert, RefreshCw, Home } from "lucide-react";
+import { logSystemError } from "@/app/lib/error-logger";
+import { useFirestore, useUser } from "@/firebase";
 
 export default function GlobalError({
   error,
@@ -13,10 +14,14 @@ export default function GlobalError({
   error: Error & { digest?: string };
   reset: () => void;
 }) {
+  const db = useFirestore();
+  const { user } = useUser();
+
   useEffect(() => {
-    // Log the error to a service if necessary
+    // Log the error for AI correction and Admin review
     console.error("Application Crash:", error);
-  }, [error]);
+    logSystemError(db, error, { userId: user?.uid });
+  }, [error, db, user]);
 
   return (
     <div className="min-h-screen bg-[#EEF1F3] flex flex-col">
@@ -29,7 +34,7 @@ export default function GlobalError({
           <div className="space-y-3">
             <h1 className="text-3xl font-black text-[#225BC3] tracking-tighter uppercase">Session Interrupted</h1>
             <p className="text-muted-foreground font-medium text-sm leading-relaxed">
-              We encountered a temporary technical glitch. Your data and funds remain protected by our secure backend systems.
+              We encountered a temporary technical glitch. Our AI recovery agent has been notified and is analyzing the issue to prevent it from happening again.
             </p>
           </div>
           <div className="flex flex-col gap-3">
@@ -48,7 +53,7 @@ export default function GlobalError({
             </Button>
           </div>
           <div className="pt-8 opacity-40">
-            <p className="text-[8px] font-black uppercase tracking-widest">Error Digest: {error.digest || "Local Session Error"}</p>
+            <p className="text-[8px] font-black uppercase tracking-widest">Automated Diagnostic Report Transmitted</p>
           </div>
         </div>
       </main>
