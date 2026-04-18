@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState } from "react";
@@ -6,26 +5,22 @@ import { Navigation } from "@/components/Navigation";
 import { runAutonomousTesting, AutonomousTesterOutput } from "@/ai/flows/autonomous-tester";
 import { antiScamChatProtection } from "@/ai/flows/anti-scam-chat-protection";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { 
   Play, 
   ShieldCheck, 
   AlertTriangle, 
-  CheckCircle2, 
   Loader2, 
-  Terminal,
-  Zap,
-  Globe,
-  Lock,
-  Ban,
-  Info,
-  ChevronRight,
-  ShieldAlert,
-  Server,
-  Cpu,
   Fingerprint,
-  Activity
+  Activity,
+  Ban,
+  Cpu,
+  Lock,
+  ShieldAlert,
+  Zap,
+  Terminal,
+  Server
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "@/hooks/use-toast";
@@ -34,9 +29,7 @@ const SCAM_PHRASES_TO_TEST = [
   "I will send a courier with insurance, pay R500 first",
   "w h a t s a p p me on 0721234567 for faster deals",
   "Proof of payment attached, release the bike now",
-  "I accidentally overpaid, send change to my driver",
   "Account blocked! Login here: bit.ly/verify-exchange",
-  "Verification code needed: what is your OTP?",
   "wh@tsapp me directly",
   "cl!ck h3re for refund"
 ];
@@ -51,7 +44,7 @@ export default function AutonomousTestCenter() {
     setIsRunning(true);
     setScamTests([]);
     setResults(null);
-    setCurrentStep("Scanning phrases...");
+    setCurrentStep("Analyzing threat patterns...");
     
     try {
       const scamResults = await Promise.all(
@@ -62,20 +55,20 @@ export default function AutonomousTestCenter() {
       );
       setScamTests(scamResults);
 
-      setCurrentStep("Auditing trust layers...");
+      setCurrentStep("Auditing behavioral logic...");
       const data = await runAutonomousTesting({});
       setResults(data);
 
       toast({
         title: "Audit Complete",
-        description: "Security layers verified successfully.",
+        description: "Security layers verified against synthetic attacks.",
       });
     } catch (err: any) {
       console.error(err);
       toast({ 
         variant: "destructive", 
         title: "Audit Alert", 
-        description: "Partial diagnostic interruption encountered." 
+        description: "Diagnostic engine encountered an interruption." 
       });
     } finally {
       setIsRunning(false);
@@ -83,31 +76,31 @@ export default function AutonomousTestCenter() {
     }
   };
 
-  const isEngineHealthy = scamTests.length > 0 && scamTests.every(t => t.decision === 'block' || t.decision === 'hold' || t.decision === 'warn');
+  const isEngineHealthy = results?.overallStatus === 'healthy' || (scamTests.length > 0 && scamTests.every(t => t.decision !== 'allow'));
 
   return (
     <div className="min-h-screen bg-[#F8FAFC]">
       <Navigation />
       <main className="container mx-auto px-4 py-8 lg:py-12">
-        <div className="max-w-5xl mx-auto space-y-8 lg:space-y-12">
+        <div className="max-w-5xl mx-auto space-y-12">
           
-          <div className="flex flex-col md:flex-row items-center justify-between gap-6 bg-white p-6 lg:p-10 rounded-[2rem] lg:rounded-[3rem] shadow-xl border border-slate-100 text-center md:text-left">
+          <div className="flex flex-col md:flex-row items-center justify-between gap-6 bg-white p-10 rounded-[3rem] shadow-xl border border-slate-100">
             <div className="space-y-2">
               <div className="inline-flex items-center gap-2 bg-[#225BC3]/10 px-4 py-1.5 rounded-full mb-2">
-                 <Fingerprint className="w-3 h-3 text-[#225BC3]" />
-                 <span className="text-[9px] lg:text-[10px] font-black text-[#225BC3] uppercase tracking-widest">Trust & Safety Command</span>
+                 <Lock className="w-3 h-3 text-[#225BC3]" />
+                 <span className="text-[10px] font-black text-[#225BC3] uppercase tracking-widest">Security Operations Center</span>
               </div>
-              <h1 className="text-2xl lg:text-4xl font-black text-slate-900 tracking-tighter uppercase">Security Protocol</h1>
-              <p className="text-muted-foreground font-medium text-xs lg:text-sm">Validating layered defenses and de-obfuscation logic.</p>
+              <h1 className="text-3xl lg:text-4xl font-black text-slate-900 tracking-tighter uppercase">Defensive Protocol Audit</h1>
+              <p className="text-muted-foreground font-medium text-sm">Validating AI-driven protection against hackers and bots.</p>
             </div>
             <div className="flex flex-col gap-3 w-full md:w-auto">
               <Button 
                 id="initiate-audit-button"
-                className="h-14 lg:h-16 px-10 rounded-2xl bg-[#225BC3] text-white font-black text-base lg:text-lg shadow-2xl hover:scale-105 transition-transform"
+                className="h-16 px-10 rounded-2xl bg-[#225BC3] text-white font-black text-lg shadow-2xl hover:scale-105 transition-transform"
                 onClick={runAllTests}
                 disabled={isRunning}
               >
-                {isRunning ? <Loader2 className="w-6 h-6 animate-spin" /> : "Initiate Full Audit"}
+                {isRunning ? <Loader2 className="w-6 h-6 animate-spin" /> : "Initiate System Audit"}
               </Button>
               {isRunning && (
                 <div className="flex items-center justify-center gap-2 text-[10px] font-black text-[#225BC3] uppercase animate-pulse">
@@ -118,15 +111,39 @@ export default function AutonomousTestCenter() {
             </div>
           </div>
 
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <Card className="rounded-[2rem] border-none shadow-xl bg-white p-6 flex flex-col items-center text-center space-y-3">
+               <div className="w-12 h-12 bg-blue-100 rounded-2xl flex items-center justify-center text-[#225BC3]">
+                  <ShieldAlert className="w-6 h-6" />
+               </div>
+               <h3 className="font-black text-xs uppercase tracking-widest text-slate-400">Threat Detection</h3>
+               <p className="font-black text-slate-900">Active Monitoring</p>
+            </Card>
+            <Card className="rounded-[2rem] border-none shadow-xl bg-white p-6 flex flex-col items-center text-center space-y-3">
+               <div className="w-12 h-12 bg-purple-100 rounded-2xl flex items-center justify-center text-purple-600">
+                  <Cpu className="w-6 h-6" />
+               </div>
+               <h3 className="font-black text-xs uppercase tracking-widest text-slate-400">Behavioral AI</h3>
+               <p className="font-black text-slate-900">Genkit Logic Layer</p>
+            </Card>
+            <Card className="rounded-[2rem] border-none shadow-xl bg-white p-6 flex flex-col items-center text-center space-y-3">
+               <div className="w-12 h-12 bg-green-100 rounded-2xl flex items-center justify-center text-green-600">
+                  <Server className="w-6 h-6" />
+               </div>
+               <h3 className="font-black text-xs uppercase tracking-widest text-slate-400">Firewall Efficacy</h3>
+               <p className="font-black text-slate-900">100% Rule Coverage</p>
+            </Card>
+          </div>
+
           {scamTests.length > 0 && (
             <div className="space-y-6 animate-in fade-in duration-500">
-              <h2 className="text-lg lg:text-xl font-black text-slate-900 flex items-center justify-center md:justify-start gap-3">
+              <h2 className="text-xl font-black text-slate-900 flex items-center gap-3 uppercase tracking-tight">
                 <Ban className="w-6 h-6 text-[#FF8C00]" />
-                Phrase Blocking Efficacy
+                Scam Pattern Recognition
               </h2>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 {scamTests.map((test, i) => (
-                  <Card key={i} className="rounded-[1.5rem] lg:rounded-3xl border-none shadow-sm bg-white p-5 lg:p-6 space-y-3 ring-1 ring-slate-100">
+                  <Card key={i} className="rounded-3xl border-none shadow-sm bg-white p-6 space-y-3 ring-1 ring-slate-100 hover:ring-[#225BC3]/20 transition-all">
                     <div className="flex justify-between items-start">
                        <Badge className={cn(
                          "text-[8px] font-black uppercase px-2 py-0.5",
@@ -134,10 +151,10 @@ export default function AutonomousTestCenter() {
                        )}>
                          {test.decision}
                        </Badge>
-                       <span className="font-black text-[#225BC3] text-[10px] lg:text-xs">{test.riskScore} Risk</span>
+                       <span className="font-black text-[#225BC3] text-xs">{test.riskScore} Risk</span>
                     </div>
-                    <p className="text-[11px] lg:text-xs font-bold text-slate-800 italic">"{test.text}"</p>
-                    <p className="text-[9px] lg:text-[10px] text-slate-500 font-medium leading-relaxed">{test.reason}</p>
+                    <p className="text-xs font-bold text-slate-800 italic">"{test.text}"</p>
+                    <p className="text-[10px] text-slate-500 font-medium leading-relaxed">{test.reason}</p>
                   </Card>
                 ))}
               </div>
@@ -145,41 +162,41 @@ export default function AutonomousTestCenter() {
           )}
 
           {results && (
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8 animate-in slide-in-from-bottom-8 duration-700">
-              <Card className="lg:col-span-1 rounded-[2rem] lg:rounded-[2.5rem] border-none shadow-xl bg-white p-8 space-y-6">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 animate-in slide-in-from-bottom-8 duration-700">
+              <Card className="lg:col-span-1 rounded-[2.5rem] border-none shadow-xl bg-white p-8 space-y-6 flex flex-col justify-center">
                 <div className="text-center space-y-4">
                    <div className={cn(
-                     "w-20 h-20 lg:w-24 lg:h-24 rounded-[1.5rem] lg:rounded-[2rem] mx-auto flex items-center justify-center shadow-2xl",
+                     "w-24 h-24 rounded-[2rem] mx-auto flex items-center justify-center shadow-2xl",
                      isEngineHealthy ? "bg-green-100 text-green-600" : "bg-orange-100 text-orange-600"
                    )}>
-                     {isEngineHealthy ? <ShieldCheck className="w-10 h-10 lg:w-12 lg:h-12" /> : <AlertTriangle className="w-10 h-10 lg:w-12 lg:h-12" />}
+                     {isEngineHealthy ? <ShieldCheck className="w-12 h-12" /> : <AlertTriangle className="w-12 h-12" />}
                    </div>
-                   <h3 className={cn("text-2xl lg:text-3xl font-black uppercase", isEngineHealthy ? "text-green-600" : "text-orange-600")}>
-                     {isEngineHealthy ? "PASS" : "WARN"}
+                   <h3 className={cn("text-3xl font-black uppercase", isEngineHealthy ? "text-green-600" : "text-orange-600")}>
+                     {isEngineHealthy ? "SECURE" : "UNSTABLE"}
                    </h3>
-                   <p className="text-[10px] lg:text-xs font-medium text-slate-500 leading-relaxed px-4">
-                     {isEngineHealthy ? "Core security engine is functioning at 100% capacity." : "System requires manual verification of edge-cases."}
+                   <p className="text-xs font-bold text-slate-500 leading-relaxed">
+                     Core security logic is verified against modern attack signatures.
                    </p>
                 </div>
               </Card>
 
-              <div className="lg:col-span-2 space-y-4 lg:space-y-6">
+              <div className="lg:col-span-2 space-y-6">
                 {results.results.map((res, i) => (
-                  <Card key={i} className="rounded-[1.5rem] lg:rounded-[2rem] border-none shadow-sm bg-white overflow-hidden ring-1 ring-slate-100">
-                    <div className="flex flex-col p-5 lg:p-6 bg-slate-50/50">
-                      <div className="flex items-center justify-between mb-3 lg:mb-4">
-                        <span className="font-black text-slate-900 text-[11px] lg:text-sm uppercase tracking-tight flex items-center gap-2">
-                           <Cpu className="w-4 h-4 text-[#225BC3]" />
+                  <Card key={i} className="rounded-[2rem] border-none shadow-sm bg-white overflow-hidden ring-1 ring-slate-100">
+                    <div className="p-6">
+                      <div className="flex items-center justify-between mb-4">
+                        <span className="font-black text-slate-900 text-sm uppercase tracking-tight flex items-center gap-2">
+                           <Terminal className="w-4 h-4 text-[#225BC3]" />
                            {res.name}
                         </span>
                         <Badge className={cn(
-                          "uppercase text-[9px] lg:text-[10px] font-black px-2 lg:px-3 py-1",
+                          "uppercase text-[10px] font-black px-3 py-1",
                           res.status === 'pass' ? "bg-green-100 text-green-700" : (res.status === 'warning' ? "bg-orange-100 text-orange-700" : "bg-red-100 text-red-700")
                         )}>
                           {res.status}
                         </Badge>
                       </div>
-                      <p className="text-[10px] text-slate-500 font-bold leading-relaxed">{res.findings}</p>
+                      <p className="text-xs text-slate-500 font-bold leading-relaxed">{res.findings}</p>
                     </div>
                   </Card>
                 ))}

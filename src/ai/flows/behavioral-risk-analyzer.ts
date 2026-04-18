@@ -1,6 +1,7 @@
 'use server';
 /**
  * @fileOverview Behavioral Risk AI Agent with Centralized Model Config.
+ * Acts as a Virtual SOC (Security Operations Center) analyst.
  */
 
 import { ai, runWithModelSafe } from '@/ai/genkit';
@@ -8,8 +9,8 @@ import { z } from 'genkit';
 
 const BehavioralRiskInputSchema = z.object({
   userId: z.string(),
-  actionType: z.string().describe("Action being performed"),
-  metadata: z.record(z.any()).optional(),
+  actionType: z.string().describe("Action being performed (e.g., login, create_listing, place_bid)"),
+  metadata: z.record(z.any()).optional().describe("Contextual data like IP, user agent, location, or payload"),
   previousRiskScore: z.number().optional().default(0),
 });
 
@@ -18,7 +19,7 @@ const BehavioralRiskOutputSchema = z.object({
   confidence: z.number().min(0).max(100),
   recommendation: z.enum(['allow', 'flag', 'mfa_challenge', 'block']),
   reasoning: z.string(),
-  threatIndicators: z.array(z.string()),
+  threatIndicators: z.array(z.string()).describe("Specific detected threats like 'VELOCITY_ANOMALY', 'IMPOSSIBLE_TRAVEL', or 'MALICIOUS_INPUT'"),
 });
 
 export type BehavioralRiskInput = z.infer<typeof BehavioralRiskInputSchema>;
@@ -32,13 +33,22 @@ const riskPrompt = ai.definePrompt({
     }) 
   },
   output: { schema: BehavioralRiskOutputSchema },
-  prompt: `You are an AI Security Operations Center (SOC) Analyst.
-Perform real-time Behavioral Risk Analysis for 'The Exchange'.
+  prompt: `You are an AI Security Operations Center (SOC) Analyst for 'The Exchange'.
+Perform real-time Behavioral Risk Analysis to protect the marketplace from hackers, bots, and malicious actors.
 
-Context:
-- Action: {{{actionType}}}
-- Score History: {{{previousRiskScore}}}
-- Metadata: {{{metadataJson}}}`,
+CONTEXT:
+- User ID: {{{userId}}}
+- Action Type: {{{actionType}}}
+- History Risk Score: {{{previousRiskScore}}}
+- Metadata Context: {{{metadataJson}}}
+
+TASKS:
+1. Detect 'Impossible Travel' (e.g., login from different countries within minutes).
+2. Detect 'Velocity Attacks' (e.g., too many actions per second).
+3. Detect 'Malicious Payloads' (e.g., XSS or SQLi patterns in text input).
+4. Detect 'Sybil Attacks' (e.g., multiple accounts sharing unique fingerprint).
+
+Provide a clear security recommendation and threat indicators.`,
 });
 
 export async function analyzeBehavioralRisk(input: BehavioralRiskInput): Promise<BehavioralRiskOutput> {
@@ -53,13 +63,13 @@ export async function analyzeBehavioralRisk(input: BehavioralRiskInput): Promise
     return result.output.output;
   }
 
-  // Default safe-fallthrough if AI is down
+  // Default fallback if AI is unreachable
   return {
     riskLevel: 'medium',
     confidence: 0,
     recommendation: 'flag',
-    reasoning: 'Behavioral analysis AI is temporarily unavailable. Marking for manual review as a precaution.',
-    threatIndicators: ['AI_SERVICE_UNAVAILABLE']
+    reasoning: 'AI Security Engine is temporarily unavailable. Marking for manual review as a fail-safe.',
+    threatIndicators: ['AI_DIAGNOSTIC_INTERRUPT']
   };
 }
 

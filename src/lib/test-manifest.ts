@@ -1,6 +1,6 @@
 /**
  * @fileOverview Test Manifest for AI Generative Testing Agents.
- * Defines Golden Scenarios and Sophisticated Synthetic Edge Case Data.
+ * Defines Golden Scenarios and Sophisticated Synthetic Edge Case Data for Security.
  */
 
 export const GOLDEN_SCENARIOS = [
@@ -29,9 +29,9 @@ export const GOLDEN_SCENARIOS = [
 
 export const SYNTHETIC_EDGE_CASES = {
   malformed_bids: [
-    { value: -100, reason: "Negative value" },
-    { value: "999.999.999", reason: "Multiple decimal points" },
-    { value: 0.000001, reason: "Sub-cent bid" }
+    { value: -100, reason: "Negative value rejection" },
+    { value: "999.999.999", reason: "Multiple decimal point sanitization" },
+    { value: 0.000001, reason: "Sub-cent bid floor enforcement" }
   ],
   sophisticated_scam_phrases: [
     "I'll send a courier with a cheque, just pay the insurance of R500 first",
@@ -41,9 +41,10 @@ export const SYNTHETIC_EDGE_CASES = {
     "Payment successful. See Proof of Payment at [image-url-link]"
   ],
   behavioral_anomalies: [
-    { type: "velocity", description: "10 listings in 60 seconds" },
-    { type: "impossible_travel", description: "Login from Cape Town then Durban in 2 mins" },
-    { type: "price_manipulation", description: "Price dropped from R10000 to R100 before acceptance" }
+    { type: "VELOCITY", description: "10 listings created in 60 seconds", threshold: "HIGH" },
+    { type: "IMPOSSIBLE_TRAVEL", description: "Login from Johannesburg then London in 5 mins", threshold: "CRITICAL" },
+    { type: "PRICE_MANIPULATION", description: "Listing price dropped from R10000 to R100 before auction close", threshold: "HIGH" },
+    { type: "PAYLOAD_INJECTION", description: "<script>alert('hack')</script> detected in description", threshold: "BLOCK" }
   ],
   network_failure: {
     scenario: "Connection drop during payment authorization",
