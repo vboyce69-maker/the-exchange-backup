@@ -136,7 +136,7 @@ export default function LandingPage() {
         <div className="absolute inset-0 bg-black/5" />
       </div>
 
-      {/* Hero Section - Height increased to h-[85vh] to show more background */}
+      {/* Hero Section */}
       <section className="relative h-[85vh] flex items-center overflow-hidden bg-[#225BC3]">
         <div className="absolute inset-0 opacity-25">
            <Image 
@@ -154,7 +154,7 @@ export default function LandingPage() {
               <Rocket className="w-4 h-4 text-[#34CBED]" />
               <span className="text-[10px] font-black uppercase tracking-widest">South Africa's Trusted Marketplace</span>
             </div>
-            <h1 className="text-4xl md:text-6xl font-black leading-[1.1] tracking-tighter">
+            <h1 className="text-3xl md:text-5xl font-black leading-[1.1] tracking-tighter">
               The smartest way to <span className="text-[#34CBED]">trade locally.</span>
             </h1>
             <p className="text-xl text-white/80 font-black max-w-lg tracking-tight leading-relaxed">
