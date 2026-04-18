@@ -27,9 +27,11 @@ import {
   CheckCircle2,
   TrendingUp,
   History,
-  AlertCircle
+  AlertCircle,
+  Medal
 } from "lucide-react";
 import { VerifiedBadge } from "@/components/VerifiedBadge";
+import { SellerTierBadge, SellerTier } from "@/components/SellerTierBadge";
 import { useDoc, useCollection, useFirestore, useMemoFirebase } from "@/firebase";
 import { doc, collection, query, where, orderBy } from "firebase/firestore";
 import { cn } from "@/lib/utils";
@@ -88,6 +90,15 @@ export default function UserProfilePage() {
     profileImageUrl: `https://picsum.photos/seed/${id}/200/200`
   };
 
+  // Determine Seller Tier
+  const getSellerTier = (transactions: number, score: number): SellerTier => {
+    if (transactions >= 50 && score >= 95) return 'pro';
+    if (transactions >= 10 && score >= 90) return 'trusted';
+    return 'beginner';
+  };
+
+  const sellerTier = getSellerTier(user.transactionsCompleted || 0, user.reliabilityScore || 0);
+
   const verificationPillars = [
     { name: "Phone", icon: Smartphone, status: true },
     { name: "ID Document", icon: FileCheck, status: user.isIdVerified },
@@ -121,11 +132,14 @@ export default function UserProfilePage() {
                 <h1 className="text-4xl font-black text-[#225BC3] mb-2 leading-none uppercase tracking-tighter">
                   {user.firstName} {user.lastName}
                 </h1>
-                <div className="flex items-center gap-2 mb-6">
-                   {user.isIdVerified && <VerifiedBadge />}
-                   <span className="text-muted-foreground font-bold text-xs uppercase tracking-widest">
-                     Member Since {new Date(user.registrationDate).getFullYear()}
-                   </span>
+                <div className="flex flex-col items-center gap-3 mb-6">
+                   <div className="flex items-center gap-2">
+                     {user.isIdVerified && <VerifiedBadge />}
+                     <span className="text-muted-foreground font-bold text-xs uppercase tracking-widest">
+                       Since {new Date(user.registrationDate).getFullYear()}
+                     </span>
+                   </div>
+                   <SellerTierBadge level={sellerTier} />
                 </div>
                 
                 <p className="text-muted-foreground text-sm font-medium leading-relaxed mb-8 px-4 italic">
@@ -226,6 +240,8 @@ export default function UserProfilePage() {
                         isBulk={listing.isBulk}
                         quantity={listing.quantity}
                         auctionEndDate={listing.auctionEndDate}
+                        sellerTransactions={user.transactionsCompleted}
+                        sellerReliability={user.reliabilityScore}
                       />
                     ))}
                   </div>

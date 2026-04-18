@@ -7,6 +7,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { MapPin, Star, Zap, ShieldCheck, Gavel, Clock, Heart, Layers } from "lucide-react";
 import { VerifiedBadge } from "./VerifiedBadge";
+import { SellerTierBadge, SellerTier } from "./SellerTierBadge";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { Button } from "./ui/button";
@@ -25,6 +26,8 @@ interface ListingCardProps {
   isBulk?: boolean;
   quantity?: number;
   auctionEndDate?: string;
+  sellerTransactions?: number;
+  sellerReliability?: number;
 }
 
 export function ListingCard({
@@ -41,9 +44,20 @@ export function ListingCard({
   isBulk,
   quantity,
   auctionEndDate,
+  sellerTransactions = 0,
+  sellerReliability = 0,
 }: ListingCardProps) {
   const [timeLeft, setTimeLeft] = useState<string>("");
   const [isSaved, setIsSaved] = useState(false);
+
+  // Determine Seller Tier
+  const getSellerTier = (transactions: number, score: number): SellerTier => {
+    if (transactions >= 50 && score >= 95) return 'pro';
+    if (transactions >= 10 && score >= 90) return 'trusted';
+    return 'beginner';
+  };
+
+  const sellerTier = getSellerTier(sellerTransactions, sellerReliability);
 
   useEffect(() => {
     if (!isAuction || !auctionEndDate) return;
@@ -130,12 +144,15 @@ export function ListingCard({
             <MapPin className="w-3 h-3 lg:w-3.5 lg:h-3.5 text-[#34CBED]" />
             {location}
           </div>
-          <div className="flex items-center gap-1.5 lg:gap-2">
-             <div className="flex items-center gap-0.5 text-yellow-500">
-               <Star className="w-2.5 h-2.5 lg:w-3 lg:h-3 fill-current" />
-               <span className="text-[9px] lg:text-[10px] font-black">{sellerRating || 4.9}</span>
+          <div className="flex flex-col items-end gap-1">
+             <div className="flex items-center gap-1.5 lg:gap-2">
+                <div className="flex items-center gap-0.5 text-yellow-500">
+                  <Star className="w-2.5 h-2.5 lg:w-3 lg:h-3 fill-current" />
+                  <span className="text-[9px] lg:text-[10px] font-black">{sellerRating || 4.9}</span>
+                </div>
+                <VerifiedBadge />
              </div>
-             <VerifiedBadge />
+             <SellerTierBadge level={sellerTier} className="scale-75 origin-right" />
           </div>
         </div>
 

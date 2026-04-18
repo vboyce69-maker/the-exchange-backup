@@ -37,6 +37,7 @@ import {
 } from "lucide-react";
 import Image from "next/image";
 import { VerifiedBadge } from "@/components/VerifiedBadge";
+import { SellerTierBadge, SellerTier } from "@/components/SellerTierBadge";
 import { toast } from "@/hooks/use-toast";
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
@@ -100,6 +101,13 @@ export default function ListingDetailPage() {
     const m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
     return `${h}h ${m}m remaining`;
   }, [listing, now]);
+
+  // Determine Seller Tier
+  const getSellerTier = (transactions: number, score: number): SellerTier => {
+    if (transactions >= 50 && score >= 95) return 'pro';
+    if (transactions >= 10 && score >= 90) return 'trusted';
+    return 'beginner';
+  };
 
   const handlePayment = () => {
     setIsPaying(true);
@@ -172,6 +180,10 @@ export default function ListingDetailPage() {
   }
 
   if (!listing) return null;
+
+  const sellerTransactions = 56; // Mock data for demo
+  const sellerReliability = 94; // Mock data for demo
+  const sellerTier = getSellerTier(sellerTransactions, sellerReliability);
 
   return (
     <div className="min-h-screen bg-[#F8FAFC]">
@@ -372,9 +384,8 @@ export default function ListingDetailPage() {
                               <h3 className="font-black text-lg text-slate-900 leading-none">Verified Seller</h3>
                               <VerifiedBadge />
                            </div>
-                           <div className="flex items-center gap-1 mt-1">
-                              <Star className="w-3 h-3 text-[#FF8C00] fill-current" />
-                              <span className="text-[10px] font-black text-[#FF8C00]">4.9 Reliability</span>
+                           <div className="mt-2">
+                             <SellerTierBadge level={sellerTier} />
                            </div>
                         </div>
                      </div>
@@ -388,7 +399,7 @@ export default function ListingDetailPage() {
                         <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-1">
                            <History className="w-2.5 h-2.5" /> Trades
                         </p>
-                        <p className="text-xl font-black text-[#225BC3]">56</p>
+                        <p className="text-xl font-black text-[#225BC3]">{sellerTransactions}</p>
                      </div>
                      <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100 space-y-1">
                         <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-1">
