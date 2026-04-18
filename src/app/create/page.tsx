@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect } from "react";
@@ -21,22 +22,15 @@ import {
   Layers,
   ImagePlus,
   Save,
-  ShieldCheck
+  ShieldCheck,
+  Award
 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import Image from "next/image";
 import { collection } from "firebase/firestore";
 import { useFirestore, useUser } from "@/firebase";
 import { addDocumentNonBlocking } from "@/firebase/non-blocking-updates";
-import { getSellerDemandInsights } from "@/ai/flows/seller-demand-insights";
-
-const CATEGORIES = [
-  "Vehicles", "Electronics", "Real Estate", "Clothing", 
-  "Sneakers", "Jewelry", "Sports", "Home & Garden", 
-  "Business Services", "Misc"
-];
-
-const CONDITIONS = ["New", "Like new", "Good", "Used"];
+import { Badge } from "@/components/ui/badge";
 
 export default function CreateListingPage() {
   const router = useRouter();
@@ -50,7 +44,6 @@ export default function CreateListingPage() {
   const [isAuction, setIsAuction] = useState(false);
   const [isBulk, setIsBulk] = useState(false);
   const [quantity, setQuantity] = useState("1");
-  const [aiSuggestion, setAiSuggestion] = useState<string | null>(null);
 
   const [title, setTitle] = useState("");
   const [category, setCategory] = useState("");
@@ -58,7 +51,9 @@ export default function CreateListingPage() {
   const [price, setPrice] = useState("");
   const [description, setDescription] = useState("");
 
-  // INTERRUPT RECOVERY: Load draft on mount
+  // FOUNDING MEMBER PERK
+  const isFoundingMember = true; // Simulated logic
+
   useEffect(() => {
     const draft = localStorage.getItem("exchange_listing_v2");
     if (draft) {
@@ -69,14 +64,12 @@ export default function CreateListingPage() {
         setCondition(data.condition || "");
         setPrice(data.price || "");
         setDescription(data.description || "");
-        toast({ title: "Draft Restored", description: "Your previous progress was saved automatically." });
       } catch (e) {
         console.error("Draft load error", e);
       }
     }
   }, []);
 
-  // INTERRUPT RECOVERY: Save draft on change
   useEffect(() => {
     const draftData = { title, category, condition, price, description };
     localStorage.setItem("exchange_listing_v2", JSON.stringify(draftData));
@@ -114,7 +107,7 @@ export default function CreateListingPage() {
       isBulk,
       quantity: parseInt(quantity),
       viewCount: 0,
-      isBoosted: false,
+      isBoosted: isFoundingMember, // Early bird perk
     };
 
     const listingsCol = collection(db, "publicListings");
@@ -123,6 +116,7 @@ export default function CreateListingPage() {
     
     setTimeout(() => {
       setLoading(false);
+      toast({ title: "Listing Live", description: "Founding Member boost applied automatically." });
       router.push("/search");
     }, 1000);
   };
@@ -137,15 +131,29 @@ export default function CreateListingPage() {
               <h1 className="text-3xl font-black text-[#225BC3]">Create Listing</h1>
               <p className="text-muted-foreground text-sm font-medium">Verified professional and peer-to-peer trades.</p>
             </div>
-            <div className="flex items-center gap-2 text-[#34CBED] bg-[#34CBED]/5 px-4 py-2 rounded-2xl border border-[#34CBED]/20">
-              <Save className="w-3 h-3" />
-              <span className="text-[8px] font-black uppercase tracking-widest">Auto-Saving Draft</span>
-            </div>
+            {isFoundingMember && (
+               <Badge className="bg-[#FF8C00] text-white px-4 py-1.5 rounded-xl border-none shadow-lg animate-pulse">
+                  <Award className="w-3 h-3 mr-2" /> Founding 1000 Perk
+               </Badge>
+            )}
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-6">
             <Card className="rounded-[2.5rem] border-none shadow-xl bg-white ring-1 ring-[#225BC3]/5">
               <CardContent className="p-8 space-y-6">
+                
+                {isFoundingMember && (
+                  <div className="p-6 bg-orange-50 rounded-3xl border border-orange-100 flex gap-4">
+                    <Zap className="w-10 h-10 text-[#FF8C00] shrink-0" />
+                    <div>
+                      <p className="text-[10px] font-black text-[#FF8C00] uppercase tracking-widest mb-1">Early Bird Incentive</p>
+                      <p className="text-[11px] text-orange-800 font-bold leading-relaxed">
+                        As a Founding 1000 member, your listing fee is <span className="underline">R0.00</span> and you get a complimentary <span className="underline">Featured Boost</span> for 7 days.
+                      </p>
+                    </div>
+                  </div>
+                )}
+
                 <div className="space-y-4">
                   <Label className="text-xs font-black uppercase tracking-widest text-[#225BC3]">Photos ({images.length}/10)</Label>
                   <div className="grid grid-cols-3 sm:grid-cols-4 gap-3">

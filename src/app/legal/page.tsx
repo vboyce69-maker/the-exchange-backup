@@ -30,7 +30,8 @@ import {
   CheckCircle2,
   Smartphone,
   ScanFace,
-  FileCheck
+  FileCheck,
+  Gift
 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 
@@ -68,6 +69,7 @@ export default function LegalHub() {
               <TabsTrigger value="verification" className="rounded-2xl px-6 h-full font-black uppercase text-[10px] tracking-widest data-[state=active]:bg-[#225BC3] data-[state=active]:text-white">Verification</TabsTrigger>
               <TabsTrigger value="tos" className="rounded-2xl px-6 h-full font-black uppercase text-[10px] tracking-widest data-[state=active]:bg-[#225BC3] data-[state=active]:text-white">Terms of Service</TabsTrigger>
               <TabsTrigger value="privacy" className="rounded-2xl px-6 h-full font-black uppercase text-[10px] tracking-widest data-[state=active]:bg-[#225BC3] data-[state=active]:text-white">Privacy</TabsTrigger>
+              <TabsTrigger value="rewards" className="rounded-2xl px-6 h-full font-black uppercase text-[10px] tracking-widest data-[state=active]:bg-[#225BC3] data-[state=active]:text-white">Referrals</TabsTrigger>
               <TabsTrigger value="scam" className="rounded-2xl px-6 h-full font-black uppercase text-[10px] tracking-widest data-[state=active]:bg-[#225BC3] data-[state=active]:text-white">Anti-Scam</TabsTrigger>
               <TabsTrigger value="payments" className="rounded-2xl px-6 h-full font-black uppercase text-[10px] tracking-widest data-[state=active]:bg-[#225BC3] data-[state=active]:text-white">Protected Pay</TabsTrigger>
             </TabsList>
@@ -158,6 +160,39 @@ export default function LegalHub() {
                     <p className="text-sm text-slate-500 leading-relaxed">
                       The contract of sale is strictly between the Buyer and Seller. The Exchange Marketplace (Pty) Ltd is NOT a party to the transaction.
                     </p>
+                  </div>
+                </div>
+              </Card>
+            </TabsContent>
+
+            {/* Referral Rewards Policy */}
+            <TabsContent value="rewards">
+              <Card className="rounded-[3rem] border-none shadow-xl bg-white p-10 space-y-8">
+                <div className="space-y-4">
+                  <h2 className="text-3xl font-black text-[#225BC3] uppercase tracking-tighter flex items-center gap-3">
+                    <Gift className="w-8 h-8 text-pink-500" /> Referral Program Terms
+                  </h2>
+                  <p className="text-slate-600 font-medium leading-relaxed">
+                    The Referral System is designed to reward users who grow our community of trusted sellers.
+                  </p>
+                </div>
+                
+                <div className="space-y-6">
+                  <div className="p-6 bg-pink-50 rounded-3xl border border-pink-100">
+                    <h4 className="font-black text-xs uppercase tracking-widest text-pink-900 mb-2">Abuse Prevention</h4>
+                    <p className="text-[11px] text-pink-800 font-bold leading-relaxed">
+                      Self-referrals, fake accounts, or duplicate identity documents used to farm referral rewards will result in immediate permanent ban and forfeiture of all trade credits.
+                    </p>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                     <div className="p-4 bg-slate-50 rounded-2xl">
+                        <p className="font-black text-[10px] uppercase text-slate-900 mb-1">Eligibility</p>
+                        <p className="text-[10px] text-slate-500">Only verified users can earn trade credits from referrals.</p>
+                     </div>
+                     <div className="p-4 bg-slate-50 rounded-2xl">
+                        <p className="font-black text-[10px] uppercase text-slate-900 mb-1">Expiration</p>
+                        <p className="text-[10px] text-slate-500">Referral trade credits expire 90 days after issue.</p>
+                     </div>
                   </div>
                 </div>
               </Card>

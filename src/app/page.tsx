@@ -35,7 +35,8 @@ import {
   Zap,
   ShoppingBag,
   Gamepad2,
-  Palette
+  Palette,
+  Gift
 } from "lucide-react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
@@ -99,6 +100,25 @@ export default function LandingPage() {
     <div className="min-h-screen bg-[#F8FAFC]">
       <Navigation />
       
+      {/* Founding 1000 Promo Banner */}
+      <div className="bg-[#FF8C00] text-white py-4 px-6 relative overflow-hidden">
+        <div className="container mx-auto flex flex-col md:flex-row items-center justify-between gap-4 relative z-10">
+           <div className="flex items-center gap-3">
+              <Zap className="w-5 h-5 animate-pulse" />
+              <p className="font-black uppercase text-[10px] lg:text-xs tracking-widest">
+                <span className="opacity-80">Join the</span> Founding 1000 Sellers: 
+                <span className="ml-2">Zero Fees + Free Boosted Visibility</span>
+              </p>
+           </div>
+           <Link href="/create">
+              <Button size="sm" className="bg-white text-[#FF8C00] font-black rounded-xl hover:bg-slate-50 h-10 px-6 uppercase text-[10px] tracking-widest shadow-xl">
+                 Claim Slot
+              </Button>
+           </Link>
+        </div>
+        <div className="absolute inset-0 bg-black/5" />
+      </div>
+
       {/* Hero Section */}
       <section className="relative h-[65vh] flex items-center overflow-hidden bg-[#225BC3]">
         <div className="absolute inset-0 opacity-25">
@@ -129,9 +149,9 @@ export default function LandingPage() {
                   Explore Marketplace
                 </Button>
               </Link>
-              <Link href="/auctions">
+              <Link href="/referrals">
                 <Button size="lg" variant="outline" className="border-white/30 text-white bg-white/10 hover:bg-white/20 backdrop-blur-md h-18 px-10 rounded-[1.5rem] text-lg font-bold">
-                  Live Auctions
+                  Refer & Earn <Gift className="w-5 h-5 ml-2" />
                 </Button>
               </Link>
             </div>

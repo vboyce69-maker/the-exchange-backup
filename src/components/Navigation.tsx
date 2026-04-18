@@ -22,7 +22,8 @@ import {
   Fingerprint,
   Scale,
   Settings,
-  X
+  X,
+  Gift
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
@@ -62,6 +63,7 @@ export function Navigation() {
   const features = [
     { name: "Browse Marketplace", description: "Fixed Price & Lots", icon: ShoppingBag, href: "/search", color: "text-[#225BC3]" },
     { name: "Live Auctions", description: "Bidding & Bulk Lots", icon: Gavel, href: "/auctions", color: "text-[#FF8C00]" },
+    { name: "Refer & Earn", description: "Viral Referral System", icon: Gift, href: "/referrals", color: "text-pink-500" },
     { name: "Biometric KYC", description: "AI Identity Verification", icon: Fingerprint, href: "/verify", color: "text-blue-500" },
     { name: "Protected Payments", description: "Escrow-Style Hold", icon: Lock, href: "/legal", color: "text-green-500" },
     { name: "Market Insights", description: "Seller Demand Data", icon: TrendingUp, href: "/insights", color: "text-purple-500" },
