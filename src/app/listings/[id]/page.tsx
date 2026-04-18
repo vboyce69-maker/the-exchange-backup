@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
@@ -30,7 +31,9 @@ import {
   Clock,
   ArrowRight,
   Loader2,
-  ShieldAlert
+  ShieldAlert,
+  History,
+  AlertCircle
 } from "lucide-react";
 import Image from "next/image";
 import { VerifiedBadge } from "@/components/VerifiedBadge";
@@ -143,7 +146,6 @@ export default function ListingDetailPage() {
     if (!listingRef || !listing) return;
     setIsAccepting(true);
     
-    // Transition status to pending meetup
     updateDocumentNonBlocking(listingRef, {
       status: "pending_meetup"
     });
@@ -235,16 +237,6 @@ export default function ListingDetailPage() {
                       </p>
                     </div>
                   </div>
-
-                  <div className="mt-4 p-6 bg-slate-50 rounded-3xl border border-slate-100 flex gap-4">
-                    <Scale className="w-10 h-10 text-slate-400 shrink-0" />
-                    <div>
-                      <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">No Platform Warranty</p>
-                      <p className="text-[11px] text-slate-400 font-bold leading-relaxed">
-                        To the fullest extent permitted by law, the platform does not give warranties or guarantees about the quality, safety, legality, or fitness of items listed by users.
-                      </p>
-                    </div>
-                  </div>
                 </TabsContent>
                 
                 <TabsContent value="specs" className="mt-0">
@@ -306,10 +298,6 @@ export default function ListingDetailPage() {
                     isAuctionEnded ? (
                       isSeller ? (
                         <div className="space-y-4">
-                          <div className="p-6 bg-blue-50 rounded-2xl border border-blue-100">
-                            <p className="text-xs font-bold text-blue-700 mb-2">Auction completed successfully!</p>
-                            <p className="text-[10px] text-blue-600 font-medium">Accept the highest bid to start the safe meetup process. Funds will be held in platform escrow once the buyer pays.</p>
-                          </div>
                           <Button 
                             className="w-full h-16 bg-[#FF8C00] text-white font-black rounded-2xl text-lg shadow-xl"
                             onClick={handleAcceptHighestBid}
@@ -322,7 +310,6 @@ export default function ListingDetailPage() {
                         <div className="p-6 bg-green-50 rounded-2xl border border-green-100 text-center">
                            <ShieldCheck className="w-10 h-10 text-green-600 mx-auto mb-2" />
                            <p className="text-lg font-black text-green-800">You Won!</p>
-                           <p className="text-xs text-green-700 font-medium">Waiting for the seller to accept your bid and initiate the trade.</p>
                         </div>
                       ) : (
                         <div className="p-6 bg-slate-50 rounded-2xl border border-slate-100 text-center">
@@ -338,7 +325,7 @@ export default function ListingDetailPage() {
                         <div className="flex gap-3">
                           <Input 
                             type="number" 
-                            placeholder="Enter bid amount" 
+                            placeholder="Enter bid" 
                             className="h-14 rounded-xl font-bold bg-slate-50 border-none"
                             value={bidAmount}
                             onChange={(e) => setBidAmount(e.target.value)}
@@ -348,29 +335,16 @@ export default function ListingDetailPage() {
                             onClick={handlePlaceBid}
                             disabled={isBidding}
                           >
-                            {isBidding ? <Loader2 className="w-5 h-5 animate-spin" /> : "Place Bid"}
+                            {isBidding ? <Loader2 className="w-5 h-5 animate-spin" /> : "Bid"}
                           </Button>
                         </div>
                       </div>
                     )
                   ) : (
-                    <Button className="w-full bg-[#FF8C00] hover:bg-[#FF8C00]/90 text-white font-black h-16 rounded-2xl shadow-xl text-lg" onClick={() => setIsPaymentOpen(true)}>
+                    <Button className="w-full bg-[#FF8C00] text-white font-black h-16 rounded-2xl shadow-xl text-lg" onClick={() => setIsPaymentOpen(true)}>
                       Buy with Protection Hold
                     </Button>
                   )}
-                  
-                  <div className="grid grid-cols-2 gap-3">
-                    <Button variant="ghost" className="h-14 rounded-2xl bg-slate-50 font-bold text-slate-600" onClick={() => router.push('/messages')}>
-                      <MessageSquare className="w-5 h-5 mr-2" /> Chat
-                    </Button>
-                    <Button 
-                      variant="ghost" 
-                      className="h-14 rounded-2xl bg-slate-50 font-bold text-slate-600"
-                      onClick={() => router.push('/messages')}
-                    >
-                      <Calendar className="w-5 h-5 mr-2" /> Book Meet
-                    </Button>
-                  </div>
                 </div>
 
                 <div className="p-6 bg-green-50 rounded-[2rem] border border-green-100 space-y-3">
@@ -379,32 +353,60 @@ export default function ListingDetailPage() {
                       <h4 className="font-black text-green-800 uppercase text-[10px] tracking-widest">Safe Trade Guarantee</h4>
                    </div>
                    <p className="text-[10px] text-green-700 leading-relaxed font-bold">
-                     Whether buying fixed-price or winning an auction, your funds are protected. We hold the money until you verify the item at a Safe Zone.
+                     Funds are held in platform escrow until you verify the item at a Safe Zone.
                    </p>
                 </div>
               </CardContent>
             </Card>
 
-            <Card className="rounded-[2.5rem] border-none shadow-xl bg-white p-8">
-               <div className="flex items-center justify-between mb-8">
-                  <div className="flex items-center gap-4">
-                    <div className="relative w-16 h-16 rounded-[1.5rem] overflow-hidden border-2 border-white shadow-lg">
-                      <Image src={`https://picsum.photos/seed/user${listing.sellerId}/200/200`} alt="seller" fill />
-                    </div>
-                    <div>
-                      <div className="flex items-center gap-2">
-                         <h3 className="font-black text-xl text-slate-900">Verified Seller</h3>
-                         <VerifiedBadge />
-                      </div>
-                      <div className="flex items-center gap-2 mt-1">
-                         <div className="flex text-yellow-500"><Star className="w-3 h-3 fill-current" /> <Star className="w-3 h-3 fill-current" /> <Star className="w-3 h-3 fill-current" /> <Star className="w-3 h-3 fill-current" /> <Star className="w-3 h-3 fill-current" /></div>
-                         <span className="text-[10px] font-black text-muted-foreground">(98% RELIABILITY)</span>
-                      </div>
-                    </div>
+            {/* Enhanced Transaction History Sidebar Card */}
+            <Card className="rounded-[2.5rem] border-none shadow-xl bg-white overflow-hidden">
+               <div className="p-8 space-y-6">
+                  <div className="flex items-center justify-between">
+                     <div className="flex items-center gap-4">
+                        <div className="relative w-16 h-16 rounded-2xl overflow-hidden shadow-lg border-2 border-slate-50">
+                           <Image src={`https://picsum.photos/seed/user${listing.sellerId}/200/200`} alt="seller" fill />
+                        </div>
+                        <div>
+                           <div className="flex items-center gap-1.5">
+                              <h3 className="font-black text-lg text-slate-900 leading-none">Verified Seller</h3>
+                              <VerifiedBadge />
+                           </div>
+                           <div className="flex items-center gap-1 mt-1">
+                              <Star className="w-3 h-3 text-[#FF8C00] fill-current" />
+                              <span className="text-[10px] font-black text-[#FF8C00]">4.9 Reliability</span>
+                           </div>
+                        </div>
+                     </div>
+                     <Button variant="ghost" size="icon" className="rounded-xl h-12 w-12 bg-slate-50" onClick={() => router.push(`/profile/${listing.sellerId}`)}>
+                        <ChevronRight className="w-6 h-6" />
+                     </Button>
                   </div>
-                  <Button variant="ghost" size="icon" className="rounded-2xl h-12 w-12 bg-slate-50" onClick={() => router.push(`/profile/${listing.sellerId}`)}>
-                    <ChevronRight className="w-6 h-6" />
-                  </Button>
+
+                  <div className="grid grid-cols-2 gap-3">
+                     <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100 space-y-1">
+                        <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-1">
+                           <History className="w-2.5 h-2.5" /> Trades
+                        </p>
+                        <p className="text-xl font-black text-[#225BC3]">56</p>
+                     </div>
+                     <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100 space-y-1">
+                        <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-1">
+                           <Shield className="w-2.5 h-2.5" /> Disputes
+                        </p>
+                        <p className="text-xl font-black text-green-600">0</p>
+                     </div>
+                  </div>
+
+                  <div className="pt-2">
+                     <Button 
+                        variant="outline" 
+                        className="w-full h-12 rounded-xl font-black text-[10px] uppercase tracking-widest border-[#225BC3]/20 text-[#225BC3] hover:bg-[#225BC3]/5"
+                        onClick={() => router.push(`/profile/${listing.sellerId}`)}
+                     >
+                        View Full Trust Record
+                     </Button>
+                  </div>
                </div>
             </Card>
           </div>
@@ -423,70 +425,39 @@ export default function ListingDetailPage() {
           <div className="p-10 space-y-8">
             <div className="bg-slate-50 p-6 rounded-[2rem] border border-slate-100 flex justify-between items-center">
                <div>
-                  <p className="text-[10px] font-black text-slate-400 uppercase mb-1">Protection Hold Amount</p>
+                  <p className="text-[10px] font-black text-slate-400 uppercase mb-1">Hold Amount</p>
                   <p className="text-3xl font-black text-[#225BC3]">R {listing.price?.toLocaleString()}</p>
                </div>
                <ShieldCheck className="w-12 h-12 text-green-500" />
             </div>
 
-            <div className="space-y-4">
-              <Label className="font-black text-xs uppercase tracking-widest text-slate-400 ml-2">Payment Method</Label>
-              <RadioGroup value={paymentMethod} onValueChange={setPaymentMethod} className="gap-3">
-                {PAYMENT_METHODS.map((method) => {
-                  const Icon = method.icon;
-                  return (
-                    <div key={method.id} className="relative">
-                      <RadioGroupItem value={method.id} id={method.id} className="sr-only" />
-                      <Label 
+            <RadioGroup value={paymentMethod} onValueChange={setPaymentMethod} className="gap-3">
+               {PAYMENT_METHODS.map((method) => (
+                  <div key={method.id} className="relative">
+                     <RadioGroupItem value={method.id} id={method.id} className="sr-only" />
+                     <Label 
                         htmlFor={method.id} 
                         className={cn(
-                          "flex items-center gap-4 p-5 rounded-3xl border-2 transition-all cursor-pointer",
-                          paymentMethod === method.id ? "border-[#225BC3] bg-[#225BC3]/5 shadow-lg" : "border-slate-100 bg-white hover:border-slate-200"
+                           "flex items-center gap-4 p-5 rounded-3xl border-2 transition-all cursor-pointer",
+                           paymentMethod === method.id ? "border-[#225BC3] bg-[#225BC3]/5" : "border-slate-100 bg-white"
                         )}
-                      >
-                        <div className={cn("w-12 h-12 rounded-2xl flex items-center justify-center transition-colors", paymentMethod === method.id ? "bg-[#225BC3] text-white" : "bg-slate-100 text-slate-400")}>
-                          <Icon className="w-6 h-6" />
+                     >
+                        <method.icon className={cn("w-6 h-6", paymentMethod === method.id ? "text-[#225BC3]" : "text-slate-400")} />
+                        <div>
+                           <p className="font-black text-slate-900 text-sm">{method.name}</p>
+                           <p className="text-[10px] font-bold text-muted-foreground">{method.description}</p>
                         </div>
-                        <div className="flex-1">
-                          <p className="font-black text-slate-900 text-sm">{method.name}</p>
-                          <p className="text-[10px] font-bold text-muted-foreground">{method.description}</p>
-                        </div>
-                      </Label>
-                    </div>
-                  );
-                })}
-              </RadioGroup>
-            </div>
+                     </Label>
+                  </div>
+               ))}
+            </RadioGroup>
 
-            <Button 
-              className="w-full h-18 bg-[#225BC3] text-white font-black rounded-3xl shadow-2xl hover:scale-[1.02] transition-transform text-lg" 
-              onClick={handlePayment}
-              disabled={isPaying}
-            >
-              {isPaying ? "Authorizing..." : `Pay R ${listing.price?.toLocaleString()}`}
+            <Button className="w-full h-18 bg-[#225BC3] text-white font-black rounded-3xl shadow-2xl text-lg" onClick={handlePayment} disabled={isPaying}>
+               {isPaying ? "Processing..." : `Pay R ${listing.price?.toLocaleString()}`}
             </Button>
           </div>
         </DialogContent>
       </Dialog>
     </div>
-  );
-}
-
-function Loader2Icon(props: any) {
-  return (
-    <svg
-      {...props}
-      xmlns="http://www.w3.org/2000/svg"
-      width="24"
-      height="24"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <path d="M21 12a9 9 0 1 1-6.219-8.56" />
-    </svg>
   );
 }

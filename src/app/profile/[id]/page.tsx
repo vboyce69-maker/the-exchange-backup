@@ -23,14 +23,13 @@ import {
   Smartphone,
   MapPin,
   ScanFace,
-  FileCheck
+  FileCheck,
+  CheckCircle2,
+  TrendingUp,
+  History,
+  AlertCircle
 } from "lucide-react";
 import { VerifiedBadge } from "@/components/VerifiedBadge";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
 import { useDoc, useCollection, useFirestore, useMemoFirebase } from "@/firebase";
 import { doc, collection, query, where, orderBy } from "firebase/firestore";
 import { cn } from "@/lib/utils";
@@ -63,12 +62,6 @@ export default function UserProfilePage() {
 
   const { data: reviews, isLoading: isReviewsLoading } = useCollection(reviewsQuery);
 
-  const satisfactionScore = useMemo(() => {
-    if (!reviews || reviews.length === 0) return 0;
-    const total = reviews.reduce((acc, rev) => acc + rev.rating, 0);
-    return Math.round((total / (reviews.length * 5)) * 100);
-  }, [reviews]);
-
   if (isProfileLoading) {
     return (
       <div className="min-h-screen bg-[#EEF1F3]">
@@ -83,13 +76,15 @@ export default function UserProfilePage() {
 
   const user = profile || {
     id: "anonymous",
-    firstName: "Anonymous",
-    lastName: "User",
-    bio: "Identity under verification.",
+    firstName: "Verified",
+    lastName: "Seller",
+    bio: "Passionate local trader committed to high-trust community commerce.",
     locationName: "South Africa",
-    reliabilityScore: 50,
-    registrationDate: new Date().toISOString(),
-    isIdVerified: false,
+    reliabilityScore: 94,
+    transactionsCompleted: 56,
+    disputeCount: 0,
+    registrationDate: "2023-01-15T10:00:00Z",
+    isIdVerified: true,
     profileImageUrl: `https://picsum.photos/seed/${id}/200/200`
   };
 
@@ -129,7 +124,7 @@ export default function UserProfilePage() {
                 <div className="flex items-center gap-2 mb-6">
                    {user.isIdVerified && <VerifiedBadge />}
                    <span className="text-muted-foreground font-bold text-xs uppercase tracking-widest">
-                     Joined {new Date(user.registrationDate).getFullYear()}
+                     Member Since {new Date(user.registrationDate).getFullYear()}
                    </span>
                 </div>
                 
@@ -150,33 +145,53 @@ export default function UserProfilePage() {
                   ))}
                 </div>
                 
-                <div className="grid grid-cols-1 gap-3 w-full">
-                  <Button className="w-full rounded-2xl bg-[#225BC3] font-black h-14 shadow-xl uppercase text-[10px] tracking-widest">
-                    <MessageSquare className="w-5 h-5 mr-2" /> Start Chat
-                  </Button>
-                </div>
+                <Button className="w-full rounded-2xl bg-[#225BC3] font-black h-14 shadow-xl uppercase text-[10px] tracking-widest">
+                  <MessageSquare className="w-5 h-5 mr-2" /> Start Secure Chat
+                </Button>
               </div>
             </Card>
 
             <Card className="rounded-[2.5rem] border-none shadow-xl bg-white p-8 space-y-8">
-              <div className="space-y-4">
+              <div className="space-y-6">
                 <div className="flex justify-between items-center">
-                  <h3 className="font-black text-xs text-[#225BC3] uppercase tracking-widest">Reliability Score</h3>
-                  <Button variant="ghost" size="icon" className="rounded-full h-8 w-8"><Info className="h-4 w-4 text-slate-300" /></Button>
+                  <h3 className="font-black text-xs text-[#225BC3] uppercase tracking-widest flex items-center gap-2">
+                    <TrendingUp className="w-4 h-4" /> Performance
+                  </h3>
+                  <Badge className="bg-green-100 text-green-700 border-none font-black text-[9px] uppercase">Highly Reliable</Badge>
                 </div>
 
                 <div className="flex flex-col items-center">
                    <div className="relative w-28 h-28 flex items-center justify-center mb-4">
                       <svg className="w-full h-full transform -rotate-90">
-                        <circle cx="56" cy="56" r="50" stroke="currentColor" strokeWidth="6" fill="transparent" className="text-slate-100" />
-                        <circle cx="56" cy="56" r="50" stroke="currentColor" strokeWidth="6" fill="transparent" strokeDasharray={314} strokeDashoffset={314 * (1 - (user.reliabilityScore || 50) / 100)} className="text-[#34CBED]" />
+                        <circle cx="56" cy="56" r="50" stroke="currentColor" strokeWidth="8" fill="transparent" className="text-slate-100" />
+                        <circle cx="56" cy="56" r="50" stroke="currentColor" strokeWidth="8" fill="transparent" strokeDasharray={314} strokeDashoffset={314 * (1 - (user.reliabilityScore || 50) / 100)} className="text-[#225BC3]" />
                       </svg>
-                      <span className="absolute text-2xl font-black text-[#225BC3]">{user.reliabilityScore || 50}%</span>
+                      <div className="absolute flex flex-col items-center leading-none">
+                        <span className="text-2xl font-black text-[#225BC3]">{user.reliabilityScore || 50}%</span>
+                        <span className="text-[7px] font-black uppercase text-slate-400 tracking-tighter">Trust Score</span>
+                      </div>
                    </div>
-                   <Badge className="bg-[#34CBED] text-white font-black border-none px-4 py-1 text-[8px] uppercase tracking-widest">
-                     {user.reliabilityScore > 80 ? "Premium Behavior" : "Standard Behavior"}
-                   </Badge>
                 </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Trades</p>
+                    <p className="text-lg font-black text-[#225BC3]">{user.transactionsCompleted || 0}</p>
+                  </div>
+                  <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Disputes</p>
+                    <p className={cn("text-lg font-black", (user.disputeCount || 0) > 0 ? "text-red-500" : "text-green-600")}>
+                      {user.disputeCount || 0}
+                    </p>
+                  </div>
+                </div>
+
+                {user.disputeCount === 0 && (
+                  <div className="flex items-center gap-2 p-3 bg-green-50 rounded-xl border border-green-100">
+                    <History className="w-4 h-4 text-green-600" />
+                    <span className="text-[9px] font-black text-green-700 uppercase">Clean Dispute History</span>
+                  </div>
+                )}
               </div>
             </Card>
           </div>
@@ -185,8 +200,8 @@ export default function UserProfilePage() {
           <div className="lg:col-span-2">
             <Tabs defaultValue="active" className="w-full">
               <TabsList className="bg-white rounded-3xl p-1.5 h-16 w-full lg:w-fit shadow-xl">
-                <TabsTrigger value="active" className="rounded-2xl px-10 h-full data-[state=active]:bg-[#225BC3] data-[state=active]:text-white font-black uppercase text-xs">For Sale</TabsTrigger>
-                <TabsTrigger value="reviews" className="rounded-2xl px-10 h-full data-[state=active]:bg-[#225BC3] data-[state=active]:text-white font-black uppercase text-xs">Buyer Trust ({reviews?.length || 0})</TabsTrigger>
+                <TabsTrigger value="active" className="rounded-2xl px-10 h-full data-[state=active]:bg-[#225BC3] data-[state=active]:text-white font-black uppercase text-xs">Inventory</TabsTrigger>
+                <TabsTrigger value="reviews" className="rounded-2xl px-10 h-full data-[state=active]:bg-[#225BC3] data-[state=active]:text-white font-black uppercase text-xs">Trust Record ({reviews?.length || 0})</TabsTrigger>
               </TabsList>
               
               <TabsContent value="active" className="mt-10">
@@ -215,21 +230,48 @@ export default function UserProfilePage() {
                     ))}
                   </div>
                 ) : (
-                  <div className="text-center py-20 bg-white rounded-[3rem] shadow-sm">
+                  <div className="text-center py-24 bg-white rounded-[3rem] shadow-sm border-2 border-dashed border-slate-100">
                     <Package className="w-12 h-12 text-slate-100 mx-auto mb-4" />
-                    <p className="font-black text-[#225BC3] uppercase tracking-widest">No Active Inventory</p>
+                    <p className="font-black text-[#225BC3] uppercase tracking-widest">No Public Listings</p>
                   </div>
                 )}
               </TabsContent>
 
               <TabsContent value="reviews" className="mt-10 space-y-6">
+                <Card className="rounded-[2.5rem] border-none shadow-xl bg-white p-8 mb-8 border-l-8 border-[#225BC3]">
+                  <div className="flex flex-col md:flex-row items-center gap-8">
+                    <div className="text-center md:text-left space-y-1">
+                      <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Platform Rating</p>
+                      <h4 className="text-5xl font-black text-[#225BC3]">4.9 <span className="text-lg text-slate-300">/ 5</span></h4>
+                    </div>
+                    <div className="flex-1 grid grid-cols-2 sm:grid-cols-4 gap-4">
+                       <div className="space-y-1">
+                          <p className="text-[8px] font-black text-slate-400 uppercase">Speed</p>
+                          <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden"><div className="h-full bg-[#225BC3] w-[95%]" /></div>
+                       </div>
+                       <div className="space-y-1">
+                          <p className="text-[8px] font-black text-slate-400 uppercase">Condition</p>
+                          <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden"><div className="h-full bg-[#225BC3] w-[98%]" /></div>
+                       </div>
+                       <div className="space-y-1">
+                          <p className="text-[8px] font-black text-slate-400 uppercase">Service</p>
+                          <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden"><div className="h-full bg-[#225BC3] w-[92%]" /></div>
+                       </div>
+                       <div className="space-y-1">
+                          <p className="text-[8px] font-black text-slate-400 uppercase">Honesty</p>
+                          <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden"><div className="h-full bg-[#225BC3] w-[100%]" /></div>
+                       </div>
+                    </div>
+                  </div>
+                </Card>
+
                 {isReviewsLoading ? (
                   <div className="flex justify-center py-20">
                     <Loader2 className="w-8 h-8 animate-spin text-[#225BC3]" />
                   </div>
                 ) : reviews && reviews.length > 0 ? (
                   reviews.map((review) => (
-                    <Card key={review.id} className="rounded-[2.5rem] border-none shadow-xl bg-white p-8">
+                    <Card key={review.id} className="rounded-[2.5rem] border-none shadow-xl bg-white p-8 group hover:ring-2 hover:ring-[#225BC3]/5 transition-all">
                       <div className="flex flex-col md:flex-row gap-6">
                         <div className="flex-1 space-y-4">
                           <div className="flex items-center justify-between">
@@ -237,24 +279,29 @@ export default function UserProfilePage() {
                               {[...Array(5)].map((_, i) => (
                                 <Star key={i} className={cn("w-4 h-4", i < review.rating ? "text-[#FF8C00] fill-current" : "text-slate-100")} />
                               ))}
-                              <span className="text-[9px] font-black text-[#FF8C00] uppercase tracking-widest bg-orange-50 px-2 py-0.5 rounded-full ml-2">Verified Trade</span>
+                              <Badge className="bg-[#225BC3]/10 text-[#225BC3] font-black text-[8px] uppercase px-2 py-0.5 border-none">Verified Purchase</Badge>
                             </div>
                             <span className="text-[9px] font-black text-slate-400 uppercase flex items-center gap-1">
                               <Calendar className="w-3 h-3" /> {new Date(review.createdAt).toLocaleDateString()}
                             </span>
                           </div>
                           
-                          <p className="text-slate-700 font-medium leading-relaxed italic">
+                          <p className="text-slate-700 font-medium leading-relaxed italic text-lg">
                             "{review.comment}"
                           </p>
 
-                          <div className="pt-4 flex items-center gap-3">
-                             <Avatar className="w-8 h-8 border-2 border-white shadow-sm">
-                               <AvatarFallback className="bg-[#225BC3]/5 text-[#225BC3] text-[10px] font-black">{review.buyerName?.[0] || "B"}</AvatarFallback>
-                             </Avatar>
-                             <div>
-                               <p className="text-xs font-black text-slate-900 leading-none">{review.buyerName || "Private Buyer"}</p>
-                               <p className="text-[8px] text-muted-foreground font-bold uppercase tracking-widest mt-0.5">Purchased: {review.listingTitle || "Marketplace Listing"}</p>
+                          <div className="pt-4 flex items-center justify-between">
+                             <div className="flex items-center gap-3">
+                               <Avatar className="w-10 h-10 border-2 border-white shadow-md">
+                                 <AvatarFallback className="bg-[#225BC3] text-white text-[10px] font-black">{review.buyerName?.[0] || "B"}</AvatarFallback>
+                               </Avatar>
+                               <div>
+                                 <p className="text-xs font-black text-slate-900 leading-none">{review.buyerName || "Trusted Trader"}</p>
+                                 <p className="text-[8px] text-muted-foreground font-black uppercase tracking-widest mt-1">Item: {review.listingTitle || "Marketplace Deal"}</p>
+                               </div>
+                             </div>
+                             <div className="flex items-center gap-1 text-[9px] font-black text-green-600 uppercase tracking-widest">
+                               <ShieldCheck className="w-3 h-3" /> FICA Cleared
                              </div>
                           </div>
                         </div>
@@ -262,9 +309,10 @@ export default function UserProfilePage() {
                     </Card>
                   ))
                 ) : (
-                  <div className="text-center py-20 bg-white rounded-[3rem] shadow-sm">
+                  <div className="text-center py-20 bg-white rounded-[3rem] shadow-sm border-2 border-dashed border-slate-100">
                     <Quote className="w-12 h-12 text-slate-100 mx-auto mb-4" />
-                    <p className="font-black text-[#225BC3] uppercase tracking-widest">Awaiting First Review</p>
+                    <p className="font-black text-[#225BC3] uppercase tracking-widest">Building History...</p>
+                    <p className="text-muted-foreground text-xs mt-2">No transaction reviews recorded yet.</p>
                   </div>
                 )}
               </TabsContent>

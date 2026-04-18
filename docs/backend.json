@@ -4,13 +4,19 @@
     "UserProfile": {
       "title": "UserProfile",
       "type": "object",
-      "description": "User profile with verification status.",
+      "description": "User profile with verification status and transaction history.",
       "properties": {
         "id": { "type": "string" },
         "username": { "type": "string" },
+        "firstName": { "type": "string" },
+        "lastName": { "type": "string" },
         "isIdVerified": { "type": "boolean" },
         "reliabilityScore": { "type": "number" },
-        "registrationDate": { "type": "string", "format": "date-time" }
+        "transactionsCompleted": { "type": "number" },
+        "disputeCount": { "type": "number" },
+        "registrationDate": { "type": "string", "format": "date-time" },
+        "bio": { "type": "string" },
+        "profileImageUrl": { "type": "string" }
       },
       "required": ["id", "username", "isIdVerified", "reliabilityScore", "registrationDate"]
     },
@@ -24,7 +30,10 @@
         "title": { "type": "string" },
         "price": { "type": "number" },
         "status": { "type": "string" },
-        "isAuction": { "type": "boolean" }
+        "isAuction": { "type": "boolean" },
+        "highestBid": { "type": "number" },
+        "isBulk": { "type": "boolean" },
+        "quantity": { "type": "number" }
       },
       "required": ["id", "sellerId", "title", "price", "status"]
     },
