@@ -3,6 +3,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { 
   RecaptchaVerifier, 
   signInWithPhoneNumber, 
@@ -14,6 +15,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Smartphone, Lock, Loader2, CheckCircle2, AlertCircle, Info } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -28,6 +30,7 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [confirmationResult, setConfirmationResult] = useState<ConfirmationResult | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [agreedToTerms, setAgreedToTerms] = useState(false);
 
   const recaptchaVerifierRef = useRef<RecaptchaVerifier | null>(null);
 
@@ -69,6 +72,15 @@ export default function LoginPage() {
     setError(null);
 
     if (!phoneNumber.trim()) return;
+
+    if (!agreedToTerms) {
+      toast({
+        variant: "destructive",
+        title: "Consent Required",
+        description: "You must agree to the Terms of Service to continue.",
+      });
+      return;
+    }
 
     if (!phoneNumber.startsWith("+")) {
       toast({
@@ -202,13 +214,30 @@ export default function LoginPage() {
                       onChange={(e) => setPhoneNumber(e.target.value)}
                     />
                   </div>
+
+                  <div className="flex items-start space-x-3 py-2">
+                    <Checkbox 
+                      id="terms" 
+                      checked={agreedToTerms} 
+                      onCheckedChange={(checked) => setAgreedToTerms(checked === true)}
+                    />
+                    <div className="grid gap-1.5 leading-none">
+                      <label
+                        htmlFor="terms"
+                        className="text-[10px] font-bold text-slate-500 leading-tight peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                      >
+                        I have read and agree to the <Link href="/legal" className="text-[#225BC3] underline hover:text-[#34CBED] transition-colors">Terms of Service</Link> and <Link href="/legal" className="text-[#225BC3] underline hover:text-[#34CBED] transition-colors">Privacy Policy</Link>.
+                      </label>
+                    </div>
+                  </div>
+
                   <div id="recaptcha-container"></div>
                   <Button 
                     id="send-otp-button"
                     data-testid="send-otp-button"
                     type="submit" 
                     className="w-full h-16 rounded-2xl bg-[#225BC3] text-white font-black text-lg shadow-xl hover:scale-[1.02] active:scale-[0.98] transition-all"
-                    disabled={loading || !phoneNumber}
+                    disabled={loading || !phoneNumber || !agreedToTerms}
                   >
                     {loading ? <Loader2 className="w-6 h-6 animate-spin" /> : "Send Verification Code"}
                   </Button>
