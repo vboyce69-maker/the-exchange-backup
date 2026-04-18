@@ -34,6 +34,7 @@ import { useFirestore, useUser } from "@/firebase";
 import { addDocumentNonBlocking } from "@/firebase/non-blocking-updates";
 import { Badge } from "@/components/ui/badge";
 import { MARKET_CONFIG, isFoundingSlotAvailable } from "@/app/lib/market-config";
+import { cn } from "@/lib/utils";
 
 export default function CreateListingPage() {
   const router = useRouter();
