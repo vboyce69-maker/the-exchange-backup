@@ -29,7 +29,8 @@ import {
   TrendingUp,
   Clock,
   ArrowRight,
-  Loader2
+  Loader2,
+  ShieldAlert
 } from "lucide-react";
 import Image from "next/image";
 import { VerifiedBadge } from "@/components/VerifiedBadge";
@@ -224,6 +225,16 @@ export default function ListingDetailPage() {
                       </div>
                     </div>
                   )}
+
+                  <div className="mt-8 p-6 bg-red-50 rounded-3xl border border-red-100 flex gap-4">
+                    <ShieldAlert className="w-10 h-10 text-red-600 shrink-0" />
+                    <div>
+                      <p className="text-[10px] font-black text-red-700 uppercase tracking-widest mb-1">Off-Platform Liability Waiver</p>
+                      <p className="text-[11px] text-red-600 font-bold leading-relaxed">
+                        NOTICE: Any deals or meetings made outside of 'The Exchange' app are strictly at your own risk. The company is NOT liable for any damages, loss, or safety issues that arise from off-platform activity. Always use in-app chat and payments.
+                      </p>
+                    </div>
+                  </div>
 
                   <div className="mt-4 p-6 bg-slate-50 rounded-3xl border border-slate-100 flex gap-4">
                     <Scale className="w-10 h-10 text-slate-400 shrink-0" />

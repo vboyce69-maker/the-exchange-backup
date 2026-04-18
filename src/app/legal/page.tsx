@@ -55,6 +55,24 @@ export default function LegalHub() {
             </Button>
           </div>
 
+          {/* OFF-PLATFORM LIABILITY */}
+          <Card className="rounded-[2.5rem] border-none shadow-xl bg-red-600 overflow-hidden text-white">
+            <CardHeader className="p-10 pb-0">
+              <CardTitle className="flex items-center gap-3 uppercase tracking-tighter text-2xl">
+                <ShieldAlert className="w-8 h-8 text-white animate-pulse" />
+                Off-Platform Activity Warning
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-10 space-y-4">
+              <p className="text-lg font-black leading-tight">
+                'The Exchange' Marketplace (Pty) Ltd explicitly disclaims all liability for any transaction, agreement, or physical meeting conducted outside of our secure platform.
+              </p>
+              <p className="text-sm font-bold opacity-90 leading-relaxed">
+                By choosing to communicate or pay through external channels (WhatsApp, direct EFT, Cash-on-delivery without escrow), you waive all rights to platform protection. The company is NOT liable for any damages, personal injury, financial loss, or safety issues arising from off-platform meetings. Our "Protected Hold" system is only active for in-app transactions.
+              </p>
+            </CardContent>
+          </Card>
+
           {/* AI DEFENSE FRAMEWORK */}
           <Card className="rounded-[2.5rem] border-none shadow-xl bg-white overflow-hidden ring-1 ring-slate-100">
             <CardHeader className="bg-[#225BC3] p-10 text-white">
