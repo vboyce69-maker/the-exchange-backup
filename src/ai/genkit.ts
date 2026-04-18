@@ -22,10 +22,13 @@ export async function runWithModelSafe<T>(
   promptFn: (config: { model: any }) => Promise<T>
 ): Promise<{ ok: boolean; output: T | null; error?: string; modelUsed: string }> {
   try {
+    // Attempt with Primary Model
     const result = await promptFn({ model: PRIMARY_MODEL });
     return { ok: true, output: result, modelUsed: PRIMARY_MODEL };
   } catch (error: any) {
     const errorMessage = error.message || String(error);
+    
+    // Determine if the error is a transient infrastructure or quota issue
     const isRecoverable = 
       errorMessage.includes('404') || 
       errorMessage.includes('429') || 
@@ -34,24 +37,28 @@ export async function runWithModelSafe<T>(
       errorMessage.includes('unsupported');
     
     if (isRecoverable) {
+      console.warn(`Primary model (${PRIMARY_MODEL}) failed: ${errorMessage}. Attempting fallback...`);
       try {
+        // Attempt with Fallback Model
         const fallbackResult = await promptFn({ model: FALLBACK_MODEL });
         return { 
           ok: true, 
           output: fallbackResult, 
           modelUsed: FALLBACK_MODEL, 
-          error: `Recovered with fallback: ${errorMessage}` 
+          error: `Recovered with fallback after primary error: ${errorMessage}` 
         };
       } catch (fallbackError: any) {
+        console.error(`Fallback model (${FALLBACK_MODEL}) also failed:`, fallbackError.message);
         return { 
           ok: false, 
           output: null, 
-          error: fallbackError.message, 
+          error: `Both primary and fallback models failed. Last error: ${fallbackError.message}`, 
           modelUsed: FALLBACK_MODEL 
         };
       }
     }
 
+    // Non-recoverable error (e.g., validation error)
     return { 
       ok: false, 
       output: null, 
