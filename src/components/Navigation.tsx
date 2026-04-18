@@ -47,6 +47,7 @@ export function Navigation() {
   const handleSignOut = async () => {
     try {
       await signOut(auth);
+      router.push("/");
     } catch (error) {
       console.error("Sign out error", error);
     }
@@ -154,6 +155,18 @@ export function Navigation() {
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-64 rounded-[2rem] p-3 shadow-2xl border-none ring-1 ring-black/5 mt-2 bg-white">
+                <DropdownMenuLabel className="font-black text-[9px] uppercase tracking-widest text-slate-400 p-3">Account</DropdownMenuLabel>
+                <DropdownMenuItem asChild className="rounded-xl p-3 font-bold gap-3 cursor-pointer">
+                  <Link href={`/profile/${user.uid}`}>
+                    <User className="w-4 h-4" /> Public Profile
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild className="rounded-xl p-3 font-bold gap-3 cursor-pointer">
+                  <Link href="/settings">
+                    <Settings className="w-4 h-4" /> Manage Account
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={handleSignOut} className="rounded-xl p-3 font-bold gap-3 text-red-500 focus:bg-red-50 focus:text-red-600 cursor-pointer">
                   <LogOut className="w-4 h-4" />
                   Sign Out
