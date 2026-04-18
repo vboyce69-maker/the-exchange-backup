@@ -3,11 +3,11 @@ import { googleAI } from '@genkit-ai/google-genai';
 
 /**
  * Centralized Model Configuration for 'The Exchange'.
- * Primary: Gemini 2.0 Flash (Stable, High speed)
- * Fallback: Gemini 1.5 Flash Latest (Resilient, High availability)
+ * Primary: Gemini 1.5 Flash (Most compatible, High speed)
+ * Fallback: Gemini 1.5 Pro (Most robust, High reasoning)
  */
-export const PRIMARY_MODEL = 'googleai/gemini-2.0-flash';
-export const FALLBACK_MODEL = 'googleai/gemini-1.5-flash-latest';
+export const PRIMARY_MODEL = 'googleai/gemini-1.5-flash';
+export const FALLBACK_MODEL = 'googleai/gemini-1.5-pro';
 
 export const ai = genkit({
   plugins: [googleAI()],
