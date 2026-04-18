@@ -157,7 +157,6 @@ export function detectScam(text: string, userTrustScore: number = 50): Detection
     severity = 'medium';
   } else {
     // Threshold < 30 → allow
-    action = 'allow';
     severity = 'low';
   }
 
