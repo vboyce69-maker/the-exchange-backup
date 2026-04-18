@@ -3,10 +3,10 @@
  * @fileOverview Advanced Tiered AI Security Agent for Chat Fraud Prevention.
  * 
  * ARCHITECTURE:
- * 1. Rule-Based Detection (Fast/Free)
- * 2. Risk Scoring Engine
- * 3. AI Intent Analysis (Only for High-Risk/Ambiguous cases)
- * 4. Final Moderation Decision
+ * 1. Rule-Based Detection (Layer 1: Fast/Free)
+ * 2. Risk Scoring Engine (Layer 2: <30 Allow, 30-60 Warn, >60 AI)
+ * 3. AI Intent Analysis (Layer 3: Deep contextual check)
+ * 4. Final Moderation Decision (Layer 4)
  */
 
 import {ai, runWithModelSafe} from '@/ai/genkit';
@@ -36,7 +36,7 @@ export type AntiScamChatProtectionOutput = z.infer<typeof AntiScamChatProtection
 
 /**
  * AI Intent Analyzer Prompt
- * Only invoked when deterministic rules detect a potential but ambiguous threat.
+ * Invoked based on Layer 2 scoring threshold (>60).
  */
 const intentAnalyzer = ai.definePrompt({
   name: 'intentAnalyzer',
@@ -54,33 +54,31 @@ const intentAnalyzer = ai.definePrompt({
       suggestedAction: z.enum(['allow', 'warn', 'block']),
     })
   },
-  prompt: `You are an expert Anti-Fraud AI. 
-A message was flagged by deterministic rules for patterns: {{{matchedRules}}}.
+  prompt: `You are an expert Anti-Fraud AI for 'The Exchange' marketplace. 
+A message was flagged by the Layer 2 Risk Engine for patterns: {{{matchedRules}}}.
 Detected issues: {{{ruleExplanation}}}
 
 MESSAGE CONTENT:
 "{{{message}}}"
 
 TASK:
-Analyze the INTENT of this message. Is it a legitimate trade inquiry or a social engineering attempt?
-Scammers often use character obfuscation (spaced out letters), fake urgency, or specific platform redirection.
-Legitimate users might mention numbers for logistics, but scammers usually demand off-platform payment.
+Analyze the INTENT. Is this a legitimate trade inquiry or a social engineering attempt?
+High risk signals: Asking for WhatsApp early, demanding EFT/Direct Pay, fake courier stories.
+Low risk signals: Asking about item specs, price negotiation within reason, meeting at safe zones.
 
 Provide a final intent risk level and reasoning.`,
 });
 
 export async function antiScamChatProtection(input: AntiScamChatProtectionInput): Promise<AntiScamChatProtectionOutput> {
-  // 1. DETERMINISTIC RULE SCAN (Layer 1 & 2)
-  // This is fast, local, and free.
+  // 1. LAYER 2: RISK SCORING ENGINE
   const result = detectScam(input.message, input.userTrustScore);
   
-  // 2. CONDITIONAL AI ANALYSIS (Layer 3)
-  // We only call the LLM if the risk is significant but not yet definitive (Score 30 to 84).
-  // Scores < 30 are considered safe enough. Scores >= 85 are auto-blocked.
-  const isAmbiguous = result.score >= 30 && result.score < 85;
+  // 2. CONDITIONAL AI ANALYSIS (LAYER 3)
+  // Invoked only if score > 60
+  const requiresAi = result.score > 60;
   let aiVerdict = null;
 
-  if (isAmbiguous) {
+  if (requiresAi) {
     const aiResult = await runWithModelSafe((config) => 
       intentAnalyzer({
         message: input.message,
@@ -94,7 +92,7 @@ export async function antiScamChatProtection(input: AntiScamChatProtectionInput)
     }
   }
 
-  // 3. FINAL DECISION LOGIC (Layer 4)
+  // 3. FINAL DECISION LOGIC (LAYER 4)
   let finalDecision = result.action as any;
   let finalReason = result.explanation;
 
@@ -103,18 +101,18 @@ export async function antiScamChatProtection(input: AntiScamChatProtectionInput)
       finalDecision = 'block';
       finalReason = `AI Threat Detection: ${aiVerdict.reasoning}`;
     } else if (aiVerdict.intentRisk === 'suspicious') {
-      finalDecision = 'hold';
-      finalReason = `Security Warning: ${aiVerdict.reasoning}`;
+      finalDecision = 'hold'; // Keeping it in review
+      finalReason = `Security Warning (AI): ${aiVerdict.reasoning}`;
     } else if (aiVerdict.intentRisk === 'safe') {
-      // AI determined it's safe despite rule flags (e.g., false positive)
-      finalDecision = 'allow';
+      // AI cleared it despite rule flags
+      finalDecision = result.score >= 30 ? 'warn' : 'allow';
       finalReason = 'AI verification: Potential pattern recognized but intent appears safe.';
     }
   }
 
   return {
     isSuspicious: finalDecision !== 'allow',
-    riskScore: aiVerdict?.intentRisk === 'malicious' ? 95 : result.score,
+    riskScore: result.score,
     decision: finalDecision,
     reason: finalReason,
     aiAnalysisPerformed: !!aiVerdict,
