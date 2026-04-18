@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useEffect, useState } from "react";
@@ -14,24 +13,52 @@ import {
   BarChart3,
   Loader2,
   Zap,
-  ChevronRight
+  ChevronRight,
+  Clock
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+
+const INSIGHTS_CACHE_KEY = 'exchange_insights_cache';
+const CACHE_TTL = 3600000; // 1 hour
 
 export default function InsightsPage() {
   const [insights, setInsights] = useState<SellerDemandInsightsOutput | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isCached, setIsCached] = useState(false);
 
   useEffect(() => {
     async function fetchInsights() {
+      // COST REDUCTION: Check client-side cache first
+      const cachedData = localStorage.getItem(INSIGHTS_CACHE_KEY);
+      if (cachedData) {
+        try {
+          const { data, timestamp } = JSON.parse(cachedData);
+          if (Date.now() - timestamp < CACHE_TTL) {
+            setInsights(data);
+            setIsCached(true);
+            setLoading(false);
+            return;
+          }
+        } catch (e) {
+          console.warn("Insights cache invalid");
+        }
+      }
+
       try {
         const result = await getSellerDemandInsights({
           sellerId: "user_123",
           currentListingsCategories: ["Electronics", "Bikes"],
           recentSearchTerms: ["laptop", "camera", "ebike"],
-          sellerLocation: { latitude: 40.7128, longitude: -74.0060 }
+          sellerLocation: { latitude: -26.2041, longitude: 28.0473 } // Johannesburg
         });
+        
         setInsights(result);
+        
+        // Save to cache to reduce monthly AI costs
+        localStorage.setItem(INSIGHTS_CACHE_KEY, JSON.stringify({
+          data: result,
+          timestamp: Date.now()
+        }));
       } catch (err) {
         console.error(err);
       } finally {
@@ -41,117 +68,125 @@ export default function InsightsPage() {
     fetchInsights();
   }, []);
 
+  const refreshInsights = () => {
+    localStorage.removeItem(INSIGHTS_CACHE_KEY);
+    window.location.reload();
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-background">
         <Navigation />
         <div className="flex flex-col items-center justify-center py-32">
           <Loader2 className="w-12 h-12 text-primary animate-spin mb-4" />
-          <p className="text-muted-foreground font-medium">Analyzing marketplace data...</p>
+          <p className="text-muted-foreground font-black uppercase text-[10px] tracking-widest">Running AI Market Analysis...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-[#F8FAFC]">
       <Navigation />
       <main className="container mx-auto px-4 py-12">
         <div className="flex flex-col lg:flex-row items-start justify-between gap-8 mb-12">
-          <div className="max-w-2xl">
-            <Badge className="mb-4 bg-primary text-primary-foreground flex items-center gap-1 w-fit">
-              <Zap className="w-3 h-3 fill-current" />
-              AI Market Analyst
-            </Badge>
-            <h1 className="text-4xl font-headline font-bold mb-4">Seller Demand Spotlights</h1>
-            <p className="text-lg text-muted-foreground leading-relaxed">
-              We analyze thousands of search terms and listings to help you find the best places 
-              and categories to sell your items.
+          <div className="max-w-2xl space-y-4">
+            <div className="flex items-center gap-3">
+              <Badge className="bg-[#225BC3] text-white flex items-center gap-1 w-fit rounded-xl px-4 py-1 font-black uppercase text-[10px] tracking-widest">
+                <Zap className="w-3 h-3 fill-current" />
+                AI Market Analyst
+              </Badge>
+              {isCached && (
+                <Badge variant="outline" className="border-slate-200 text-slate-400 font-bold text-[9px] uppercase">
+                  <Clock className="w-2.5 h-2.5 mr-1" /> Results Cached
+                </Badge>
+              )}
+            </div>
+            <h1 className="text-4xl font-black text-[#225BC3] uppercase tracking-tighter">Market Demand Insights</h1>
+            <p className="text-lg text-slate-600 font-medium leading-relaxed">
+              We analyze regional search data and supply volume to help you price and position your listings for the fastest possible sale.
             </p>
           </div>
-          <Button className="bg-accent text-accent-foreground font-bold" size="lg">
-            Boost Listing Visibility
-          </Button>
+          <div className="flex gap-4">
+            <Button variant="outline" onClick={refreshInsights} className="rounded-2xl h-12 font-black uppercase text-[10px] tracking-widest">
+              Refresh Data
+            </Button>
+            <Button className="bg-[#FF8C00] text-white font-black rounded-2xl h-12 px-8 shadow-xl" size="lg">
+              Boost Active Listings
+            </Button>
+          </div>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-12">
-          {/* Market Trends Summary */}
-          <Card className="lg:col-span-3 border-primary/20 bg-primary/5">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <BarChart3 className="w-5 h-5 text-primary" />
-                Strategic Market Overview
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-lg leading-relaxed text-foreground/80 italic">
-                "{insights?.generalMarketTrends}"
-              </p>
-            </CardContent>
+          <Card className="lg:col-span-3 rounded-[2.5rem] border-none shadow-xl bg-white p-8 space-y-4 ring-1 ring-[#225BC3]/5">
+            <div className="flex items-center gap-3 text-[#225BC3]">
+              <BarChart3 className="w-6 h-6" />
+              <h2 className="text-xl font-black uppercase tracking-tight">Strategic Market Overview</h2>
+            </div>
+            <p className="text-lg leading-relaxed text-slate-700 font-bold italic">
+              "{insights?.generalMarketTrends}"
+            </p>
           </Card>
 
-          {/* High Demand Geographic Areas (Simulated Heat Map Info) */}
-          <Card className="lg:col-span-2">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <MapPin className="w-5 h-5 text-primary" />
+          <Card className="lg:col-span-2 rounded-[3rem] border-none shadow-2xl bg-white overflow-hidden">
+            <CardHeader className="bg-slate-50 p-8 border-b border-slate-100">
+              <CardTitle className="flex items-center gap-2 text-[#225BC3] font-black uppercase tracking-tight">
+                <MapPin className="w-5 h-5" />
                 Regional Hotspots
               </CardTitle>
-              <CardDescription>Areas where buyers are most active right now</CardDescription>
+              <CardDescription className="font-bold text-slate-500">Areas with peak buyer activity this week</CardDescription>
             </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="relative aspect-video bg-secondary/30 rounded-xl overflow-hidden mb-4 flex items-center justify-center border-2 border-dashed border-primary/20">
-                 <div className="text-center p-8">
-                    <TrendingUp className="w-12 h-12 text-primary/30 mx-auto mb-2" />
-                    <p className="text-muted-foreground font-medium">Interactive Heatmap Visualization</p>
-                    <p className="text-xs text-muted-foreground/60">Target your listing delivery to these zones</p>
+            <CardContent className="p-8 space-y-8">
+              <div className="relative aspect-video bg-blue-50 rounded-[2rem] overflow-hidden flex items-center justify-center border-2 border-dashed border-[#225BC3]/10">
+                 <div className="text-center p-8 relative z-10">
+                    <TrendingUp className="w-16 h-16 text-[#225BC3]/20 mx-auto mb-4" />
+                    <p className="text-[#225BC3] font-black uppercase text-xs tracking-widest">Interactive Supply Heatmap</p>
+                    <p className="text-[10px] text-slate-400 font-bold mt-2">Target listings to these high-conversion zones</p>
                  </div>
-                 {/* Visual simulation of heat spots */}
-                 <div className="absolute top-1/4 left-1/3 w-24 h-24 bg-accent/20 rounded-full blur-2xl animate-pulse" />
-                 <div className="absolute bottom-1/3 right-1/4 w-32 h-32 bg-primary/10 rounded-full blur-3xl animate-pulse" />
+                 <div className="absolute top-1/4 left-1/3 w-32 h-32 bg-[#34CBED]/20 rounded-full blur-3xl animate-pulse" />
+                 <div className="absolute bottom-1/4 right-1/4 w-40 h-40 bg-[#225BC3]/10 rounded-full blur-[50px] animate-pulse" />
               </div>
               
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {insights?.highDemandAreas.map((area, i) => (
-                  <div key={i} className="p-4 border rounded-xl bg-white shadow-sm flex flex-col gap-2">
+                  <div key={i} className="p-6 border border-slate-100 rounded-3xl bg-white shadow-sm flex flex-col gap-3 group hover:ring-2 hover:ring-[#225BC3]/5 transition-all">
                     <div className="flex justify-between items-center">
-                      <span className="font-bold text-foreground">{area.areaName}</span>
-                      <Badge variant="outline" className="text-primary border-primary">
-                        Score: {area.demandScore}
+                      <span className="font-black text-slate-900 uppercase text-xs tracking-tight">{area.areaName}</span>
+                      <Badge className="bg-green-100 text-green-700 border-none font-black text-[9px] uppercase">
+                        {area.demandScore}%
                       </Badge>
                     </div>
-                    <Progress value={area.demandScore} className="h-1.5" />
-                    <p className="text-sm text-muted-foreground">{area.reason}</p>
+                    <Progress value={area.demandScore} className="h-2 bg-slate-100" />
+                    <p className="text-[11px] text-slate-500 font-medium leading-relaxed">{area.reason}</p>
                   </div>
                 ))}
               </div>
             </CardContent>
           </Card>
 
-          {/* Optimal Categories */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Lightbulb className="w-5 h-5 text-yellow-500" />
-                Category Insights
+          <Card className="rounded-[3rem] border-none shadow-2xl bg-white overflow-hidden">
+            <CardHeader className="bg-slate-50 p-8 border-b border-slate-100">
+              <CardTitle className="flex items-center gap-2 text-[#FF8C00] font-black uppercase tracking-tight">
+                <Lightbulb className="w-5 h-5 fill-current" />
+                Category Intel
               </CardTitle>
-              <CardDescription>What you should list today</CardDescription>
+              <CardDescription className="font-bold text-slate-500">Fastest moving categories</CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="p-8 space-y-6">
               {insights?.optimalListingCategories.map((cat, i) => (
-                <div key={i} className="p-4 border rounded-xl bg-white shadow-sm flex flex-col gap-3 group hover:border-primary/50 transition-colors">
+                <div key={i} className="p-5 border border-slate-50 rounded-2xl bg-slate-50/50 flex flex-col gap-3 group hover:bg-white hover:shadow-lg transition-all">
                   <div className="flex justify-between items-center">
-                    <span className="font-bold group-hover:text-primary transition-colors">{cat.categoryName}</span>
-                    <span className="text-xs font-bold text-muted-foreground">{cat.demandScore}% Demand</span>
+                    <span className="font-black text-slate-900 text-xs uppercase group-hover:text-[#225BC3] transition-colors">{cat.categoryName}</span>
+                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-tighter">{cat.demandScore}%</span>
                   </div>
-                  <Progress value={cat.demandScore} className="h-1" />
-                  <p className="text-xs text-muted-foreground leading-relaxed">{cat.reason}</p>
+                  <Progress value={cat.demandScore} className="h-1.5 bg-white" />
+                  <p className="text-[10px] text-slate-500 font-bold leading-relaxed">{cat.reason}</p>
                 </div>
               ))}
               <div className="pt-4">
-                <Button className="w-full variant-outline group" variant="outline">
-                  View Category Details
-                  <ChevronRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
+                <Button className="w-full rounded-2xl font-black uppercase text-[10px] tracking-widest bg-slate-900 text-white h-12 shadow-xl" variant="default">
+                  View Volume Details
+                  <ChevronRight className="w-4 h-4 ml-2" />
                 </Button>
               </div>
             </CardContent>
