@@ -4,7 +4,7 @@
  * Analyzes application crash reports and stack traces to suggest fixes.
  */
 
-import { ai } from '@/ai/genkit';
+import { ai, runWithModelSafe } from '@/ai/genkit';
 import { z } from 'genkit';
 
 const ErrorResolverInputSchema = z.object({
@@ -48,8 +48,20 @@ If the error contains 'Missing or insufficient permissions', focus on Firestore 
 });
 
 export async function resolveSystemError(input: ErrorResolverInput): Promise<ErrorResolverOutput> {
-  const { output } = await resolverPrompt(input);
-  return output!;
+  const result = await runWithModelSafe((config) => resolverPrompt(input, config));
+
+  if (result.ok && result.output?.output) {
+    return result.output.output;
+  }
+
+  // Fallback if resolution fails
+  return {
+    rootCause: "AI_DIAGNOSTIC_FAILURE",
+    explanation: "The AI Debugger encountered a rate limit and could not analyze this specific crash.",
+    suggestedFix: "Check logs manually or try again in 60 seconds.",
+    severity: "medium",
+    isRecoverable: true
+  };
 }
 
 export const errorResolverFlow = ai.defineFlow(

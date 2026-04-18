@@ -7,7 +7,7 @@
  * - SellerDemandInsightsOutput - The return type for the getSellerDemandInsights function.
  */
 
-import {ai} from '@/ai/genkit';
+import {ai, runWithModelSafe} from '@/ai/genkit';
 import {z} from 'genkit';
 
 const SellerDemandInsightsInputSchema = z.object({
@@ -87,8 +87,13 @@ const sellerDemandInsightsFlow = ai.defineFlow(
     outputSchema: SellerDemandInsightsOutputSchema,
   },
   async input => {
-    const {output} = await prompt(input);
-    return output!;
+    const result = await runWithModelSafe((config) => prompt(input, config));
+    
+    if (result.ok && result.output?.output) {
+      return result.output.output;
+    }
+
+    throw new Error(result.error || "Market analysis service is temporarily busy. Please try again in a moment.");
   }
 );
 

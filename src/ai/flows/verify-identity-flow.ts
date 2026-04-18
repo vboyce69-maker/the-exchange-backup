@@ -1,4 +1,3 @@
-
 'use server';
 /**
  * @fileOverview AI Identity Verification Flow.
@@ -6,7 +5,7 @@
  * - verifyIdentity: Compares an ID document with a live selfie to verify authenticity.
  */
 
-import { ai } from '@/ai/genkit';
+import { ai, runWithModelSafe } from '@/ai/genkit';
 import { z } from 'genkit';
 
 const VerifyIdentityInputSchema = z.object({
@@ -47,7 +46,13 @@ If the faces match and the name is consistent, set isVerified to true.`,
 });
 
 export async function verifyIdentity(input: VerifyIdentityInput): Promise<VerifyIdentityOutput> {
-  return verifyIdentityFlow(input);
+  const result = await runWithModelSafe((config) => verifyIdentityPrompt(input, config));
+
+  if (result.ok && result.output?.output) {
+    return result.output.output;
+  }
+
+  throw new Error(result.error || "Identity Verification engine is busy. Please wait a moment before trying again.");
 }
 
 const verifyIdentityFlow = ai.defineFlow(
@@ -57,7 +62,6 @@ const verifyIdentityFlow = ai.defineFlow(
     outputSchema: VerifyIdentityOutputSchema,
   },
   async (input) => {
-    const { output } = await verifyIdentityPrompt(input);
-    return output!;
+    return verifyIdentity(input);
   }
 );
