@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect } from "react";
@@ -35,7 +34,8 @@ import {
   Zap,
   Gamepad2,
   Palette,
-  Gift
+  Gift,
+  Rocket
 } from "lucide-react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
@@ -51,7 +51,7 @@ const CATEGORIES = [
   { name: "Clothing", icon: Shirt, color: "bg-pink-500", description: "Fashion & Trends" },
   { name: "Sneakers", icon: Footprints, color: "bg-orange-500", description: "Collectibles & Kickz" },
   { name: "Gaming", icon: Gamepad2, color: "bg-indigo-500", description: "Consoles & Games" },
-  { name: "Art", icon: Palette, color: "bg-rose-500", description: "Collectibles & Supplies" },
+  { name: "Art", icon: Palette, color: "bg-rose-500", description: "Art & Supplies" },
   { name: "Jewelry", icon: Watch, color: "bg-yellow-500", description: "Luxury & Gems" },
   { name: "Sports", icon: Bike, color: "bg-cyan-500", description: "Gear & Equipment" },
   { name: "Photography", icon: Camera, color: "bg-red-500", description: "Cameras & Glass" },
@@ -137,7 +137,7 @@ export default function LandingPage() {
       </div>
 
       {/* Hero Section */}
-      <section className="relative h-[65vh] flex items-center overflow-hidden bg-[#225BC3]">
+      <section className="relative h-[70vh] flex items-center overflow-hidden bg-[#225BC3]">
         <div className="absolute inset-0 opacity-25">
            <Image 
             src="https://picsum.photos/seed/localbid-hero/1920/1080" 
@@ -151,10 +151,10 @@ export default function LandingPage() {
         <div className="container mx-auto px-6 relative z-10 grid lg:grid-cols-2 gap-12 items-center">
           <div className="text-white space-y-8">
             <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-md px-4 py-2 rounded-2xl border border-white/20">
-              <Sparkles className="w-4 h-4 text-[#34CBED]" />
+              <Rocket className="w-4 h-4 text-[#34CBED]" />
               <span className="text-[10px] font-black uppercase tracking-widest">South Africa's Trusted Marketplace</span>
             </div>
-            <h1 className="text-2xl md:text-3xl font-black leading-[1.1] tracking-tighter">
+            <h1 className="text-4xl md:text-6xl font-black leading-[1.1] tracking-tighter">
               The smartest way to <span className="text-[#34CBED]">trade locally.</span>
             </h1>
             <p className="text-xl text-white/80 font-black max-w-lg tracking-tight leading-relaxed">
@@ -178,15 +178,15 @@ export default function LandingPage() {
              <div className="absolute inset-0 bg-white/10 rounded-[3rem] rotate-3 group-hover:rotate-1 transition-transform duration-500" />
              <div className="relative h-full w-full rounded-[3rem] overflow-hidden border-8 border-white/10 shadow-2xl">
                 <Image src="https://picsum.photos/seed/premium-deal/800/600" alt="Premium Listing" fill className="object-cover" data-ai-hint="luxury products" />
-                <div className="absolute bottom-6 left-6 right-6 bg-white/95 backdrop-blur-sm p-6 rounded-[2rem] shadow-2xl animate-in slide-in-from-bottom-8">
+                <div className="absolute bottom-6 left-6 right-6 bg-white/95 backdrop-blur-sm p-8 rounded-[2rem] shadow-2xl animate-in slide-in-from-bottom-8">
                    <div className="flex justify-between items-center mb-2">
                      <Badge className="bg-[#225BC3] text-white border-none text-[8px] font-black uppercase">Live Auction</Badge>
                      <span className="text-[10px] font-black text-[#FF8C00] flex items-center gap-1"><Clock className="w-3 h-3" /> 2h 14m left</span>
                    </div>
-                   <p className="text-xl font-black text-slate-900 leading-tight">Professional Video Suite</p>
-                   <div className="flex items-center justify-between mt-3">
-                      <span className="text-2xl font-black text-[#225BC3]">R 42,500</span>
-                      <Button size="sm" className="bg-[#34CBED] text-white font-black rounded-xl h-10 px-6">Bid Now</Button>
+                   <p className="text-2xl font-black text-slate-900 leading-tight">Professional Video Suite</p>
+                   <div className="flex items-center justify-between mt-4">
+                      <span className="text-3xl font-black text-[#225BC3]">R 42,500</span>
+                      <Button size="sm" className="bg-[#34CBED] text-white font-black rounded-xl h-12 px-8">Bid Now</Button>
                    </div>
                 </div>
              </div>
@@ -194,8 +194,29 @@ export default function LandingPage() {
         </div>
       </section>
 
-      <main className="container mx-auto px-6 pt-5 pb-12">
-        <section className="mb-16 mt-5">
+      <main className="container mx-auto px-6 py-12">
+        {/* Referral Teaser */}
+        <section className="mb-16">
+           <div className="bg-white rounded-[3rem] p-8 lg:p-12 border-2 border-[#225BC3]/5 shadow-xl flex flex-col lg:flex-row items-center justify-between gap-8 relative overflow-hidden group">
+              <div className="absolute top-0 right-0 w-32 h-32 bg-pink-100/50 rounded-full blur-3xl -mr-16 -mt-16 group-hover:scale-150 transition-transform duration-1000" />
+              <div className="flex items-center gap-6">
+                 <div className="w-20 h-20 bg-pink-50 rounded-[1.5rem] flex items-center justify-center text-pink-500 shadow-sm shrink-0">
+                    <Gift className="w-10 h-10" />
+                 </div>
+                 <div>
+                    <h2 className="text-2xl lg:text-3xl font-black text-slate-900 uppercase tracking-tighter">Invite friends, get free boosts.</h2>
+                    <p className="text-slate-500 font-medium max-w-md">Unlock a **Free Featured Listing** for every 3 friends who verify their account.</p>
+                 </div>
+              </div>
+              <Link href="/referrals">
+                 <Button className="h-16 px-10 rounded-2xl bg-[#225BC3] text-white font-black text-lg shadow-xl hover:scale-105 transition-all">
+                    Get My Link <ArrowRight className="w-5 h-5 ml-2" />
+                 </Button>
+              </Link>
+           </div>
+        </section>
+
+        <section className="mb-16">
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 lg:grid-cols-10 gap-4">
             {CATEGORIES.map((cat) => {
               const Icon = cat.icon;
