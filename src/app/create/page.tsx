@@ -23,7 +23,9 @@ import {
   ImagePlus,
   Save,
   ShieldCheck,
-  Award
+  Award,
+  CreditCard,
+  Lock
 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import Image from "next/image";
@@ -31,6 +33,7 @@ import { collection } from "firebase/firestore";
 import { useFirestore, useUser } from "@/firebase";
 import { addDocumentNonBlocking } from "@/firebase/non-blocking-updates";
 import { Badge } from "@/components/ui/badge";
+import { MARKET_CONFIG, isFoundingSlotAvailable } from "@/app/lib/market-config";
 
 export default function CreateListingPage() {
   const router = useRouter();
@@ -51,8 +54,8 @@ export default function CreateListingPage() {
   const [price, setPrice] = useState("");
   const [description, setDescription] = useState("");
 
-  // FOUNDING MEMBER PERK
-  const isFoundingMember = true; // Simulated logic
+  // FOUNDING MEMBER CHECK
+  const isFoundingMember = isFoundingSlotAvailable(MARKET_CONFIG.SIMULATED_FILLED_SLOTS);
 
   useEffect(() => {
     const draft = localStorage.getItem("exchange_listing_v2");
@@ -97,7 +100,7 @@ export default function CreateListingPage() {
       description,
       condition,
       price: parseFloat(price),
-      currency: "ZAR",
+      currency: MARKET_CONFIG.CURRENCY,
       imageUrls: images,
       listingLocationLatitude: location?.lat || 0,
       listingLocationLongitude: location?.lng || 0,
@@ -107,7 +110,8 @@ export default function CreateListingPage() {
       isBulk,
       quantity: parseInt(quantity),
       viewCount: 0,
-      isBoosted: isFoundingMember, // Early bird perk
+      isBoosted: isFoundingMember, // Founding perk: Auto-featured
+      feePaid: isFoundingMember ? 0 : MARKET_CONFIG.STANDARD_LISTING_FEE
     };
 
     const listingsCol = collection(db, "publicListings");
@@ -116,7 +120,12 @@ export default function CreateListingPage() {
     
     setTimeout(() => {
       setLoading(false);
-      toast({ title: "Listing Live", description: "Founding Member boost applied automatically." });
+      toast({ 
+        title: isFoundingMember ? "Founding Slot Claimed" : "Listing Live", 
+        description: isFoundingMember 
+          ? "Your listing is boosted and R0 fees applied." 
+          : `Standard fee of R${MARKET_CONFIG.STANDARD_LISTING_FEE} charged.` 
+      });
       router.push("/search");
     }, 1000);
   };
@@ -128,7 +137,7 @@ export default function CreateListingPage() {
         <div className="w-full max-w-xl">
           <div className="mb-8 flex justify-between items-end">
             <div>
-              <h1 className="text-3xl font-black text-[#225BC3]">Create Listing</h1>
+              <h1 className="text-3xl font-black text-[#225BC3] uppercase tracking-tighter">Create Listing</h1>
               <p className="text-muted-foreground text-sm font-medium">Verified professional and peer-to-peer trades.</p>
             </div>
             {isFoundingMember && (
@@ -142,13 +151,23 @@ export default function CreateListingPage() {
             <Card className="rounded-[2.5rem] border-none shadow-xl bg-white ring-1 ring-[#225BC3]/5">
               <CardContent className="p-8 space-y-6">
                 
-                {isFoundingMember && (
+                {isFoundingMember ? (
                   <div className="p-6 bg-orange-50 rounded-3xl border border-orange-100 flex gap-4">
                     <Zap className="w-10 h-10 text-[#FF8C00] shrink-0" />
                     <div>
                       <p className="text-[10px] font-black text-[#FF8C00] uppercase tracking-widest mb-1">Early Bird Incentive</p>
                       <p className="text-[11px] text-orange-800 font-bold leading-relaxed">
-                        As a Founding 1000 member, your listing fee is <span className="underline">R0.00</span> and you get a complimentary <span className="underline">Featured Boost</span> for 7 days.
+                        As a Founding 1000 member, your listing fee is <span className="underline">R0.00</span> and you get a complimentary <span className="underline">Featured Boost</span>.
+                      </p>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="p-6 bg-blue-50 rounded-3xl border border-blue-100 flex gap-4">
+                    <CreditCard className="w-10 h-10 text-[#225BC3] shrink-0" />
+                    <div>
+                      <p className="text-[10px] font-black text-[#225BC3] uppercase tracking-widest mb-1">Standard Listing</p>
+                      <p className="text-[11px] text-blue-800 font-bold leading-relaxed">
+                        The Founding 1000 program has reached capacity. A standard platform fee of <span className="font-black">R{MARKET_CONFIG.STANDARD_LISTING_FEE.toFixed(2)}</span> applies to ensure safety and AI security.
                       </p>
                     </div>
                   </div>
@@ -200,13 +219,24 @@ export default function CreateListingPage() {
               </CardContent>
             </Card>
 
-            <Button 
-              type="submit" 
-              className="w-full h-16 rounded-[1.5rem] bg-[#225BC3] text-white font-black text-lg shadow-2xl hover:scale-[1.02] transition-transform"
-              disabled={loading}
-            >
-              {loading ? <Loader2 className="w-6 h-6 animate-spin" /> : "List on The Exchange"}
-            </Button>
+            <div className="space-y-4">
+              <Button 
+                type="submit" 
+                className={cn(
+                  "w-full h-16 rounded-[1.5rem] text-white font-black text-lg shadow-2xl hover:scale-[1.02] transition-transform",
+                  isFoundingMember ? "bg-[#225BC3]" : "bg-[#FF8C00]"
+                )}
+                disabled={loading}
+              >
+                {loading ? <Loader2 className="w-6 h-6 animate-spin" /> : (isFoundingMember ? "List for R0.00" : `List for R${MARKET_CONFIG.STANDARD_LISTING_FEE.toFixed(2)}`)}
+              </Button>
+              
+              {!isFoundingMember && (
+                <p className="text-[9px] text-center text-slate-400 font-bold flex items-center justify-center gap-2">
+                   <Lock className="w-2.5 h-2.5" /> SECURE CHECKOUT • NO HIDDEN FEES
+                </p>
+              )}
+            </div>
           </form>
         </div>
       </main>

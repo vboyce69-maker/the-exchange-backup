@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Navigation } from "@/components/Navigation";
 import { ListingCard } from "@/components/ListingCard";
@@ -33,7 +33,6 @@ import {
   Package,
   Sparkles,
   Zap,
-  ShoppingBag,
   Gamepad2,
   Palette,
   Gift
@@ -43,6 +42,7 @@ import { cn } from "@/lib/utils";
 import Image from "next/image";
 import { useCollection, useFirestore, useMemoFirebase } from "@/firebase";
 import { collection, query, orderBy, limit } from "firebase/firestore";
+import { MARKET_CONFIG } from "@/app/lib/market-config";
 
 const CATEGORIES = [
   { name: "Vehicles", icon: Car, color: "bg-blue-500", description: "Cars, Trucks & Parts" },
@@ -79,6 +79,9 @@ export default function LandingPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const db = useFirestore();
 
+  const slotsLeft = MARKET_CONFIG.FOUNDING_LIMIT - MARKET_CONFIG.SIMULATED_FILLED_SLOTS;
+  const isProgramActive = slotsLeft > 0;
+
   const trendingQuery = useMemoFirebase(() => {
     return query(
       collection(db, "publicListings"),
@@ -100,21 +103,35 @@ export default function LandingPage() {
     <div className="min-h-screen bg-[#F8FAFC]">
       <Navigation />
       
-      {/* Founding 1000 Promo Banner */}
-      <div className="bg-[#FF8C00] text-white py-4 px-6 relative overflow-hidden">
+      {/* Founding 1000 Promo Banner with Scarcity */}
+      <div className={cn(
+        "py-4 px-6 relative overflow-hidden transition-colors duration-500",
+        isProgramActive ? "bg-[#FF8C00] text-white" : "bg-slate-900 text-white"
+      )}>
         <div className="container mx-auto flex flex-col md:flex-row items-center justify-between gap-4 relative z-10">
            <div className="flex items-center gap-3">
-              <Zap className="w-5 h-5 animate-pulse" />
+              <Zap className={cn("w-5 h-5", isProgramActive && "animate-pulse")} />
               <p className="font-black uppercase text-[10px] lg:text-xs tracking-widest">
-                <span className="opacity-80">Join the</span> Founding 1000 Sellers: 
-                <span className="ml-2">Zero Fees + Free Boosted Visibility</span>
+                {isProgramActive ? (
+                  <>
+                    <span className="opacity-80">Join the</span> Founding 1000 Sellers: 
+                    <span className="ml-2 font-black bg-white text-[#FF8C00] px-2 py-0.5 rounded-md">{slotsLeft} Slots Remaining</span>
+                  </>
+                ) : (
+                  <>
+                    <span className="opacity-80">Founding 1000 Program:</span>
+                    <span className="ml-2">Capacity Reached. Standard Fees Apply.</span>
+                  </>
+                )}
               </p>
            </div>
-           <Link href="/create">
-              <Button size="sm" className="bg-white text-[#FF8C00] font-black rounded-xl hover:bg-slate-50 h-10 px-6 uppercase text-[10px] tracking-widest shadow-xl">
-                 Claim Slot
-              </Button>
-           </Link>
+           {isProgramActive && (
+             <Link href="/create">
+                <Button size="sm" className="bg-white text-[#FF8C00] font-black rounded-xl hover:bg-slate-50 h-10 px-6 uppercase text-[10px] tracking-widest shadow-xl">
+                   Claim Free Slot
+                </Button>
+             </Link>
+           )}
         </div>
         <div className="absolute inset-0 bg-black/5" />
       </div>
