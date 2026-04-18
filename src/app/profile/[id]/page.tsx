@@ -19,7 +19,11 @@ import {
   Package,
   Info,
   Quote,
-  Calendar
+  Calendar,
+  Smartphone,
+  MapPin,
+  ScanFace,
+  FileCheck
 } from "lucide-react";
 import { VerifiedBadge } from "@/components/VerifiedBadge";
 import {
@@ -35,7 +39,6 @@ export default function UserProfilePage() {
   const { id } = useParams();
   const db = useFirestore();
 
-  // Fetch real profile data
   const profileRef = useMemoFirebase(() => {
     if (!id || id === 'me') return null;
     return doc(db, "userProfiles", id as string);
@@ -43,7 +46,6 @@ export default function UserProfilePage() {
 
   const { data: profile, isLoading: isProfileLoading } = useDoc(profileRef);
 
-  // Fetch listings for this user
   const userListingsQuery = useMemoFirebase(() => {
     if (!id || id === 'me') return null;
     return query(collection(db, "publicListings"), where("sellerId", "==", id));
@@ -51,7 +53,6 @@ export default function UserProfilePage() {
 
   const { data: listings, isLoading: isListingsLoading } = useCollection(userListingsQuery);
 
-  // Fetch reviews for this user
   const reviewsQuery = useMemoFirebase(() => {
     if (!id || id === 'me') return null;
     return query(
@@ -74,7 +75,7 @@ export default function UserProfilePage() {
         <Navigation />
         <div className="flex flex-col items-center justify-center py-32">
           <Loader2 className="w-10 h-10 animate-spin text-[#225BC3] mb-4" />
-          <p className="text-muted-foreground font-black uppercase text-[10px] tracking-widest">Loading Profile...</p>
+          <p className="text-muted-foreground font-black uppercase text-[10px] tracking-widest">Syncing Identity...</p>
         </div>
       </div>
     );
@@ -84,13 +85,20 @@ export default function UserProfilePage() {
     id: "anonymous",
     firstName: "Anonymous",
     lastName: "User",
-    bio: "This profile information is not available.",
-    locationName: "Unknown",
+    bio: "Identity under verification.",
+    locationName: "South Africa",
     reliabilityScore: 50,
     registrationDate: new Date().toISOString(),
     isIdVerified: false,
     profileImageUrl: `https://picsum.photos/seed/${id}/200/200`
   };
+
+  const verificationPillars = [
+    { name: "Phone", icon: Smartphone, status: true },
+    { name: "ID Document", icon: FileCheck, status: user.isIdVerified },
+    { name: "Face Scan", icon: ScanFace, status: user.isIdVerified },
+    { name: "Address", icon: MapPin, status: user.isIdVerified },
+  ];
 
   return (
     <div className="min-h-screen bg-[#EEF1F3]">
@@ -115,13 +123,13 @@ export default function UserProfilePage() {
                   )}
                 </div>
                 
-                <h1 className="text-4xl font-black text-[#225BC3] mb-2 leading-none">
+                <h1 className="text-4xl font-black text-[#225BC3] mb-2 leading-none uppercase tracking-tighter">
                   {user.firstName} {user.lastName}
                 </h1>
                 <div className="flex items-center gap-2 mb-6">
                    {user.isIdVerified && <VerifiedBadge />}
                    <span className="text-muted-foreground font-bold text-xs uppercase tracking-widest">
-                     Member since {new Date(user.registrationDate).getFullYear()}
+                     Joined {new Date(user.registrationDate).getFullYear()}
                    </span>
                 </div>
                 
@@ -129,39 +137,32 @@ export default function UserProfilePage() {
                   "{user.bio}"
                 </p>
 
-                <div className="p-4 bg-blue-50/50 rounded-2xl border border-blue-100 mb-8 text-left">
-                  <h4 className="font-black text-[#225BC3] uppercase text-[10px] tracking-widest mb-2 flex items-center gap-2">
-                    <Shield className="w-3 h-3" /> Badge Disclaimer
-                  </h4>
-                  <p className="text-[9px] text-blue-700 font-bold leading-tight">
-                    Verified badges confirm specific identity steps were completed. They do not guarantee honesty, item quality, or ownership of goods.
-                  </p>
+                <div className="w-full grid grid-cols-2 gap-2 mb-8">
+                  {verificationPillars.map((p) => (
+                    <div key={p.name} className={cn(
+                      "flex flex-col items-center justify-center p-3 rounded-2xl border gap-1 transition-all",
+                      p.status ? "bg-green-50 border-green-100 text-green-700" : "bg-slate-50 border-slate-100 text-slate-400 opacity-50"
+                    )}>
+                      <p.icon className="w-4 h-4" />
+                      <span className="text-[7px] font-black uppercase tracking-widest">{p.name}</span>
+                      {p.status && <CheckCircle2 className="w-2.5 h-2.5" />}
+                    </div>
+                  ))}
                 </div>
                 
                 <div className="grid grid-cols-1 gap-3 w-full">
-                  <Button className="w-full rounded-2xl bg-[#225BC3] font-black h-14 shadow-xl">
-                    <MessageSquare className="w-5 h-5 mr-2" /> Message Seller
+                  <Button className="w-full rounded-2xl bg-[#225BC3] font-black h-14 shadow-xl uppercase text-[10px] tracking-widest">
+                    <MessageSquare className="w-5 h-5 mr-2" /> Start Chat
                   </Button>
                 </div>
               </div>
             </Card>
 
             <Card className="rounded-[2.5rem] border-none shadow-xl bg-white p-8 space-y-8">
-              {/* Reliability Score */}
               <div className="space-y-4">
                 <div className="flex justify-between items-center">
                   <h3 className="font-black text-xs text-[#225BC3] uppercase tracking-widest">Reliability Score</h3>
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <Button variant="ghost" size="icon" className="rounded-full h-8 w-8 text-muted-foreground"><Info className="h-4 w-4" /></Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-72 rounded-3xl p-6 shadow-2xl border-none ring-1 ring-[#225BC3]/10">
-                      <h4 className="font-black text-[#225BC3] uppercase text-xs tracking-widest mb-3">Score Disclaimer</h4>
-                      <p className="text-[10px] font-bold text-muted-foreground leading-relaxed">
-                        Reliability scores are based on platform activity (meetups, no-shows, feedback). They are for information only and NOT a guarantee of transaction outcome or safety.
-                      </p>
-                    </PopoverContent>
-                  </Popover>
+                  <Button variant="ghost" size="icon" className="rounded-full h-8 w-8"><Info className="h-4 w-4 text-slate-300" /></Button>
                 </div>
 
                 <div className="flex flex-col items-center">
@@ -172,28 +173,9 @@ export default function UserProfilePage() {
                       </svg>
                       <span className="absolute text-2xl font-black text-[#225BC3]">{user.reliabilityScore || 50}%</span>
                    </div>
-                   <Badge className="bg-[#34CBED] text-white font-black border-none px-4 py-1 text-[8px] uppercase">
-                     {user.reliabilityScore > 80 ? "Trusted behavior" : "New behavior"}
+                   <Badge className="bg-[#34CBED] text-white font-black border-none px-4 py-1 text-[8px] uppercase tracking-widest">
+                     {user.reliabilityScore > 80 ? "Premium Behavior" : "Standard Behavior"}
                    </Badge>
-                </div>
-              </div>
-
-              {/* Satisfaction Score */}
-              <div className="pt-8 border-t space-y-4">
-                <div className="flex justify-between items-center">
-                  <h3 className="font-black text-xs text-[#FF8C00] uppercase tracking-widest">Buyer Satisfaction</h3>
-                  <div className="w-8 h-8 rounded-full bg-orange-50 flex items-center justify-center text-[#FF8C00]"><Star className="w-4 h-4 fill-current" /></div>
-                </div>
-
-                <div className="flex flex-col items-center">
-                   <div className="relative w-28 h-28 flex items-center justify-center mb-4">
-                      <svg className="w-full h-full transform -rotate-90">
-                        <circle cx="56" cy="56" r="50" stroke="currentColor" strokeWidth="6" fill="transparent" className="text-slate-100" />
-                        <circle cx="56" cy="56" r="50" stroke="currentColor" strokeWidth="6" fill="transparent" strokeDasharray={314} strokeDashoffset={314 * (1 - (satisfactionScore || 0) / 100)} className="text-[#FF8C00]" />
-                      </svg>
-                      <span className="absolute text-2xl font-black text-[#FF8C00]">{satisfactionScore}%</span>
-                   </div>
-                   <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">From {reviews?.length || 0} reviews</p>
                 </div>
               </div>
             </Card>
@@ -203,8 +185,8 @@ export default function UserProfilePage() {
           <div className="lg:col-span-2">
             <Tabs defaultValue="active" className="w-full">
               <TabsList className="bg-white rounded-3xl p-1.5 h-16 w-full lg:w-fit shadow-xl">
-                <TabsTrigger value="active" className="rounded-2xl px-10 h-full data-[state=active]:bg-[#225BC3] data-[state=active]:text-white font-black uppercase text-xs">Items For Sale</TabsTrigger>
-                <TabsTrigger value="reviews" className="rounded-2xl px-10 h-full data-[state=active]:bg-[#225BC3] data-[state=active]:text-white font-black uppercase text-xs">Buyer Reviews ({reviews?.length || 0})</TabsTrigger>
+                <TabsTrigger value="active" className="rounded-2xl px-10 h-full data-[state=active]:bg-[#225BC3] data-[state=active]:text-white font-black uppercase text-xs">For Sale</TabsTrigger>
+                <TabsTrigger value="reviews" className="rounded-2xl px-10 h-full data-[state=active]:bg-[#225BC3] data-[state=active]:text-white font-black uppercase text-xs">Buyer Trust ({reviews?.length || 0})</TabsTrigger>
               </TabsList>
               
               <TabsContent value="active" className="mt-10">
@@ -234,8 +216,8 @@ export default function UserProfilePage() {
                   </div>
                 ) : (
                   <div className="text-center py-20 bg-white rounded-[3rem] shadow-sm">
-                    <Package className="w-12 h-12 text-slate-200 mx-auto mb-4" />
-                    <p className="font-black text-[#225BC3] uppercase tracking-widest">No active listings</p>
+                    <Package className="w-12 h-12 text-slate-100 mx-auto mb-4" />
+                    <p className="font-black text-[#225BC3] uppercase tracking-widest">No Active Inventory</p>
                   </div>
                 )}
               </TabsContent>
@@ -253,37 +235,26 @@ export default function UserProfilePage() {
                           <div className="flex items-center justify-between">
                             <div className="flex items-center gap-2">
                               {[...Array(5)].map((_, i) => (
-                                <Star 
-                                  key={i} 
-                                  className={cn(
-                                    "w-4 h-4", 
-                                    i < review.rating ? "text-[#FF8C00] fill-current" : "text-slate-200"
-                                  )} 
-                                />
+                                <Star key={i} className={cn("w-4 h-4", i < review.rating ? "text-[#FF8C00] fill-current" : "text-slate-100")} />
                               ))}
-                              <span className="text-xs font-black text-[#FF8C00] ml-2">Verified Purchase</span>
+                              <span className="text-[9px] font-black text-[#FF8C00] uppercase tracking-widest bg-orange-50 px-2 py-0.5 rounded-full ml-2">Verified Trade</span>
                             </div>
-                            <span className="text-[10px] font-black text-muted-foreground uppercase flex items-center gap-1">
+                            <span className="text-[9px] font-black text-slate-400 uppercase flex items-center gap-1">
                               <Calendar className="w-3 h-3" /> {new Date(review.createdAt).toLocaleDateString()}
                             </span>
                           </div>
                           
-                          <div className="relative">
-                            <Quote className="absolute -top-2 -left-2 w-8 h-8 text-[#225BC3]/5" />
-                            <p className="text-slate-700 font-medium leading-relaxed relative z-10 pl-4 italic">
-                              "{review.comment}"
-                            </p>
-                          </div>
+                          <p className="text-slate-700 font-medium leading-relaxed italic">
+                            "{review.comment}"
+                          </p>
 
                           <div className="pt-4 flex items-center gap-3">
                              <Avatar className="w-8 h-8 border-2 border-white shadow-sm">
-                               <AvatarFallback className="bg-[#225BC3]/5 text-[#225BC3] text-[10px] font-black">
-                                 {review.buyerName?.[0] || "B"}
-                               </AvatarFallback>
+                               <AvatarFallback className="bg-[#225BC3]/5 text-[#225BC3] text-[10px] font-black">{review.buyerName?.[0] || "B"}</AvatarFallback>
                              </Avatar>
                              <div>
-                               <p className="text-xs font-black text-slate-900 leading-none mb-1">{review.buyerName || "Anonymous Buyer"}</p>
-                               <p className="text-[9px] text-muted-foreground font-bold uppercase tracking-widest">Purchased: {review.listingTitle || "Marketplace Item"}</p>
+                               <p className="text-xs font-black text-slate-900 leading-none">{review.buyerName || "Private Buyer"}</p>
+                               <p className="text-[8px] text-muted-foreground font-bold uppercase tracking-widest mt-0.5">Purchased: {review.listingTitle || "Marketplace Listing"}</p>
                              </div>
                           </div>
                         </div>
@@ -292,9 +263,8 @@ export default function UserProfilePage() {
                   ))
                 ) : (
                   <div className="text-center py-20 bg-white rounded-[3rem] shadow-sm">
-                    <Quote className="w-12 h-12 text-slate-200 mx-auto mb-4" />
-                    <p className="font-black text-[#225BC3] uppercase tracking-widest">No reviews yet</p>
-                    <p className="text-muted-foreground text-sm font-medium">Completed deals will appear here once rated.</p>
+                    <Quote className="w-12 h-12 text-slate-100 mx-auto mb-4" />
+                    <p className="font-black text-[#225BC3] uppercase tracking-widest">Awaiting First Review</p>
                   </div>
                 )}
               </TabsContent>
