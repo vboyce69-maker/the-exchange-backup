@@ -136,8 +136,8 @@ export default function LandingPage() {
         <div className="absolute inset-0 bg-black/5" />
       </div>
 
-      {/* Hero Section */}
-      <section className="relative h-[70vh] flex items-center overflow-hidden bg-[#225BC3]">
+      {/* Hero Section - Height increased to h-[85vh] to show more background */}
+      <section className="relative h-[85vh] flex items-center overflow-hidden bg-[#225BC3]">
         <div className="absolute inset-0 opacity-25">
            <Image 
             src="https://picsum.photos/seed/localbid-hero/1920/1080" 
