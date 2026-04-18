@@ -24,6 +24,20 @@ export const GOLDEN_SCENARIOS = [
     flow: "/messages",
     actions: ["Mark as Arrived", "Confirm Safe Home"],
     expectedResult: "Escrow Release Triggered"
+  },
+  {
+    id: "GS_04_LEGAL_CONSENT",
+    name: "Compliance Checkbox Validation",
+    flow: "/login",
+    actions: ["Check Consent Box", "Initiate Phone Auth"],
+    expectedResult: "Proceed to OTP allowed"
+  },
+  {
+    id: "GS_05_SELF_HEALING",
+    name: "Diagnostic Loop Verification",
+    flow: "/admin/health",
+    actions: ["Log Synthetic Error", "Generate AI Fix"],
+    expectedResult: "Error Analyzed with rootCause"
   }
 ];
 
