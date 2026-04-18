@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState } from "react";
@@ -32,7 +33,9 @@ import {
   Package,
   Sparkles,
   Zap,
-  ShoppingBag
+  ShoppingBag,
+  Gamepad2,
+  Palette
 } from "lucide-react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
@@ -46,6 +49,8 @@ const CATEGORIES = [
   { name: "Real Estate", icon: Home, color: "bg-green-500", description: "Buy, Sell & Rent" },
   { name: "Clothing", icon: Shirt, color: "bg-pink-500", description: "Fashion & Trends" },
   { name: "Sneakers", icon: Footprints, color: "bg-orange-500", description: "Collectibles & Kickz" },
+  { name: "Gaming", icon: Gamepad2, color: "bg-indigo-500", description: "Consoles & Games" },
+  { name: "Art", icon: Palette, color: "bg-rose-500", description: "Collectibles & Supplies" },
   { name: "Jewelry", icon: Watch, color: "bg-yellow-500", description: "Luxury & Gems" },
   { name: "Sports", icon: Bike, color: "bg-cyan-500", description: "Gear & Equipment" },
   { name: "Photography", icon: Camera, color: "bg-red-500", description: "Cameras & Glass" },
@@ -154,7 +159,7 @@ export default function LandingPage() {
 
       <main className="container mx-auto px-6 pt-5 pb-12">
         <section className="mb-16 mt-5">
-          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-4">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 lg:grid-cols-10 gap-4">
             {CATEGORIES.map((cat) => {
               const Icon = cat.icon;
               return (
@@ -211,7 +216,7 @@ export default function LandingPage() {
           <div className="flex-1 w-full space-y-4">
             <h3 className="font-black text-[#225BC3] uppercase text-[10px] tracking-[0.2em]">Smart Search</h3>
             <form onSubmit={handleSearch} className="relative group">
-               <Search className="absolute left-6 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 group-focus-within:text-[#225BC3]" />
+               <Search className="absolute left-6 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-[#225BC3]" />
                <input 
                 type="text" 
                 placeholder="Search for items, brands or categories..." 
