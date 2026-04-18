@@ -7,7 +7,7 @@ import { useUser } from '@/firebase';
 
 /**
  * Reusable hook for marketplace security.
- * Detects scams in real-time across messages, listings, and bios.
+ * Implements the Tiered AI Architecture.
  */
 export function useScamDetection() {
   const [isValidating, setIsValidating] = useState(false);
@@ -18,7 +18,7 @@ export function useScamDetection() {
     
     setIsValidating(true);
     try {
-      // Logic for trust score can be fetched from user profile
+      // Use user profile trust indicators if logged in
       const userTrustScore = user ? 50 : 0; 
       
       const result = await antiScamChatProtection({ message: text, userTrustScore });
@@ -27,25 +27,25 @@ export function useScamDetection() {
         toast({
           variant: 'destructive',
           title: 'Security Alert: Message Blocked',
-          description: 'This content contains high-risk fraud indicators and has been blocked for your safety.',
+          description: result.reason || 'This content contains high-risk fraud indicators.',
         });
       } else if (result.decision === 'warn') {
         toast({
           variant: 'default',
-          title: 'Security Notice',
-          description: 'Always keep communication and payments in-app to remain protected.',
+          title: 'Safety Notice',
+          description: 'Platform AI suggests caution. Keep communication in-app.',
         });
       } else if (result.decision === 'hold') {
         toast({
           variant: 'default',
-          title: 'Verification Required',
-          description: 'This listing is being reviewed by our safety team to ensure marketplace integrity.',
+          title: 'Security Review',
+          description: 'This content is being verified by our safety engine.',
         });
       }
 
       return result;
     } catch (error) {
-      console.error('Security Engine Error:', error);
+      console.error('Security Architecture Fault:', error);
       return null;
     } finally {
       setIsValidating(false);

@@ -14,7 +14,9 @@ import {
   Lock,
   Loader2,
   Globe,
-  AlertTriangle
+  AlertTriangle,
+  Cpu,
+  Zap
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { VerifiedBadge } from "@/components/VerifiedBadge";
@@ -29,6 +31,7 @@ interface Message {
   text: string;
   timestamp: string;
   riskScore?: number;
+  aiAnalyzed?: boolean;
 }
 
 export default function MessagesPage() {
@@ -45,13 +48,13 @@ export default function MessagesPage() {
   const handleSend = async () => {
     if (!inputValue.trim() || isValidating) return;
 
-    // 1. Run Advanced Multi-Layered Security Check
+    // Layered Security Architecture Trigger
     const result = await checkContent(inputValue);
     
     if (!result) return;
 
-    // 2. Log Moderation Event to Firestore (Moderation Queue)
-    if (result.decision === 'block' || result.decision === 'flag') {
+    // Log high-risk events to moderation queue
+    if (result.decision === 'block' || result.decision === 'hold') {
       addDocumentNonBlocking(collection(db, "moderationQueue"), {
         userId: user?.uid || "anonymous",
         content: inputValue,
@@ -59,31 +62,26 @@ export default function MessagesPage() {
         riskScore: result.riskScore,
         decision: result.decision,
         reason: result.reason,
+        aiUsed: result.aiAnalysisPerformed,
         timestamp: new Date().toISOString(),
         status: 'pending_review'
       });
     }
 
-    // 3. Reject if blocked
     if (result.decision === 'block') {
       setScamAudit(result);
       return; 
     }
 
-    // 4. Update UI with warning if flagged
-    if (result.decision === 'flag') {
-      setScamAudit(result);
-    } else {
-      setScamAudit(null);
-    }
+    setScamAudit(result.decision !== 'allow' ? result : null);
 
-    // 5. Append message
     setMessages([...messages, { 
       id: Date.now().toString(), 
       senderId: "buyer", 
       text: inputValue, 
       timestamp: "Now",
-      riskScore: result.riskScore
+      riskScore: result.riskScore,
+      aiAnalyzed: result.aiAnalysisPerformed
     }]);
     setInputValue("");
   };
@@ -102,7 +100,7 @@ export default function MessagesPage() {
             <Avatar className="h-12 w-12 border-2 border-white shadow-sm"><AvatarImage src="https://picsum.photos/seed/user1/200/200" /></Avatar>
             <div className="flex-1 min-w-0">
               <span className="font-bold text-sm">Alex Rivera</span>
-              <p className="text-[10px] text-muted-foreground truncate uppercase font-black">Escrow Active</p>
+              <p className="text-[10px] text-muted-foreground truncate uppercase font-black">Protected Hold Active</p>
             </div>
           </div>
         </aside>
@@ -114,28 +112,56 @@ export default function MessagesPage() {
               <h3 className="font-black text-[#225BC3] uppercase tracking-tight">Alex Rivera <VerifiedBadge /></h3>
             </div>
             <Badge className="bg-[#225BC3] text-white border-none px-4 py-1.5 flex items-center gap-2 rounded-full uppercase text-[9px] font-black tracking-widest">
-              <Lock className="w-3 h-3 text-[#34CBED]" /> Protected Hold
+              <Lock className="w-3 h-3 text-[#34CBED]" /> Secure Trade
             </Badge>
           </div>
 
           <div className="flex-1 overflow-y-auto p-6 space-y-6 bg-slate-50/30">
             {scamAudit && scamAudit.decision !== 'allow' && (
-              <Alert variant="destructive" className={cn("rounded-3xl animate-in slide-in-from-top-4", scamAudit.decision === 'block' ? "bg-red-50 border-red-200" : "bg-orange-50 border-orange-200")}>
-                <AlertTriangle className={cn("h-5 w-5", scamAudit.decision === 'block' ? "text-red-600" : "text-orange-600")} />
-                <AlertTitle className={cn("font-black uppercase text-[10px] tracking-widest", scamAudit.decision === 'block' ? "text-red-700" : "text-orange-700")}>
-                  Security Risk: {scamAudit.decision.toUpperCase()} (Score: {scamAudit.riskScore})
-                </AlertTitle>
-                <AlertDescription className={cn("text-xs font-medium leading-relaxed", scamAudit.decision === 'block' ? "text-red-600" : "text-orange-600")}>
-                  {scamAudit.reason}
-                </AlertDescription>
+              <Alert variant="destructive" className={cn(
+                "rounded-3xl animate-in slide-in-from-top-4", 
+                scamAudit.decision === 'block' ? "bg-red-50 border-red-200" : "bg-orange-50 border-orange-200"
+              )}>
+                <div className="flex items-start gap-4">
+                  <div className={cn(
+                    "p-3 rounded-2xl shrink-0",
+                    scamAudit.decision === 'block' ? "bg-red-100 text-red-600" : "bg-orange-100 text-orange-600"
+                  )}>
+                    <ShieldAlert className="h-6 w-6" />
+                  </div>
+                  <div className="space-y-1">
+                    <AlertTitle className="font-black uppercase text-[10px] tracking-widest flex items-center gap-2">
+                      {scamAudit.aiAnalysisPerformed && <Cpu className="w-3 h-3 text-blue-500" />}
+                      {scamAudit.decision === 'block' ? "Immediate Block" : "Verification Required"}
+                    </AlertTitle>
+                    <AlertDescription className="text-xs font-medium leading-relaxed">
+                      {scamAudit.reason}
+                    </AlertDescription>
+                    {scamAudit.aiAnalysisPerformed && (
+                      <p className="text-[8px] font-black uppercase text-blue-600 tracking-tighter mt-2">
+                        Deep Intent Analysis Performed by Falcon AI
+                      </p>
+                    )}
+                  </div>
+                </div>
               </Alert>
             )}
 
             {messages.map((m) => (
               <div key={m.id} className={cn("flex flex-col max-w-[80%] space-y-1", m.senderId === "buyer" ? "ml-auto items-end" : "items-start")}>
-                <div className={cn("px-5 py-3 rounded-[1.5rem] text-sm shadow-sm", m.senderId === "buyer" ? "bg-[#225BC3] text-white rounded-tr-none" : "bg-white border border-slate-100 rounded-tl-none")}>{m.text}</div>
+                <div className={cn(
+                  "px-5 py-3 rounded-[1.5rem] text-sm shadow-sm", 
+                  m.senderId === "buyer" ? "bg-[#225BC3] text-white rounded-tr-none" : "bg-white border border-slate-100 rounded-tl-none"
+                )}>
+                  {m.text}
+                </div>
                 <div className="flex items-center gap-2">
-                   {m.riskScore && m.riskScore >= 4 && <ShieldAlert className="w-3 h-3 text-orange-500" />}
+                   {m.riskScore && m.riskScore >= 30 && (
+                     <Badge variant="ghost" className="h-5 px-2 bg-slate-100 border-none text-slate-400 gap-1 rounded-full text-[8px] font-black">
+                       {m.aiAnalyzed ? <Cpu className="w-2 h-2 text-blue-500" /> : <Zap className="w-2 h-2" />}
+                       Audit: {m.riskScore}
+                     </Badge>
+                   )}
                    <span className="text-[10px] text-muted-foreground font-bold">{m.timestamp}</span>
                 </div>
               </div>
@@ -157,7 +183,7 @@ export default function MessagesPage() {
             </div>
             <div className="flex items-center justify-center gap-2 opacity-40">
                <ShieldCheck className="w-3 h-3 text-[#34CBED]" />
-               <span className="text-[8px] font-black uppercase tracking-widest">Falcon AI Protection Enabled</span>
+               <span className="text-[8px] font-black uppercase tracking-widest">Hybrid AI/Rule Protection Enabled</span>
             </div>
           </div>
         </div>
