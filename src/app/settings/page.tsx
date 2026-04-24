@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect } from "react";
@@ -8,21 +7,20 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { useUser, useFirestore, useDoc, useMemoFirebase } from "@/firebase";
 import { doc, setDoc, updateDoc } from "firebase/firestore";
 import { toast } from "@/hooks/use-toast";
 import { 
-  User, 
   Settings, 
   ShieldCheck, 
   Camera, 
   Loader2, 
   Save, 
-  LogOut,
   Mail,
   Smartphone,
-  MapPin
+  MapPin,
+  CheckCircle2
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -32,10 +30,10 @@ export default function SettingsPage() {
   const router = useRouter();
   const db = useFirestore();
 
-  // FIX: Properly memoize the document reference to prevent infinite subscription loops
+  // STABLE MEMOIZATION FIX: Prevents infinite Firestore subscription loops
   const profileRef = useMemoFirebase(() => {
     return user ? doc(db, "userProfiles", user.uid) : null;
-  }, [db, user]);
+  }, [db, user?.uid]);
 
   const { data: profile, isLoading: isProfileLoading } = useDoc(profileRef);
 
@@ -82,7 +80,7 @@ export default function SettingsPage() {
         await updateDoc(doc(db, "userProfiles", user.uid), data);
       }
 
-      toast({ title: "Profile Updated", description: "Your professional details have been saved." });
+      toast({ title: "Profile Updated", description: "Your details have been saved." });
     } catch (err: any) {
       toast({ variant: "destructive", title: "Error Saving", description: err.message });
     } finally {
@@ -117,9 +115,6 @@ export default function SettingsPage() {
                   <Settings className="w-3 h-3 text-[#34CBED]" /> Manage Identity & Security
                 </p>
              </div>
-             <Button variant="outline" className="rounded-2xl border-[#225BC3]/20 text-[#225BC3] font-black h-12 px-8 uppercase text-[10px] tracking-widest hover:bg-[#225BC3]/5">
-                Public View
-             </Button>
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
@@ -192,7 +187,7 @@ export default function SettingsPage() {
                         <Label className="font-black text-[10px] uppercase tracking-widest text-[#225BC3]">Marketplace Bio</Label>
                         <Textarea 
                           className="min-h-[120px] rounded-2xl bg-slate-50 border-none font-medium text-sm leading-relaxed" 
-                          placeholder="Tell potential buyers about your business or personal trade history..."
+                          placeholder="Tell us about your trade history..."
                           value={bio}
                           onChange={(e) => setBio(e.target.value)}
                         />

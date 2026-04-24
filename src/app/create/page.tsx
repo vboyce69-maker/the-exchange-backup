@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect } from "react";
@@ -10,22 +9,13 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { 
-  Camera, 
-  MapPin, 
-  Loader2, 
   X, 
   Zap,
-  Package,
-  Gavel,
-  AlertTriangle,
-  Info,
-  Layers,
+  Loader2, 
   ImagePlus,
-  Save,
-  ShieldCheck,
-  Award,
   CreditCard,
-  Lock
+  Lock,
+  Award
 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import Image from "next/image";
@@ -55,7 +45,6 @@ export default function CreateListingPage() {
   const [price, setPrice] = useState("");
   const [description, setDescription] = useState("");
 
-  // FOUNDING MEMBER CHECK
   const isFoundingMember = isFoundingSlotAvailable(MARKET_CONFIG.SIMULATED_FILLED_SLOTS);
 
   useEffect(() => {
@@ -111,7 +100,7 @@ export default function CreateListingPage() {
       isBulk,
       quantity: parseInt(quantity),
       viewCount: 0,
-      isBoosted: isFoundingMember, // Founding perk: Auto-featured
+      isBoosted: isFoundingMember,
       feePaid: isFoundingMember ? 0 : MARKET_CONFIG.STANDARD_LISTING_FEE
     };
 
@@ -168,7 +157,7 @@ export default function CreateListingPage() {
                     <div>
                       <p className="text-[10px] font-black text-[#225BC3] uppercase tracking-widest mb-1">Standard Listing</p>
                       <p className="text-[11px] text-blue-800 font-bold leading-relaxed">
-                        The Founding 1000 program has reached capacity. A standard platform fee of <span className="font-black">R{MARKET_CONFIG.STANDARD_LISTING_FEE.toFixed(2)}</span> applies to ensure safety and AI security.
+                        The Founding 1000 program has reached capacity. A standard platform fee of <span className="font-black">R{MARKET_CONFIG.STANDARD_LISTING_FEE.toFixed(2)}</span> applies.
                       </p>
                     </div>
                   </div>

@@ -3,12 +3,12 @@ import { googleAI } from '@genkit-ai/google-genai';
 
 /**
  * Robust Model Configuration for 'The Exchange'.
- * Prioritized for cost-efficiency first, then stability.
+ * Prioritized for cost-efficiency first (8B), then stability (Flash), then capability (Pro).
  */
 export const MODELS_TO_TRY = [
-  'googleai/gemini-1.5-flash-8b', // Ultra low-cost
-  'googleai/gemini-1.5-flash',    // Balanced
-  'googleai/gemini-1.5-pro',      // High capability (Fallback)
+  'googleai/gemini-1.5-flash-8b', // Lowest Cost - Primary for high-volume moderation
+  'googleai/gemini-1.5-flash',    // Balanced - Secondary fallback
+  'googleai/gemini-1.5-pro',      // High Capability - Ultimate fail-safe
 ];
 
 export const ai = genkit({
@@ -18,7 +18,7 @@ export const ai = genkit({
 
 /**
  * Model-safe execution wrapper.
- * Iterates through available models to ensure completion even during API outages.
+ * Iterates through available models to ensure completion even during API outages or version conflicts.
  */
 export async function runWithModelSafe<T>(
   promptFn: (config: { model: any }) => Promise<T>
@@ -35,7 +35,8 @@ export async function runWithModelSafe<T>(
       console.warn(`[AI-SAFE] Model ${modelId} failed: ${msg}`);
       errors.push(`${modelId}: ${msg}`);
       
-      // Continue loop to try next model...
+      // If the error is a 404 (Not Found) or 403 (Forbidden), we definitely want to try the next model.
+      continue;
     }
   }
 

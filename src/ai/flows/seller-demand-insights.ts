@@ -1,10 +1,7 @@
 'use server';
 /**
- * @fileOverview This file implements an AI-powered tool for sellers to analyze market trends.
- *
- * - getSellerDemandInsights - A function that provides market trend analysis and suggests high-demand areas or optimal listing categories.
- * - SellerDemandInsightsInput - The input type for the getSellerDemandInsights function.
- * - SellerDemandInsightsOutput - The return type for the getSellerDemandInsights function.
+ * @fileOverview AI-powered tool for sellers to analyze market trends.
+ * Optimized for Flash 8B for cost-efficiency.
  */
 
 import {ai, runWithModelSafe} from '@/ai/genkit';
@@ -36,7 +33,7 @@ const SellerDemandInsightsOutputSchema = z.object({
         areaName: z.string().describe('The name of the high-demand geographic area.'),
         demandScore: z
           .number()
-          .describe('A score indicating the level of demand in this area (e.g., 1-100).'),
+          .describe('A score indicating the level of demand in this area (1-100).'),
         reason: z.string().describe('Explanation for why this area is considered high-demand.'),
       })
     )
@@ -47,7 +44,7 @@ const SellerDemandInsightsOutputSchema = z.object({
         categoryName: z.string().describe('The name of the optimal product category.'),
         demandScore: z
           .number()
-          .describe('A score indicating the level of demand for this category (e.g., 1-100).'),
+          .describe('A score indicating the level of demand for this category (1-100).'),
         reason: z.string().describe('Explanation for why this category is considered optimal.'),
       })
     )
@@ -62,22 +59,15 @@ const prompt = ai.definePrompt({
   name: 'sellerDemandInsightsPrompt',
   input: {schema: SellerDemandInsightsInputSchema},
   output: {schema: SellerDemandInsightsOutputSchema},
-  prompt: `You are an AI-powered market analyst for LocalBid Exchange, an online marketplace.
-Your goal is to provide sellers with actionable insights into market trends, high-demand areas, and optimal listing categories to maximize their sales.
+  prompt: `You are an AI market analyst for 'The Exchange'.
+Analyze current supply and demand to provide data-driven insights.
 
-Analyze the provided seller information and internal platform data to identify patterns and make data-driven recommendations.
+Seller Location: Latitude {{{sellerLocation.latitude}}}, Longitude {{{sellerLocation.longitude}}}
+Listing Focus: {{{currentListingsCategories}}}
 
-Seller ID: {{{sellerId}}}
-Current Listing Categories: {{{currentListingsCategories}}}
-{{#if recentSearchTerms}}Recent Search Terms: {{{recentSearchTerms}}}{{/if}}
-{{#if sellerLocation}}Seller Location: Latitude {{{sellerLocation.latitude}}}, Longitude {{{sellerLocation.longitude}}}{{/if}}
-
-Based on this information, previous transactions on the platform, and user search data (which you implicitly have access to), identify:
-1.  **High-Demand Geographic Areas**: Suggest specific areas where products similar to the seller's current listings or general market demand is high. Provide a demand score and a brief reason.
-2.  **Optimal Listing Categories**: Recommend product categories that the seller should focus on, either because they align with existing demand or represent new opportunities. Provide a demand score and a brief reason.
-3.  **General Market Trends**: Summarize overarching market trends relevant to the seller's profile and strategic recommendations for improving their sales.
-
-Ensure your suggestions are practical and directly applicable to a seller on LocalBid Exchange. Focus on concrete categories and locations rather than vague concepts.`,
+1. Identify High-Demand Areas nearby.
+2. Recommend categories that are moving fast.
+3. Provide a Strategic Trend summary.`,
 });
 
 const sellerDemandInsightsFlow = ai.defineFlow(
@@ -90,7 +80,6 @@ const sellerDemandInsightsFlow = ai.defineFlow(
     const result = await runWithModelSafe((config) => prompt(input, config));
     
     if (result.ok && result.output?.output) {
-      // Corrected: Genkit prompt call returns a GenerateResponse, schema-validated data is in .output
       return result.output.output as SellerDemandInsightsOutput;
     }
 
