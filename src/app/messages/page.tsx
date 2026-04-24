@@ -7,23 +7,28 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { 
-  ShieldAlert, 
-  Send, 
+import {
+  ShieldAlert,
+  Send,
   ShieldCheck,
   Lock,
   Loader2,
   Globe,
   AlertTriangle,
   Cpu,
-  Zap
+  Zap,
+  Navigation as NavIcon,
+  MapPin,
+  Car
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { VerifiedBadge } from "@/components/VerifiedBadge";
+import { LiveMeetupTracker } from "@/components/LiveMeetupTracker";
 import { cn } from "@/lib/utils";
 import { useUser, useFirestore } from "@/firebase";
 import { collection } from "firebase/firestore";
 import { addDocumentNonBlocking } from "@/firebase/non-blocking-updates";
+import { toast } from "@/hooks/use-toast";
 
 interface Message {
   id: string;
@@ -41,16 +46,19 @@ export default function MessagesPage() {
 
   const [messages, setMessages] = useState<Message[]>([
     { id: "1", senderId: "seller", text: "Hey! Are you still interested in the Mountain Bike?", timestamp: "10:30 AM" },
+    { id: "2", senderId: "buyer", text: "Yes, I am. Can we meet at the Rosebank SAPS Safe Zone tomorrow?", timestamp: "10:32 AM" },
+    { id: "3", senderId: "seller", text: "That works for me. I've initiated the Protected Hold for the payment.", timestamp: "10:35 AM" },
   ]);
   const [inputValue, setInputValue] = useState("");
   const [scamAudit, setScamAudit] = useState<any>(null);
+  const [isMeetupActive, setIsMeetupActive] = useState(false);
 
   const handleSend = async () => {
     if (!inputValue.trim() || isValidating) return;
 
     // Layered Security Architecture Trigger
     const result = await checkContent(inputValue);
-    
+
     if (!result) return;
 
     // Log high-risk events to moderation queue
@@ -70,15 +78,15 @@ export default function MessagesPage() {
 
     if (result.decision === 'block') {
       setScamAudit(result);
-      return; 
+      return;
     }
 
     setScamAudit(result.decision !== 'allow' ? result : null);
 
-    setMessages([...messages, { 
-      id: Date.now().toString(), 
-      senderId: "buyer", 
-      text: inputValue, 
+    setMessages([...messages, {
+      id: Date.now().toString(),
+      senderId: "buyer",
+      text: inputValue,
       timestamp: "Now",
       riskScore: result.riskScore,
       aiAnalyzed: result.aiAnalysisPerformed
@@ -86,10 +94,18 @@ export default function MessagesPage() {
     setInputValue("");
   };
 
+  const startMeetup = () => {
+    setIsMeetupActive(true);
+    toast({
+      title: "Meetup Tracker Active",
+      description: "Sharing live proximity to Rosebank SAPS Safe Zone.",
+    });
+  };
+
   return (
     <div className="min-h-screen bg-[#EEF1F3] flex flex-col">
       <Navigation />
-      
+
       <main className="flex-1 container mx-auto px-4 py-8 flex flex-col lg:flex-row gap-6">
         <aside className="hidden lg:block w-80 bg-white border rounded-[2rem] shadow-sm overflow-hidden">
           <div className="p-6 border-b bg-[#225BC3]/5 flex items-center justify-between">
@@ -111,15 +127,37 @@ export default function MessagesPage() {
               <Avatar className="border-2 border-[#225BC3]/10"><AvatarImage src="https://picsum.photos/seed/user1/200/200" /></Avatar>
               <h3 className="font-black text-[#225BC3] uppercase tracking-tight">Alex Rivera <VerifiedBadge /></h3>
             </div>
-            <Badge className="bg-[#225BC3] text-white border-none px-4 py-1.5 flex items-center gap-2 rounded-full uppercase text-[9px] font-black tracking-widest">
-              <Lock className="w-3 h-3 text-[#34CBED]" /> Secure Trade
-            </Badge>
+            <div className="flex items-center gap-3">
+              {!isMeetupActive && (
+                <Button
+                  size="sm"
+                  className="bg-[#FF8C00] text-white font-black rounded-full h-9 px-4 text-[9px] uppercase tracking-widest gap-2 shadow-lg hover:scale-105 transition-transform"
+                  onClick={startMeetup}
+                >
+                  <NavIcon className="w-3.5 h-3.5" /> Start Tracker
+                </Button>
+              )}
+              <Badge className="bg-[#225BC3] text-white border-none px-4 py-1.5 flex items-center gap-2 rounded-full uppercase text-[9px] font-black tracking-widest">
+                <Lock className="w-3 h-3 text-[#34CBED]" /> Secure Trade
+              </Badge>
+            </div>
           </div>
 
           <div className="flex-1 overflow-y-auto p-6 space-y-6 bg-slate-50/30">
+            {isMeetupActive && (
+              <div className="mb-8">
+                <LiveMeetupTracker
+                  buyerName="You"
+                  sellerName="Alex Rivera"
+                  safeZoneName="Rosebank SAPS Safe Zone"
+                  onArrival={(role) => console.log(`${role} arrived`)}
+                />
+              </div>
+            )}
+
             {scamAudit && scamAudit.decision !== 'allow' && (
               <Alert variant="destructive" className={cn(
-                "rounded-3xl animate-in slide-in-from-top-4", 
+                "rounded-3xl animate-in slide-in-from-top-4",
                 scamAudit.decision === 'block' ? "bg-red-50 border-red-200" : "bg-orange-50 border-orange-200"
               )}>
                 <div className="flex items-start gap-4">
@@ -150,7 +188,7 @@ export default function MessagesPage() {
             {messages.map((m) => (
               <div key={m.id} className={cn("flex flex-col max-w-[80%] space-y-1", m.senderId === "buyer" ? "ml-auto items-end" : "items-start")}>
                 <div className={cn(
-                  "px-5 py-3 rounded-[1.5rem] text-sm shadow-sm", 
+                  "px-5 py-3 rounded-[1.5rem] text-sm shadow-sm",
                   m.senderId === "buyer" ? "bg-[#225BC3] text-white rounded-tr-none" : "bg-white border border-slate-100 rounded-tl-none"
                 )}>
                   {m.text}
@@ -170,12 +208,12 @@ export default function MessagesPage() {
 
           <div className="p-6 border-t bg-white space-y-4">
             <div className="flex gap-3">
-              <Input 
-                placeholder="Type a message..." 
-                className="rounded-full bg-slate-50 border-none h-14 px-6 font-medium" 
-                value={inputValue} 
-                onChange={(e) => setInputValue(e.target.value)} 
-                onKeyDown={(e) => e.key === "Enter" && handleSend()} 
+              <Input
+                placeholder="Type a message..."
+                className="rounded-full bg-slate-50 border-none h-14 px-6 font-medium"
+                value={inputValue}
+                onChange={(e) => setInputValue(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && handleSend()}
               />
               <Button size="icon" className="rounded-full bg-[#225BC3] shrink-0 h-14 w-14" onClick={handleSend} disabled={isValidating}>
                 {isValidating ? <Loader2 className="w-5 h-5 animate-spin" /> : <Send className="w-5 h-5" />}
