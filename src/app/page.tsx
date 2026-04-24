@@ -105,13 +105,13 @@ export default function LandingPage() {
       
       {/* Founding 1000 Promo Banner with Scarcity */}
       <div className={cn(
-        "py-1.5 px-4 relative overflow-hidden transition-colors duration-500",
+        "py-1 px-4 relative overflow-hidden transition-colors duration-500",
         isProgramActive ? "bg-[#FF8C00] text-white" : "bg-slate-900 text-white"
       )}>
         <div className="container mx-auto flex flex-col md:flex-row items-center justify-between gap-2 relative z-10">
            <div className="flex items-center gap-2">
               <Zap className={cn("w-3 h-3", isProgramActive && "animate-pulse")} />
-              <p className="font-black uppercase text-[8px] sm:text-[9px] tracking-wider">
+              <p className="font-black uppercase text-[8px] tracking-tight">
                 {isProgramActive ? (
                   <>
                     <span className="opacity-80">Join the</span> Founding 1000 Sellers: 
@@ -127,7 +127,7 @@ export default function LandingPage() {
            </div>
            {isProgramActive && (
              <Link href="/create">
-                <Button size="sm" className="bg-white text-[#FF8C00] font-black rounded-lg hover:bg-slate-50 h-6 px-4 uppercase text-[8px] tracking-wider shadow-md">
+                <Button size="sm" className="bg-white text-[#FF8C00] font-black rounded-lg hover:bg-slate-50 h-5 px-3 uppercase text-[7px] tracking-wider shadow-md">
                    Claim Free Slot
                 </Button>
              </Link>
@@ -137,7 +137,7 @@ export default function LandingPage() {
       </div>
 
       {/* Hero Section */}
-      <section className="relative h-[50vh] flex items-center overflow-hidden bg-[#225BC3]">
+      <section className="relative h-[60vh] lg:h-[55vh] flex items-center overflow-hidden bg-[#225BC3]">
         <div className="absolute inset-0 opacity-25">
            <Image 
             src="https://picsum.photos/seed/localbid-hero/1920/1080" 
@@ -148,7 +148,7 @@ export default function LandingPage() {
             data-ai-hint="marketplace trade"
           />
         </div>
-        <div className="container mx-auto px-6 relative z-10 grid lg:grid-cols-2 gap-8 items-center">
+        <div className="container mx-auto px-6 relative z-10 grid lg:grid-cols-2 gap-8 items-center pt-12 lg:pt-16">
           <div className="text-white space-y-4">
             <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-md px-3 py-1 rounded-xl border border-white/20">
               <Rocket className="w-3.5 h-3.5 text-[#34CBED]" />
