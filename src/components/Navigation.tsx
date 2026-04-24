@@ -120,25 +120,29 @@ export function Navigation() {
                 Hub <ChevronDown className="w-3 h-3" />
               </button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent className="w-72 rounded-[2rem] p-4 shadow-2xl border-none ring-1 ring-black/5 mt-2 bg-white grid grid-cols-1 gap-1">
-              <DropdownMenuLabel className="font-black text-[9px] uppercase tracking-[0.2em] text-[#225BC3] px-3 py-2 flex items-center justify-between">
-                Platform Hub
-                <Briefcase className="w-3 h-3" />
-              </DropdownMenuLabel>
-              <DropdownMenuSeparator className="mb-2 bg-slate-100" />
-              {features.map((feature) => (
-                <DropdownMenuItem key={feature.name} className="rounded-2xl p-3 cursor-pointer focus:bg-[#225BC3]/5 group" asChild>
-                  <Link href={feature.href} className="flex items-center gap-4">
-                    <div className={cn("w-10 h-10 rounded-xl bg-slate-50 flex items-center justify-center group-focus:bg-white group-focus:shadow-sm transition-all shadow-sm", feature.color)}>
-                      <feature.icon className="w-5 h-5" />
-                    </div>
-                    <div>
-                      <p className="font-black text-xs text-slate-900 leading-none mb-1">{feature.name}</p>
-                      <p className="text-[9px] font-bold text-muted-foreground">{feature.description}</p>
-                    </div>
-                  </Link>
-                </DropdownMenuItem>
-              ))}
+            <DropdownMenuContent className="w-72 max-h-[80vh] overflow-y-auto rounded-[2rem] p-4 shadow-2xl border-none ring-1 ring-black/5 mt-2 bg-white grid grid-cols-1 gap-1">
+              <div className="sticky top-0 bg-white z-10 pb-2">
+                <DropdownMenuLabel className="font-black text-[9px] uppercase tracking-[0.2em] text-[#225BC3] px-3 py-2 flex items-center justify-between">
+                  Platform Hub
+                  <Briefcase className="w-3 h-3" />
+                </DropdownMenuLabel>
+                <DropdownMenuSeparator className="bg-slate-100 mx-3" />
+              </div>
+              <div className="space-y-1">
+                {features.map((feature) => (
+                  <DropdownMenuItem key={feature.name} className="rounded-2xl p-3 cursor-pointer focus:bg-[#225BC3]/5 group" asChild>
+                    <Link href={feature.href} className="flex items-center gap-4">
+                      <div className={cn("w-10 h-10 rounded-xl bg-slate-50 flex items-center justify-center group-focus:bg-white group-focus:shadow-sm transition-all shadow-sm", feature.color)}>
+                        <feature.icon className="w-5 h-5" />
+                      </div>
+                      <div>
+                        <p className="font-black text-xs text-slate-900 leading-none mb-1">{feature.name}</p>
+                        <p className="text-[9px] font-bold text-muted-foreground">{feature.description}</p>
+                      </div>
+                    </Link>
+                  </DropdownMenuItem>
+                ))}
+              </div>
             </DropdownMenuContent>
           </DropdownMenu>
 
