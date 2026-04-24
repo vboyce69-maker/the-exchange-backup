@@ -1,76 +1,52 @@
-
 import { genkit } from 'genkit';
 import { googleAI } from '@genkit-ai/google-genai';
 
 /**
- * Optimized Model Configuration for 'The Exchange'.
- * Primary: Gemini 1.5 Flash 8B (Extremely low cost, high speed)
- * Fallback: Gemini 1.5 Flash (Resilient and robust)
- * 
- * Using standard model IDs to ensure broad API availability.
+ * Robust Model Configuration for 'The Exchange'.
+ * Prioritized for cost-efficiency first, then stability.
  */
-export const PRIMARY_MODEL = 'googleai/gemini-1.5-flash-8b';
-export const FALLBACK_MODEL = 'googleai/gemini-1.5-flash';
+export const MODELS_TO_TRY = [
+  'googleai/gemini-1.5-flash-8b', // Ultra low-cost
+  'googleai/gemini-1.5-flash',    // Balanced
+  'googleai/gemini-1.5-pro',      // High capability (Fallback)
+];
 
 export const ai = genkit({
   plugins: [googleAI()],
-  model: PRIMARY_MODEL,
+  model: MODELS_TO_TRY[0],
 });
 
 /**
  * Model-safe execution wrapper.
- * Gracefully handles 404, 429, and 500 errors by attempting a fallback model.
- * Focuses on cost-efficiency by starting with the lightest models.
+ * Iterates through available models to ensure completion even during API outages.
  */
 export async function runWithModelSafe<T>(
   promptFn: (config: { model: any }) => Promise<T>
 ): Promise<{ ok: boolean; output: T | null; error?: string; modelUsed: string }> {
-  try {
-    // Attempt with Primary (Low Cost) Model
-    console.log(`[AI-COST-SAVER] Attempting execution with primary model: ${PRIMARY_MODEL}`);
-    const result = await promptFn({ model: PRIMARY_MODEL });
-    return { ok: true, output: result, modelUsed: PRIMARY_MODEL };
-  } catch (error: any) {
-    const errorMessage = (error.message || String(error)).toLowerCase();
-    console.error(`[AI] Primary model error: ${errorMessage}`);
-    
-    // Determine if the error is recoverable (404, 429, 403, 500 etc)
-    const isRecoverable = 
-      errorMessage.includes('404') || 
-      errorMessage.includes('not found') ||
-      errorMessage.includes('429') || 
-      errorMessage.includes('quota') ||
-      errorMessage.includes('500') || 
-      errorMessage.includes('403') ||
-      errorMessage.includes('unsupported') ||
-      errorMessage.includes('version');
-    
-    if (isRecoverable) {
-      console.warn(`[AI] Falling back to secondary model (${FALLBACK_MODEL}) to maintain uptime...`);
-      try {
-        const fallbackResult = await promptFn({ model: FALLBACK_MODEL });
-        return { 
-          ok: true, 
-          output: fallbackResult, 
-          modelUsed: FALLBACK_MODEL, 
-          error: `Recovered with fallback after: ${errorMessage}` 
-        };
-      } catch (fallbackError: any) {
-        console.error(`[AI] All models failed:`, fallbackError.message);
-        return { 
-          ok: false, 
-          output: null, 
-          error: `AI Infrastructure Error: Both primary and fallback models are currently unavailable in this project's API version. Error: ${fallbackError.message}`, 
-          modelUsed: 'unknown' 
-        };
-      }
-    }
+  const errors: string[] = [];
 
-    return { 
-      ok: false, 
-      output: null, 
-      error: errorMessage, 
-      modelUsed: PRIMARY_MODEL 
-    };
+  for (const modelId of MODELS_TO_TRY) {
+    try {
+      console.log(`[AI-SAFE] Attempting execution with model: ${modelId}`);
+      const result = await promptFn({ model: modelId });
+      return { ok: true, output: result, modelUsed: modelId };
+    } catch (error: any) {
+      const msg = error.message || String(error);
+      console.warn(`[AI-SAFE] Model ${modelId} failed: ${msg}`);
+      errors.push(`${modelId}: ${msg}`);
+      
+      // Continue loop to try next model...
+    }
   }
+
+  // If all models in the list failed
+  const finalErrorMessage = `AI Infrastructure Error: All models failed. Debug log: ${errors.join(' | ')}`;
+  console.error(`[AI-CRITICAL] ${finalErrorMessage}`);
+
+  return { 
+    ok: false, 
+    output: null, 
+    error: finalErrorMessage, 
+    modelUsed: 'none' 
+  };
 }
