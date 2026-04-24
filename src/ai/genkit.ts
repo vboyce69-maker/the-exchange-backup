@@ -1,10 +1,13 @@
+
 import { genkit } from 'genkit';
 import { googleAI } from '@genkit-ai/google-genai';
 
 /**
  * Optimized Model Configuration for 'The Exchange'.
  * Primary: Gemini 1.5 Flash 8B (Extremely low cost, high speed)
- * Fallback: Gemini 1.5 Flash (Standard reliability)
+ * Fallback: Gemini 1.5 Flash (Resilient and robust)
+ * 
+ * Using standard model IDs to ensure broad API availability.
  */
 export const PRIMARY_MODEL = 'googleai/gemini-1.5-flash-8b';
 export const FALLBACK_MODEL = 'googleai/gemini-1.5-flash';
@@ -31,32 +34,33 @@ export async function runWithModelSafe<T>(
     const errorMessage = (error.message || String(error)).toLowerCase();
     console.error(`[AI] Primary model error: ${errorMessage}`);
     
-    // Determine if the error is recoverable
+    // Determine if the error is recoverable (404, 429, 403, 500 etc)
     const isRecoverable = 
       errorMessage.includes('404') || 
+      errorMessage.includes('not found') ||
       errorMessage.includes('429') || 
+      errorMessage.includes('quota') ||
       errorMessage.includes('500') || 
       errorMessage.includes('403') ||
-      errorMessage.includes('not found') ||
       errorMessage.includes('unsupported') ||
       errorMessage.includes('version');
     
     if (isRecoverable) {
-      console.warn(`[AI] Falling back to standard model to maintain uptime...`);
+      console.warn(`[AI] Falling back to secondary model (${FALLBACK_MODEL}) to maintain uptime...`);
       try {
         const fallbackResult = await promptFn({ model: FALLBACK_MODEL });
         return { 
           ok: true, 
           output: fallbackResult, 
           modelUsed: FALLBACK_MODEL, 
-          error: `Recovered with fallback: ${errorMessage}` 
+          error: `Recovered with fallback after: ${errorMessage}` 
         };
       } catch (fallbackError: any) {
         console.error(`[AI] All models failed:`, fallbackError.message);
         return { 
           ok: false, 
           output: null, 
-          error: `Infrastructure Error: No AI models available.`, 
+          error: `AI Infrastructure Error: Both primary and fallback models are currently unavailable in this project's API version. Error: ${fallbackError.message}`, 
           modelUsed: 'unknown' 
         };
       }

@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { useUser, useFirestore, useDoc } from "@/firebase";
+import { useUser, useFirestore, useDoc, useMemoFirebase } from "@/firebase";
 import { doc, setDoc, updateDoc } from "firebase/firestore";
 import { toast } from "@/hooks/use-toast";
 import { 
@@ -32,7 +32,11 @@ export default function SettingsPage() {
   const router = useRouter();
   const db = useFirestore();
 
-  const profileRef = user ? doc(db, "userProfiles", user.uid) : null;
+  // FIX: Properly memoize the document reference to prevent infinite subscription loops
+  const profileRef = useMemoFirebase(() => {
+    return user ? doc(db, "userProfiles", user.uid) : null;
+  }, [db, user]);
+
   const { data: profile, isLoading: isProfileLoading } = useDoc(profileRef);
 
   const [firstName, setFirstName] = useState("");
@@ -119,7 +123,6 @@ export default function SettingsPage() {
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
-            {/* Summary Card */}
             <div className="space-y-6">
                <Card className="rounded-[3rem] border-none shadow-xl bg-white p-8 ring-1 ring-[#225BC3]/5">
                   <div className="flex flex-col items-center text-center">
@@ -171,7 +174,6 @@ export default function SettingsPage() {
                </Card>
             </div>
 
-            {/* Profile Form */}
             <div className="lg:col-span-2">
                <Card className="rounded-[3.5rem] border-none shadow-2xl bg-white p-10 ring-1 ring-[#225BC3]/5">
                   <form onSubmit={handleSave} className="space-y-8">
