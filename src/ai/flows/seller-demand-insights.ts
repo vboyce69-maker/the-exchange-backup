@@ -89,9 +89,9 @@ const sellerDemandInsightsFlow = ai.defineFlow(
   async input => {
     const result = await runWithModelSafe((config) => prompt(input, config));
     
-    if (result.ok && result.output) {
-      // In Genkit 1.x, the result of a prompt call is the output object itself when returned through runWithModelSafe wrap
-      return result.output as SellerDemandInsightsOutput;
+    if (result.ok && result.output?.output) {
+      // Corrected: Genkit prompt call returns a GenerateResponse, schema-validated data is in .output
+      return result.output.output as SellerDemandInsightsOutput;
     }
 
     throw new Error(result.error || "Market analysis service is temporarily busy. Please try again in a moment.");
