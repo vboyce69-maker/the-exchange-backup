@@ -1,4 +1,3 @@
-
 "use client";
 
 import Link from "next/link";
@@ -74,7 +73,7 @@ export function Navigation() {
 
   return (
     <nav className="sticky top-0 z-50 w-full border-b bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/60 px-4">
-      <div className="container mx-auto h-16 lg:h-20 flex items-center justify-between gap-2">
+      <div className="container mx-auto h-14 lg:h-16 flex items-center justify-between gap-2">
         <Link href="/" className="flex items-center gap-2 shrink-0 group">
           <div className="bg-[#225BC3] p-1.5 lg:p-2 rounded-xl shadow-lg shadow-blue-500/20 group-hover:scale-110 transition-transform">
             <ShieldCheck className="w-4 h-4 lg:w-5 lg:h-5 text-white" />
@@ -93,7 +92,7 @@ export function Navigation() {
             placeholder="Search for items, brands..." 
             value={searchVal}
             onChange={(e) => setSearchVal(e.target.value)}
-            className="w-full h-11 pl-10 pr-4 rounded-2xl bg-slate-50 border-none focus:ring-2 focus:ring-[#225BC3]/10 outline-none font-medium text-sm transition-all"
+            className="w-full h-10 pl-10 pr-4 rounded-2xl bg-slate-50 border-none focus:ring-2 focus:ring-[#225BC3]/10 outline-none font-medium text-sm transition-all"
           />
         </form>
 
@@ -102,14 +101,14 @@ export function Navigation() {
           <Button 
             variant="ghost" 
             size="icon" 
-            className="lg:hidden rounded-xl h-10 w-10 text-[#225BC3] active:scale-95"
+            className="lg:hidden rounded-xl h-9 w-9 text-[#225BC3] active:scale-95"
             onClick={() => setIsMobileSearchOpen(!isMobileSearchOpen)}
           >
-            <Search className="w-5 h-5" />
+            <Search className="w-4 h-4" />
           </Button>
 
           <Link href="/create">
-            <Button className="bg-[#FF8C00] hover:bg-[#FF8C00]/90 text-white font-black rounded-2xl h-10 px-3 lg:px-6 shadow-lg shadow-orange-500/20 uppercase text-[9px] lg:text-[10px] tracking-tighter active:scale-95 transition-transform">
+            <Button className="bg-[#FF8C00] hover:bg-[#FF8C00]/90 text-white font-black rounded-2xl h-9 px-3 lg:px-6 shadow-lg shadow-orange-500/20 uppercase text-[9px] lg:text-[10px] tracking-tighter active:scale-95 transition-transform">
               <PlusCircle className="w-4 h-4 lg:mr-2" />
               <span className="hidden sm:inline">List Item</span>
             </Button>
@@ -117,7 +116,7 @@ export function Navigation() {
 
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <button className="flex items-center gap-1.5 text-[9px] lg:text-[10px] font-black uppercase tracking-tighter text-[#225BC3] hover:text-[#34CBED] outline-none h-10 px-3 lg:px-4 rounded-2xl bg-[#225BC3]/5 hover:bg-[#225BC3]/10 transition-colors border border-[#225BC3]/10 active:scale-95">
+              <button className="flex items-center gap-1.5 text-[9px] lg:text-[10px] font-black uppercase tracking-tighter text-[#225BC3] hover:text-[#34CBED] outline-none h-9 px-3 lg:px-4 rounded-2xl bg-[#225BC3]/5 hover:bg-[#225BC3]/10 transition-colors border border-[#225BC3]/10 active:scale-95">
                 Hub <ChevronDown className="w-3 h-3" />
               </button>
             </DropdownMenuTrigger>
@@ -146,7 +145,7 @@ export function Navigation() {
           {user ? (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button size="icon" variant="ghost" className="rounded-2xl h-10 w-10 bg-slate-50 overflow-hidden border border-slate-100 active:scale-95">
+                <Button size="icon" variant="ghost" className="rounded-2xl h-9 w-9 bg-slate-50 overflow-hidden border border-slate-100 active:scale-95">
                   {user.photoURL ? (
                     <img src={user.photoURL} alt="user" className="w-full h-full object-cover" />
                   ) : (
@@ -175,7 +174,7 @@ export function Navigation() {
             </DropdownMenu>
           ) : (
             <Link href="/login">
-              <Button variant="ghost" className="rounded-2xl h-10 font-black uppercase text-[9px] lg:text-[10px] tracking-tighter text-[#225BC3] gap-1.5 border border-[#225BC3]/10 active:scale-95">
+              <Button variant="ghost" className="rounded-2xl h-9 font-black uppercase text-[9px] lg:text-[10px] tracking-tighter text-[#225BC3] gap-1.5 border border-[#225BC3]/10 active:scale-95">
                 <LogIn className="w-4 h-4" />
                 <span className="hidden xs:inline">Sign In</span>
               </Button>
@@ -186,7 +185,7 @@ export function Navigation() {
 
       {/* Mobile Search Bar Expansion */}
       {isMobileSearchOpen && (
-        <div className="lg:hidden absolute left-0 right-0 top-16 bg-white p-4 shadow-xl border-b animate-in slide-in-from-top-4">
+        <div className="lg:hidden absolute left-0 right-0 top-14 bg-white p-4 shadow-xl border-b animate-in slide-in-from-top-4">
           <form onSubmit={handleSearchSubmit} className="relative">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
             <input 
@@ -195,7 +194,7 @@ export function Navigation() {
               placeholder="Search marketplace..." 
               value={searchVal}
               onChange={(e) => setSearchVal(e.target.value)}
-              className="w-full h-12 pl-12 pr-12 rounded-2xl bg-slate-50 border-none outline-none font-bold text-sm"
+              className="w-full h-11 pl-12 pr-12 rounded-2xl bg-slate-50 border-none outline-none font-bold text-sm"
             />
             <Button 
               type="button" 
