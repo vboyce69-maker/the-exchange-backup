@@ -149,18 +149,18 @@ export default function LandingPage() {
           />
         </div>
         <div className="container mx-auto px-6 relative z-10 grid lg:grid-cols-2 gap-8 items-center pt-12 lg:pt-16">
-          <div className="text-white space-y-4">
-            <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-md px-3 py-1 rounded-xl border border-white/20">
+          <div className="text-white space-y-4 text-center md:text-left max-w-xl mx-auto md:mx-0">
+            <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-md px-3 py-1 rounded-xl border border-white/20 mx-auto md:mx-0">
               <Rocket className="w-3.5 h-3.5 text-[#34CBED]" />
               <span className="text-[9px] font-black uppercase tracking-widest">South Africa's Trusted Marketplace</span>
             </div>
             <h1 className="text-3xl md:text-5xl font-black leading-[1.1] tracking-tighter">
               The smartest way to <span className="text-[#34CBED]">trade locally.</span>
             </h1>
-            <p className="text-base text-white/80 font-black max-w-lg tracking-tight leading-relaxed">
+            <p className="text-base text-white/80 font-black tracking-tight leading-relaxed">
               Verified Sellers, Secure Deals, No Scams, Just Good Trades.
             </p>
-            <div className="flex flex-wrap gap-3 pt-1">
+            <div className="flex flex-wrap gap-3 pt-1 justify-center md:justify-start">
               <Link href="/search">
                 <Button size="lg" className="bg-[#FF8C00] hover:bg-[#FF8C00]/90 text-white font-black h-12 px-6 rounded-xl text-sm shadow-xl shadow-orange-500/30 hover:scale-105 transition-transform">
                   Explore Marketplace
