@@ -2,8 +2,6 @@
 /**
  * @fileOverview AUTONOMOUS QA RETRY AGENT for 'The Exchange'.
  * Performs automated re-runs of failed cases, detects regressions, and stress-tests systems.
- * 
- * FIX applied: Removed 'export' from maxDuration to resolve Next.js build error.
  */
 
 import { ai, runWithModelSafe } from '@/ai/genkit';
@@ -85,7 +83,7 @@ export async function runAutonomousTesting(input: { targetSuiteId?: string; isSi
     return safeResult.output.output;
   }
 
-  // UPDATED FALLBACK: If AI fails despite increased timeout, provide structured degraded report
+  // FALLBACK: If AI fails despite increased timeout, provide structured degraded report
   return {
     overallStatus: 'unstable',
     summary: "AI Retry Agent encountered an infrastructure delay. System is operating in 'Degraded Mode'. Performance is being monitored.",
@@ -97,7 +95,7 @@ export async function runAutonomousTesting(input: { targetSuiteId?: string; isSi
       failed: 0,
       warnings: 1,
       non_deterministic_failures: 1,
-      critical_bugs: ["AI_TIMEOUT_RECOVERED"],
+      critical_bugs: ["AI_INFRASTRUCTURE_LATENCY"],
       regressions_detected: [],
       recommended_fixes: ["Timeout settings applied internally - Check regional model availability"],
       crash_risk_level: 'MEDIUM'

@@ -1,12 +1,7 @@
-
 'use server';
 /**
  * @fileOverview AI Identity Verification Flow.
  * Matches live biometric selfies against uploaded ID documents.
- * 
- * - verifyIdentity - The core function for KYC facial landmark matching.
- * - VerifyIdentityInput - Schema for document and biometric data.
- * - VerifyIdentityOutput - AI verdict and confidence scoring.
  */
 
 import { ai, runWithModelSafe } from '@/ai/genkit';
