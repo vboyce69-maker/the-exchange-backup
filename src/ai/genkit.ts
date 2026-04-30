@@ -5,16 +5,17 @@ import { googleAI } from '@genkit-ai/google-genai';
  * Robust Model Configuration for 'The Exchange'.
  * - Flash: Primary (High speed, low cost)
  * - Pro: Fallback (Complex reasoning / ID matching)
+ * Note: Using standard IDs without '-latest' to ensure compatibility with all regional endpoints.
  */
 export const MODELS_TO_TRY = [
-  'googleai/gemini-1.5-flash-latest', 
-  'googleai/gemini-1.5-pro-latest',
+  'googleai/gemini-1.5-flash', 
+  'googleai/gemini-1.5-pro',
 ];
 
 export const ai = genkit({
   plugins: [googleAI()],
   // Set the most stable flash model as global default
-  model: 'googleai/gemini-1.5-flash-latest',
+  model: 'googleai/gemini-1.5-flash',
 });
 
 /**
