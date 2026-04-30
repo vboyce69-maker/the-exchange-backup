@@ -7,7 +7,7 @@ import { ai, runWithModelSafe } from '@/ai/genkit';
 import { z } from 'genkit';
 
 // INCREASED TIMEOUT
-export const maxDuration = 120;
+const maxDuration = 120;
 
 const ErrorResolverInputSchema = z.object({
   errorMessage: z.string(),

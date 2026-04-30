@@ -8,7 +8,7 @@ import {z} from 'genkit';
 import { detectScam } from '@/lib/scam-rules';
 
 // INCREASED TIMEOUT
-export const maxDuration = 120;
+const maxDuration = 120;
 
 const AntiScamChatProtectionInputSchema = z.object({
   message: z.string().describe('The chat message to be analyzed for fraud indicators.'),

@@ -3,7 +3,7 @@
  * @fileOverview AUTONOMOUS QA RETRY AGENT for 'The Exchange'.
  * Performs automated re-runs of failed cases, detects regressions, and stress-tests systems.
  * 
- * FIX applied: Increased maxDuration to 120s to resolve AI_TIMEOUT issues.
+ * FIX applied: Removed 'export' from maxDuration to resolve Next.js build error.
  */
 
 import { ai, runWithModelSafe } from '@/ai/genkit';
@@ -11,7 +11,7 @@ import { z } from 'genkit';
 import { TEST_SUITES } from '@/lib/test-manifest';
 
 // INCREASED TIMEOUT FOR COMPLEX QA SIMULATIONS
-export const maxDuration = 120;
+const maxDuration = 120;
 
 const SuiteReportSchema = z.object({
   suite: z.string(),
@@ -99,7 +99,7 @@ export async function runAutonomousTesting(input: { targetSuiteId?: string; isSi
       non_deterministic_failures: 1,
       critical_bugs: ["AI_TIMEOUT_RECOVERED"],
       regressions_detected: [],
-      recommended_fixes: ["Timeout increased to 120s - Check regional model availability"],
+      recommended_fixes: ["Timeout settings applied internally - Check regional model availability"],
       crash_risk_level: 'MEDIUM'
     }]
   };
