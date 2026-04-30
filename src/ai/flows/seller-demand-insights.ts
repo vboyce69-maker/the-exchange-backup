@@ -6,7 +6,7 @@
 import {ai, runWithModelSafe} from '@/ai/genkit';
 import {z} from 'genkit';
 
-// INCREASED TIMEOUT - Internal configuration
+// INCREASED TIMEOUT
 const maxDuration = 120;
 
 const SellerDemandInsightsInputSchema = z.object({

@@ -4,16 +4,16 @@ import { googleAI } from '@genkit-ai/google-genai';
 /**
  * Robust Model Configuration for 'The Exchange'.
  * Prioritized for stability and cost-efficiency.
- * Using verified string identifiers for Genkit 1.x.
+ * Using '-latest' aliases to prevent 404 errors in specific regions.
  */
 export const MODELS_TO_TRY = [
-  'googleai/gemini-1.5-flash',    // Balanced - Primary Choice
-  'googleai/gemini-1.5-pro',      // High Capability - Ultimate fail-safe
+  'googleai/gemini-1.5-flash-latest', // Primary: High speed, low cost
+  'googleai/gemini-1.5-pro-latest',   // Fallback: Maximum reasoning capability
 ];
 
 export const ai = genkit({
   plugins: [googleAI()],
-  model: 'googleai/gemini-1.5-flash',
+  model: 'googleai/gemini-1.5-flash-latest',
 });
 
 /**
