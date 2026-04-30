@@ -8,7 +8,7 @@ import { ai, runWithModelSafe } from '@/ai/genkit';
 import { z } from 'genkit';
 import { TEST_SUITES } from '@/lib/test-manifest';
 
-// INCREASED TIMEOUT FOR COMPLEX QA SIMULATIONS
+// INCREASED TIMEOUT FOR COMPLEX QA SIMULATIONS - Not exported
 const maxDuration = 120;
 
 const SuiteReportSchema = z.object({

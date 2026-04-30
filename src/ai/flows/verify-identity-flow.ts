@@ -7,7 +7,7 @@
 import { ai, runWithModelSafe } from '@/ai/genkit';
 import { z } from 'genkit';
 
-// INCREASED TIMEOUT FOR IMAGE PROCESSING
+// INCREASED TIMEOUT FOR IMAGE PROCESSING - Not exported
 const maxDuration = 120;
 
 const VerifyIdentityInputSchema = z.object({
