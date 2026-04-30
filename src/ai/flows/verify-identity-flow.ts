@@ -1,6 +1,12 @@
+
 'use server';
 /**
  * @fileOverview AI Identity Verification Flow.
+ * Matches live biometric selfies against uploaded ID documents.
+ * 
+ * - verifyIdentity - The core function for KYC facial landmark matching.
+ * - VerifyIdentityInput - Schema for document and biometric data.
+ * - VerifyIdentityOutput - AI verdict and confidence scoring.
  */
 
 import { ai, runWithModelSafe } from '@/ai/genkit';
@@ -10,16 +16,16 @@ import { z } from 'genkit';
 const maxDuration = 120;
 
 const VerifyIdentityInputSchema = z.object({
-  idPhotoDataUri: z.string().describe("Data URI of the ID document photo."),
-  selfieDataUri: z.string().describe("Data URI of the live selfie."),
-  fullName: z.string().describe("The user's full name as provided in the form."),
+  idPhotoDataUri: z.string().describe("Data URI of the ID document photo. Must be base64."),
+  selfieDataUri: z.string().describe("Data URI of the live selfie captured via camera. Must be base64."),
+  fullName: z.string().describe("The user's full name as provided in the verification form."),
 });
 export type VerifyIdentityInput = z.infer<typeof VerifyIdentityInputSchema>;
 
 const VerifyIdentityOutputSchema = z.object({
-  isVerified: z.boolean().describe("Whether the identity is successfully verified."),
-  confidenceScore: z.number().describe("Confidence score of the match (0-100)."),
-  reason: z.string().describe("Reason for approval or rejection."),
+  isVerified: z.boolean().describe("Whether the identity is successfully verified based on facial matching."),
+  confidenceScore: z.number().describe("Confidence score of the biometric match (0-100)."),
+  reason: z.string().describe("Human-readable explanation for approval or rejection."),
   extractedDetails: z.object({
     nameMatch: z.boolean().describe("Whether the name on the ID matches the provided name."),
     idNumber: z.string().optional().describe("The ID number extracted from the document."),
@@ -31,21 +37,30 @@ const verifyIdentityPrompt = ai.definePrompt({
   name: 'verifyIdentityPrompt',
   input: { schema: VerifyIdentityInputSchema },
   output: { schema: VerifyIdentityOutputSchema },
-  prompt: `You are an AI Security Officer for 'The Exchange' marketplace.
-Your task is to perform KYC (Know Your Customer) verification by comparing an ID document and a live selfie.
+  prompt: `You are a Senior AI Security Officer for 'The Exchange' marketplace.
+Your task is to perform critical KYC (Know Your Customer) biometric verification.
 
-TASKS:
-1. Compare the face in the live selfie with the photo on the ID document.
-2. Check if the 'fullName' ({{{fullName}}}) matches the name visible on the ID.
-3. Look for signs of digital tampering or "screen-of-a-screen" photos (rejection criteria).
+PRIMARY TASKS:
+1. FACIAL RECOGNITION: Compare the facial landmarks in the live selfie with the portrait photo on the ID document. 
+2. LIVENESS CHECK: Look for signs of 'screen-of-a-screen' photos, printed photo spoofs, or digital masks (reject if suspected).
+3. NAME VALIDATION: Verify if the 'fullName' ({{{fullName}}}) appears on the ID document correctly.
+4. CONSISTENCY: Ensure the document looks like a legitimate South African ID, Driver's License, or Passport.
 
-ID Document: {{media url=idPhotoDataUri}}
-Live Selfie: {{media url=selfieDataUri}}
+MEDIA INPUTS:
+- ID DOCUMENT: {{media url=idPhotoDataUri}}
+- LIVE BIOMETRIC SELFIE: {{media url=selfieDataUri}}
 
-Provide a confidence score and a clear reason for your decision. 
-If the faces match and the name is consistent, set isVerified to true.`,
+SCORING CRITERIA:
+- High confidence (90+): Identical landmarks, clear name match.
+- Medium confidence (70-80): Slight lighting differences but same person.
+- Low confidence (<60): Drastic age difference, poor quality, or mismatch.
+
+REJECTION RULE: If the faces do not match, set isVerified to false regardless of other factors.`,
 });
 
+/**
+ * Handles the identity verification process using multi-model fallback.
+ */
 export async function verifyIdentity(input: VerifyIdentityInput): Promise<VerifyIdentityOutput> {
   const result = await runWithModelSafe((config) => verifyIdentityPrompt(input, config));
 
@@ -53,6 +68,7 @@ export async function verifyIdentity(input: VerifyIdentityInput): Promise<Verify
     return result.output.output;
   }
 
+  // Fallback if AI infrastructure is completely down
   throw new Error(result.error || "Identity Verification engine is busy. Please wait a moment before trying again.");
 }
 
