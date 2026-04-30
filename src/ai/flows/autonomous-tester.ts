@@ -97,7 +97,7 @@ export async function runAutonomousTesting(input: { targetSuiteId?: string; isSi
       non_deterministic_failures: 1,
       critical_bugs: ["AI_INFRASTRUCTURE_LATENCY"],
       regressions_detected: [],
-      recommended_fixes: ["Check model endpoint availability in this region"],
+      recommended_fixes: ["Check model endpoint availability in this region", "Ensure API Key has sufficient quota"],
       crash_risk_level: 'MEDIUM'
     }]
   };

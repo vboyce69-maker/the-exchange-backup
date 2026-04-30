@@ -5,11 +5,10 @@ import { googleAI } from '@genkit-ai/google-genai';
  * Robust Model Configuration for 'The Exchange'.
  * - Flash: Primary (High speed, low cost)
  * - Pro: Fallback (Complex reasoning / ID matching)
- * Note: Using a broad range of identifiers to ensure regional compatibility.
+ * Note: Standardizing on verified model strings to prevent 404 mismatches.
  */
 export const MODELS_TO_TRY = [
   'googleai/gemini-1.5-flash',
-  'googleai/gemini-2.0-flash',
   'googleai/gemini-1.5-pro',
 ];
 
