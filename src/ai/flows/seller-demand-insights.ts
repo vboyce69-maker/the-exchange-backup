@@ -1,11 +1,13 @@
 'use server';
 /**
  * @fileOverview AI-powered tool for sellers to analyze market trends.
- * Optimized for Flash 8B for cost-efficiency.
  */
 
 import {ai, runWithModelSafe} from '@/ai/genkit';
 import {z} from 'genkit';
+
+// INCREASED TIMEOUT
+export const maxDuration = 120;
 
 const SellerDemandInsightsInputSchema = z.object({
   sellerId: z.string().describe('The unique identifier of the seller.'),

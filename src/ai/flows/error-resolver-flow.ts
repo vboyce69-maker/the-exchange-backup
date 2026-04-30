@@ -1,11 +1,13 @@
 'use server';
 /**
  * @fileOverview AI Error Resolution Agent.
- * Analyzes application crash reports and stack traces to suggest fixes.
  */
 
 import { ai, runWithModelSafe } from '@/ai/genkit';
 import { z } from 'genkit';
+
+// INCREASED TIMEOUT
+export const maxDuration = 120;
 
 const ErrorResolverInputSchema = z.object({
   errorMessage: z.string(),
@@ -54,7 +56,6 @@ export async function resolveSystemError(input: ErrorResolverInput): Promise<Err
     return result.output.output;
   }
 
-  // Fallback if resolution fails
   return {
     rootCause: "AI_DIAGNOSTIC_FAILURE",
     explanation: "The AI Debugger encountered a rate limit and could not analyze this specific crash.",

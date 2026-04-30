@@ -1,11 +1,13 @@
 'use server';
 /**
- * @fileOverview Behavioral Risk AI Agent with Centralized Model Config.
- * Acts as a Virtual SOC (Security Operations Center) analyst.
+ * @fileOverview Behavioral Risk AI Agent.
  */
 
 import { ai, runWithModelSafe } from '@/ai/genkit';
 import { z } from 'genkit';
+
+// INCREASED TIMEOUT
+export const maxDuration = 120;
 
 const BehavioralRiskInputSchema = z.object({
   userId: z.string(),
@@ -63,7 +65,6 @@ export async function analyzeBehavioralRisk(input: BehavioralRiskInput): Promise
     return result.output.output;
   }
 
-  // Default fallback if AI is unreachable
   return {
     riskLevel: 'medium',
     confidence: 0,

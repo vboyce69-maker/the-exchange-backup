@@ -1,17 +1,14 @@
 'use server';
 /**
  * @fileOverview Advanced Tiered AI Security Agent for Chat Fraud Prevention.
- * 
- * ARCHITECTURE:
- * 1. Rule-Based Detection (Layer 1: Fast/Free)
- * 2. Risk Scoring Engine (Layer 2: <30 Allow, 30-60 Warn, >60 AI)
- * 3. AI Intent Analysis (Layer 3: Deep contextual check)
- * 4. Final Moderation Decision (Layer 4)
  */
 
 import {ai, runWithModelSafe} from '@/ai/genkit';
 import {z} from 'genkit';
 import { detectScam } from '@/lib/scam-rules';
+
+// INCREASED TIMEOUT
+export const maxDuration = 120;
 
 const AntiScamChatProtectionInputSchema = z.object({
   message: z.string().describe('The chat message to be analyzed for fraud indicators.'),
@@ -34,10 +31,6 @@ const AntiScamChatProtectionOutputSchema = z.object({
 });
 export type AntiScamChatProtectionOutput = z.infer<typeof AntiScamChatProtectionOutputSchema>;
 
-/**
- * AI Intent Analyzer Prompt
- * Invoked based on Layer 2 scoring threshold (>60).
- */
 const intentAnalyzer = ai.definePrompt({
   name: 'intentAnalyzer',
   input: { 
@@ -70,11 +63,7 @@ Provide a final intent risk level and reasoning.`,
 });
 
 export async function antiScamChatProtection(input: AntiScamChatProtectionInput): Promise<AntiScamChatProtectionOutput> {
-  // 1. LAYER 2: RISK SCORING ENGINE
   const result = detectScam(input.message, input.userTrustScore);
-  
-  // 2. CONDITIONAL AI ANALYSIS (LAYER 3)
-  // Invoked only if score > 60
   const requiresAi = result.score > 60;
   let aiVerdict = null;
 
@@ -92,7 +81,6 @@ export async function antiScamChatProtection(input: AntiScamChatProtectionInput)
     }
   }
 
-  // 3. FINAL DECISION LOGIC (LAYER 4)
   let finalDecision = result.action as any;
   let finalReason = result.explanation;
 
@@ -101,10 +89,9 @@ export async function antiScamChatProtection(input: AntiScamChatProtectionInput)
       finalDecision = 'block';
       finalReason = `AI Threat Detection: ${aiVerdict.reasoning}`;
     } else if (aiVerdict.intentRisk === 'suspicious') {
-      finalDecision = 'hold'; // Keeping it in review
+      finalDecision = 'hold';
       finalReason = `Security Warning (AI): ${aiVerdict.reasoning}`;
     } else if (aiVerdict.intentRisk === 'safe') {
-      // AI cleared it despite rule flags
       finalDecision = result.score >= 30 ? 'warn' : 'allow';
       finalReason = 'AI verification: Potential pattern recognized but intent appears safe.';
     }

@@ -1,12 +1,13 @@
 'use server';
 /**
  * @fileOverview AI Identity Verification Flow.
- * 
- * - verifyIdentity: Compares an ID document with a live selfie to verify authenticity.
  */
 
 import { ai, runWithModelSafe } from '@/ai/genkit';
 import { z } from 'genkit';
+
+// INCREASED TIMEOUT FOR IMAGE PROCESSING
+export const maxDuration = 120;
 
 const VerifyIdentityInputSchema = z.object({
   idPhotoDataUri: z.string().describe("Data URI of the ID document photo."),
