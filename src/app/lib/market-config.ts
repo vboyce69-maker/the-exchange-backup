@@ -5,7 +5,7 @@
 
 export const MARKET_CONFIG = {
   FOUNDING_LIMIT: 1000,
-  SIMULATED_FILLED_SLOTS: 913, // Simulated for demo purposes
+  SIMULATED_FILLED_SLOTS: 0, // Reset to 0 to start counter at 1000
   STANDARD_LISTING_FEE: 20.00, // R20.00 for non-founding members
   CURRENCY: 'ZAR',
   PROTECTED_HOLD_FEE_PERCENT: 5, // 5% fee for escrow services

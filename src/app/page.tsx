@@ -41,7 +41,7 @@ import Link from "next/link";
 import { cn } from "@/lib/utils";
 import Image from "next/image";
 import { useCollection, useFirestore, useMemoFirebase } from "@/firebase";
-import { collection, query, orderBy, limit } from "firebase/firestore";
+import { collection, query, orderBy, limit, getCountFromServer } from "firebase/firestore";
 import { MARKET_CONFIG } from "@/app/lib/market-config";
 
 const CATEGORIES = [
@@ -77,9 +77,23 @@ export default function LandingPage() {
   const [activeRadius, setActiveRadius] = useState(25);
   const [selectedCity, setSelectedCity] = useState("jhb");
   const [searchQuery, setSearchQuery] = useState("");
+  const [filledCount, setFilledCount] = useState(MARKET_CONFIG.SIMULATED_FILLED_SLOTS);
   const db = useFirestore();
 
-  const slotsLeft = MARKET_CONFIG.FOUNDING_LIMIT - MARKET_CONFIG.SIMULATED_FILLED_SLOTS;
+  useEffect(() => {
+    async function fetchUserCount() {
+      try {
+        const coll = collection(db, "userProfiles");
+        const snapshot = await getCountFromServer(coll);
+        setFilledCount(snapshot.data().count);
+      } catch (err) {
+        console.error("Failed to fetch founding member count", err);
+      }
+    }
+    fetchUserCount();
+  }, [db]);
+
+  const slotsLeft = Math.max(0, MARKET_CONFIG.FOUNDING_LIMIT - filledCount);
   const isProgramActive = slotsLeft > 0;
 
   const trendingQuery = useMemoFirebase(() => {

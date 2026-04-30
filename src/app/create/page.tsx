@@ -19,7 +19,7 @@ import {
 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import Image from "next/image";
-import { collection } from "firebase/firestore";
+import { collection, getCountFromServer } from "firebase/firestore";
 import { useFirestore, useUser } from "@/firebase";
 import { addDocumentNonBlocking } from "@/firebase/non-blocking-updates";
 import { Badge } from "@/components/ui/badge";
@@ -44,8 +44,22 @@ export default function CreateListingPage() {
   const [condition, setCondition] = useState("");
   const [price, setPrice] = useState("");
   const [description, setDescription] = useState("");
+  const [filledCount, setFilledCount] = useState(0);
 
-  const isFoundingMember = isFoundingSlotAvailable(MARKET_CONFIG.SIMULATED_FILLED_SLOTS);
+  useEffect(() => {
+    async function fetchUserCount() {
+      try {
+        const coll = collection(db, "userProfiles");
+        const snapshot = await getCountFromServer(coll);
+        setFilledCount(snapshot.data().count);
+      } catch (err) {
+        console.error("Failed to fetch founding member count", err);
+      }
+    }
+    fetchUserCount();
+  }, [db]);
+
+  const isFoundingMember = isFoundingSlotAvailable(filledCount);
 
   useEffect(() => {
     const draft = localStorage.getItem("exchange_listing_v2");
