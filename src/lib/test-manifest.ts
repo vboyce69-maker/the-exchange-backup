@@ -1,35 +1,43 @@
 /**
  * @fileOverview Comprehensive Test Manifest for QA Testing Agent.
  * Defines scenarios for KYC, Scam Detection, Location Tracking, and Auth Stress Testing.
+ * Optimized for the QA Retry Agent.
  */
 
 export const TEST_SUITES = {
   KYC_VERIFICATION: [
-    { id: "USER_A", name: "Valid ID + Selfie Match", input: "valid_rsa_id_match", expected: "APPROVED" },
-    { id: "USER_B", name: "Expired ID", input: "expired_id", expected: "REJECTED (KYC_002)" },
-    { id: "USER_C", name: "Selfie Mismatch", input: "id_selfie_mismatch", expected: "REJECTED + MANUAL_REVIEW" },
-    { id: "USER_D", name: "Duplicate Identity", input: "existing_id_record", expected: "DUPLICATE_IDENTITY" },
-    { id: "USER_E", name: "Blurry Image", input: "corrupt_data", expected: "RETRY_PROMPT" },
-    { id: "USER_F", name: "Unsupported Country", input: "foreign_id", expected: "GRACEFUL_REJECTION" },
-    { id: "USER_G", name: "KYC Bypass Attempt", input: "direct_listing_navigation", expected: "REDIRECT_BLOCK" }
+    { id: "GS_01_KYC", name: "Valid ID + Selfie Match", input: "valid_rsa_id_match", expected: "APPROVED" },
+    { id: "KYC_RACE_CONDITION", name: "Concurrent Duplicate ID Submission", input: "double_post_id", expected: "CONSISTENCY_CHECK_PASSED" },
+    { id: "KYC_002_RETRY", name: "Expired ID (Retry Run)", input: "expired_id", expected: "REJECTED (KYC_002)" },
+    { id: "KYC_MIME_BYPASS", name: "Executable Disguised as JPG", input: "malformed_mime", expected: "REJECTED_SANITIZE" },
+    { id: "KYC_TIMEOUT_STRESS", name: "OCR Service Latency (>5s)", input: "slow_ocr_response", expected: "ASYNC_STABLE" }
   ],
   SCAM_DETECTION: [
-    { id: "PRICE_ANOMALY", name: "90% Below Market", input: "R100 for MacBook Pro", expected: "PRICE_ANOMALY_ALERT" },
-    { id: "SPAM_FLOOD", name: "10 listings in 60s", input: "velocity_attack", expected: "SPAM_FLOOD_BLOCK" },
-    { id: "NLP_PHRASES", name: "Scam Phrasing", input: "send deposit first via Western Union", expected: "NLP_SCAM_FLAG" },
-    { id: "OCR_BYPASS", name: "Embedded Phone in Image", input: "image_with_072_text", expected: "OCR_CONTACT_BYPASS_ALERT" },
-    { id: "NEW_ACCOUNT_RISK", name: "New Account High Value", input: "$2000 item by <24h user", expected: "NEW_ACCOUNT_HIGH_VALUE_FLAG" }
+    { id: "LEETSPEAK_EVASION", name: "Leetspeak Detection", input: "W3st3rn Un10n - s3nd d3p0sit", expected: "NLP_SCAM_FLAG" },
+    { id: "UNICODE_MASKING", name: "Unicode Invisible Chars", input: "W\u200BhatsA\u200Bpp m\u200Be", expected: "SCAM_FLAG_HIGH" },
+    { id: "IMAGE_OCR_RETRY", name: "Rotated Text in Photo", input: "rotated_phone_number_image", expected: "OCR_FLAG_SUCCESS" },
+    { id: "AI_FALLBACK_STRESS", name: "AI Model Null Response Fallback", input: "model_timeout", expected: "RULE_BASED_TRIGGERED" }
   ],
   MEETUP_TRACKER: [
-    { id: "MID_SESSION_DISABLE", name: "Location Disabled Mid-Session", expected: "PARTNER_ALERT" },
-    { id: "GPS_SPOOF", name: "Coordinates Spoofing (>200km/h)", expected: "LOCATION_SPOOF_DETECTED" },
-    { id: "EARLY_COMPLETION", name: "Pre-Arrival Completion", expected: "EARLY_COMPLETION_WARNING" },
-    { id: "NETWORK_DROP", name: "Reconnection Grace", expected: "RECONNECT_NO_CRASH" }
+    { id: "GPS_GRADUAL_DRIFT", name: "Gradual GPS Drift Spoof", expected: "SPOOF_DETECTED_ANOMALY" },
+    { id: "MOCK_PROVIDER_INJECTION", name: "Fake GPS App Simulation", expected: "HARD_BLOCK_PROVIDER" },
+    { id: "SESSION_HARD_STOP", name: "Server-side Session Termination", expected: "ZERO_LOCATION_RETENTION" },
+    { id: "RAPID_JUMP_RETRY", name: "Realistic Pause/Jump Pattern", expected: "TRAJECTORY_VALIDATED" }
+  ],
+  RELIABILITY_SCORE: [
+    { id: "MICRO_TX_COLLUSION", name: "Micro-transaction Collusion", expected: "INFLATION_PREVENTED" },
+    { id: "CIRCULAR_TRADING", name: "3-Account Circular Trade", expected: "AUDIT_LOG_FLAG" },
+    { id: "RAPID_FAKE_REVIEWS", name: "Velocity Review Spike", expected: "ACCOUNT_TEMP_HOLD" }
+  ],
+  CRASH_LOAD: [
+    { id: "LOAD_1500_CONCURRENT", name: "1,500 Concurrent Users", expected: "STABLE_LATENCY" },
+    { id: "DB_WRITE_ROLLBACK", name: "Partial Transaction Failure", expected: "ATOMIC_ROLLBACK" },
+    { id: "MIME_WHITELIST_BYPASS", name: ".jpg.exe Upload Attempt", expected: "SILENT_REJECT_LOG" }
   ],
   AUTH_SECURITY: [
-    { id: "BRUTE_FORCE", name: "1,000 Login Attempts", expected: "LOCK_AFTER_5" },
-    { id: "JWT_REUSE", name: "Expired Token Reuse", expected: "401_UNAUTHORIZED" },
-    { id: "IMPOSSIBLE_TRAVEL", name: "JHB to London in 5 mins", expected: "SUSPICIOUS_LOGIN_ALERT" }
+    { id: "JWT_REUSE_RETRY", name: "Token Replay Attack", expected: "401_UNAUTHORIZED" },
+    { id: "BRUTE_FORCE_RETRY", name: "Locked After 5 Failures", expected: "ACCOUNT_LOCK_ENFORCED" },
+    { id: "FINGERPRINT_MISMATCH", name: "Session Hijack Simulation", expected: "STEP_UP_VERIFICATION" }
   ]
 };
 
@@ -42,13 +50,3 @@ export const GOLDEN_SCENARIOS = [
     expectedResult: "isIdVerified = true"
   }
 ];
-
-export const SYNTHETIC_EDGE_CASES = {
-  malformed_bids: [
-    { value: -100, reason: "Negative value rejection" }
-  ],
-  behavioral_anomalies: [
-    { type: "VELOCITY", description: "10 listings created in 60 seconds", threshold: "HIGH" },
-    { type: "IMPOSSIBLE_TRAVEL", description: "Login from Johannesburg then London in 5 mins", threshold: "CRITICAL" }
-  ]
-};

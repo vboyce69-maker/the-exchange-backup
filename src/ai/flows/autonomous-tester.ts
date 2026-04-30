@@ -1,7 +1,7 @@
 'use server';
 /**
- * @fileOverview QA Testing Agent for 'The Exchange'.
- * Performs automated audits of KYC, Scam Detection, Location Tracker, and Security systems.
+ * @fileOverview AUTONOMOUS QA RETRY AGENT for 'The Exchange'.
+ * Performs automated re-runs of failed cases, detects regressions, and stress-tests systems.
  */
 
 import { ai, runWithModelSafe } from '@/ai/genkit';
@@ -10,18 +10,21 @@ import { TEST_SUITES } from '@/lib/test-manifest';
 
 const SuiteReportSchema = z.object({
   suite: z.string(),
+  retry_run: z.boolean().describe("Whether this was a re-run of failed/unstable cases."),
   total_tests: z.number(),
   passed: z.number(),
   failed: z.number(),
   warnings: z.number(),
+  non_deterministic_failures: z.number().describe("Tests that produced differing results across runs."),
   critical_bugs: z.array(z.string()),
+  regressions_detected: z.array(z.string()),
   recommended_fixes: z.array(z.string()),
   crash_risk_level: z.enum(['LOW', 'MEDIUM', 'HIGH']),
 });
 
 const AutonomousTesterInputSchema = z.object({
   targetSuiteId: z.string().optional().describe("Specific suite to run. If null, runs a full platform audit."),
-  isSimulation: z.boolean().optional().default(false),
+  isSimulation: z.boolean().optional().default(true),
 });
 
 const AutonomousTesterOutputSchema = z.object({
@@ -42,24 +45,26 @@ const testerPrompt = ai.definePrompt({
     }) 
   },
   output: { schema: AutonomousTesterOutputSchema },
-  prompt: `You are the Lead QA Testing Agent for 'The Exchange' marketplace.
-Your goal is to simulate real user interactions, stress-test core systems, and flag errors.
+  prompt: `You are the AUTONOMOUS QA RETRY AGENT for 'The Exchange' marketplace.
+Your goal is to re-run failed scenarios, detect regressions, and identify silent failures under load.
+
+EXECUTION RULES:
+1. Re-test all previously FAILED and WARNING cases 3 times for consistency.
+2. Simulate network instability (latency, packet loss).
+3. Simulate low-end device constraints (CPU throttling).
+4. Analyze "Adversarial" scenarios: Leetspeak ("s3nd d3p0sit"), Unicode masking, MIME bypass (.jpg.exe).
+5. Detect "Impossible Travel" and "Circular Trading" collusion.
 
 TEST SUITES DEFINITION:
 {{{suitesJson}}}
 
 TASK:
-1. If targetSuiteId is provided, perform a DEEP DIVE into that specific module.
-2. If null, run a full system audit covering KYC, Scam Detection, Meetup Tracker, and Auth.
-3. Simulate user types (e.g., User A-G for KYC) and behavior (e.g., velocity attacks).
-4. Identify 'Critical Bugs' that block deployment.
-5. Assess 'Crash Risk Level'. HIGH risk is Priority 1.
+1. Audit the current logic for the provided modules.
+2. If ANY suite returns HIGH crash risk, mark status as CRITICAL.
+3. Identify "Non-Deterministic Failures" where results differ across simulations.
+4. Flag "Regressions" in previously stable flows (e.g., standard KYC approval).
 
-{{#if isSimulation}}
-Generate a verbose step-by-step log for a 'High-Trust' journey vs a 'Malicious Actor' journey.
-{{/if}}
-
-Provide structured JSON reports for each module analyzed.`,
+Provide ONLY the structured JSON reports following the schema.`,
 });
 
 export async function runAutonomousTesting(input: { targetSuiteId?: string; isSimulation?: boolean }): Promise<AutonomousTesterOutput> {
@@ -77,17 +82,20 @@ export async function runAutonomousTesting(input: { targetSuiteId?: string; isSi
 
   // Fallback for UI if AI fails
   return {
-    overallStatus: 'healthy',
-    summary: "Standard rule-based audit passed. AI Narrative Engine temporarily offline.",
+    overallStatus: 'unstable',
+    summary: "AI Retry Agent encountered an infrastructure timeout. Partial results based on static logic.",
     reports: [{
       suite: "Platform Integrity",
+      retry_run: true,
       total_tests: 1,
-      passed: 1,
+      passed: 0,
       failed: 0,
-      warnings: 0,
-      critical_bugs: [],
-      recommended_fixes: [],
-      crash_risk_level: 'LOW'
+      warnings: 1,
+      non_deterministic_failures: 1,
+      critical_bugs: ["AI_TIMEOUT"],
+      regressions_detected: [],
+      recommended_fixes: ["Increase Genkit timeout"],
+      crash_risk_level: 'MEDIUM'
     }]
   };
 }
