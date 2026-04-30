@@ -21,6 +21,7 @@ import {
 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { useUser } from "@/firebase";
+import { cn } from "@/lib/utils";
 
 export default function ReferralPage() {
   const { user } = useUser();
