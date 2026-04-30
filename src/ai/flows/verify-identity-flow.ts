@@ -7,7 +7,6 @@
 import { ai, runWithModelSafe } from '@/ai/genkit';
 import { z } from 'genkit';
 
-// INCREASED TIMEOUT
 const maxDuration = 120;
 
 const VerifyIdentityInputSchema = z.object({

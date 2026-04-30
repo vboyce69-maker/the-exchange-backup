@@ -7,7 +7,6 @@ import {ai, runWithModelSafe} from '@/ai/genkit';
 import {z} from 'genkit';
 import { detectScam } from '@/lib/scam-rules';
 
-// INCREASED TIMEOUT - Internal configuration for server execution
 const maxDuration = 120;
 
 const AntiScamChatProtectionInputSchema = z.object({
