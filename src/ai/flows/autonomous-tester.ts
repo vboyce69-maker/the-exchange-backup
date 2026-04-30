@@ -8,7 +8,7 @@ import { ai, runWithModelSafe } from '@/ai/genkit';
 import { z } from 'genkit';
 import { TEST_SUITES } from '@/lib/test-manifest';
 
-// INCREASED TIMEOUT FOR COMPLEX QA SIMULATIONS - Not exported
+// INCREASED TIMEOUT FOR COMPLEX QA SIMULATIONS - Internal configuration
 const maxDuration = 120;
 
 const SuiteReportSchema = z.object({
@@ -83,7 +83,7 @@ export async function runAutonomousTesting(input: { targetSuiteId?: string; isSi
     return safeResult.output.output;
   }
 
-  // FALLBACK: If AI fails despite increased timeout, provide structured degraded report
+  // FALLBACK: If AI fails, provide structured degraded report
   return {
     overallStatus: 'unstable',
     summary: "AI Retry Agent encountered an infrastructure delay. System is operating in 'Degraded Mode'. Performance is being monitored.",
@@ -97,7 +97,7 @@ export async function runAutonomousTesting(input: { targetSuiteId?: string; isSi
       non_deterministic_failures: 1,
       critical_bugs: ["AI_INFRASTRUCTURE_LATENCY"],
       regressions_detected: [],
-      recommended_fixes: ["Timeout settings applied internally - Check regional model availability"],
+      recommended_fixes: ["Check model endpoint availability in this region"],
       crash_risk_level: 'MEDIUM'
     }]
   };

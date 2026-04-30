@@ -6,7 +6,7 @@
 import { ai, runWithModelSafe } from '@/ai/genkit';
 import { z } from 'genkit';
 
-// INCREASED TIMEOUT - Not exported
+// INCREASED TIMEOUT - Internal configuration
 const maxDuration = 120;
 
 const BehavioralRiskInputSchema = z.object({
