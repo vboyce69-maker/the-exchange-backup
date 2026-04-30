@@ -30,7 +30,8 @@ service cloud.firestore {
 
     // --- Collection: User Profiles ---
     match /userProfiles/{userId} {
-      allow read: if isSignedIn();
+      // Allow public read for seller discovery and the Founding 1000 counter
+      allow read: if true;
       allow create, update: if isOwner(userId);
       
       match /reviews/{reviewId} {
