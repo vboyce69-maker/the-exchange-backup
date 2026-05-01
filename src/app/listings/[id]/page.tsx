@@ -33,7 +33,9 @@ import {
   ShieldAlert,
   History,
   AlertCircle,
-  Shield
+  Shield,
+  Banknote,
+  Smartphone
 } from "lucide-react";
 import Image from "next/image";
 import { VerifiedBadge } from "@/components/VerifiedBadge";
@@ -74,6 +76,11 @@ export default function ListingDetailPage() {
   const [isBidding, setIsBidding] = useState(false);
   const [isAccepting, setIsAccepting] = useState(false);
   const [now, setNow] = useState<Date | null>(null);
+
+  // Banking Details State
+  const [cardDetails, setCardDetails] = useState({ number: "", expiry: "", cvv: "" });
+  const [capitecPhone, setCapitecPhone] = useState("");
+  const [eftDetails, setEftDetails] = useState({ bank: "", account: "" });
 
   const listingRef = useMemoFirebase(() => {
     return id ? doc(db, "publicListings", id as string) : null;
@@ -271,9 +278,9 @@ export default function ListingDetailPage() {
           {/* Action Sidebar */}
           <div className="lg:col-span-5 space-y-6">
             <Card className="rounded-[2.5rem] lg:rounded-[3rem] border-none shadow-2xl bg-white overflow-hidden ring-1 ring-slate-100">
-              <div className="bg-[#225BC3] p-4 lg:p-5 text-white">
-                <div className="flex justify-between items-start mb-2 lg:mb-3">
-                   <div className="flex flex-col gap-1.5 lg:gap-2">
+              <div className="bg-[#225BC3] p-4 lg:p-4 text-white">
+                <div className="flex justify-between items-start mb-2 lg:mb-2">
+                   <div className="flex flex-col gap-1 lg:gap-1.5">
                      <Badge className="bg-[#34CBED] text-white border-none px-2 lg:px-3 uppercase text-[7px] lg:text-[8px] font-black w-fit">Protected Hold</Badge>
                      {listing.isBulk && (
                        <Badge className="bg-[#FF8C00] text-white border-none px-2 lg:px-3 uppercase text-[7px] lg:text-[8px] font-black w-fit flex items-center gap-1">
@@ -283,24 +290,24 @@ export default function ListingDetailPage() {
                    </div>
                    {listing.isAuction && (
                      <div className="text-right">
-                        <p className="text-[9px] lg:text-[10px] font-black uppercase tracking-widest text-white/60 mb-0.5 lg:mb-1">Status</p>
-                        <p className="text-base lg:text-xl font-black whitespace-nowrap">{isAuctionEnded ? "Ended" : "Live Bidding"}</p>
+                        <p className="text-[9px] lg:text-[10px] font-black uppercase tracking-widest text-white/60 mb-0.5">Status</p>
+                        <p className="text-base lg:text-lg font-black whitespace-nowrap">{isAuctionEnded ? "Ended" : "Live Bidding"}</p>
                      </div>
                    )}
                 </div>
-                <h1 className="text-base lg:text-xl font-black mb-1.5 lg:mb-2 leading-tight">{listing.title}</h1>
+                <h1 className="text-base lg:text-lg font-black mb-1 leading-tight">{listing.title}</h1>
                 <p className="text-white/60 text-xs lg:text-sm font-bold flex items-center gap-1">
                   <MapPin className="w-3.5 h-3.5" /> {listing.location || 'Local'}
                 </p>
               </div>
               
-              <CardContent className="p-4 lg:p-5 space-y-6 lg:space-y-8">
+              <CardContent className="p-4 lg:p-4 space-y-4 lg:space-y-6">
                 <div className="flex justify-between items-center">
                   <div>
                     <span className="text-[9px] lg:text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-1">
                       {listing.isAuction ? (listing.highestBid ? 'Highest Bid' : 'Starting Bid') : 'Price'}
                     </span>
-                    <span className="text-xl lg:text-3xl font-black text-[#225BC3]">R {(listing.highestBid || listing.price || 0).toLocaleString()}</span>
+                    <span className="text-xl lg:text-2xl font-black text-[#225BC3]">R {(listing.highestBid || listing.price || 0).toLocaleString()}</span>
                   </div>
                   <VerifiedBadge />
                 </div>
@@ -426,23 +433,23 @@ export default function ListingDetailPage() {
 
       {/* Payment Sheet */}
       <Dialog open={isPaymentOpen} onOpenChange={setIsPaymentOpen}>
-        <DialogContent className="sm:max-w-[400px] rounded-[2.5rem] lg:rounded-[3rem] border-none p-0 overflow-hidden shadow-2xl mx-4">
-          <div className="bg-[#225BC3] p-6 lg:p-8 text-white">
-            <DialogTitle className="text-xl lg:text-2xl font-black flex items-center gap-3 uppercase tracking-tighter text-white">
-              <Lock className="w-5 h-5 lg:w-6 lg:h-6 text-[#34CBED]" />
+        <DialogContent className="sm:max-w-[400px] rounded-[2rem] border-none p-0 overflow-hidden shadow-2xl mx-4">
+          <div className="bg-[#225BC3] p-6 text-white">
+            <DialogTitle className="text-xl font-black flex items-center gap-3 uppercase tracking-tighter text-white">
+              <Lock className="w-5 h-5 text-[#34CBED]" />
               Secure Pay
             </DialogTitle>
-            <DialogDescription className="sr-only">
+            <DialogDescription className="text-xs text-white/70 font-medium mt-1 leading-relaxed">
               Complete your payment for this item securely via our protected hold system.
             </DialogDescription>
           </div>
-          <div className="p-6 lg:p-8 space-y-6">
-            <div className="bg-slate-50 p-4 lg:p-5 rounded-[2rem] border border-slate-100 flex justify-between items-center">
+          <div className="p-6 space-y-6 max-h-[70vh] overflow-y-auto scrollbar-hide">
+            <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100 flex justify-between items-center">
                <div>
                   <p className="text-[9px] font-black text-slate-400 uppercase mb-0.5">Hold Amount</p>
-                  <p className="text-xl lg:text-2xl font-black text-[#225BC3]">R {listing.price?.toLocaleString()}</p>
+                  <p className="text-xl font-black text-[#225BC3]">R {listing.price?.toLocaleString()}</p>
                </div>
-               <ShieldCheck className="w-8 h-8 lg:w-10 lg:h-10 text-green-500" />
+               <ShieldCheck className="w-6 h-6 text-green-500" />
             </div>
 
             <RadioGroup value={paymentMethod} onValueChange={setPaymentMethod} className="gap-2.5">
@@ -456,23 +463,128 @@ export default function ListingDetailPage() {
                      <Label 
                         htmlFor={method.id} 
                         className={cn(
-                           "flex items-center gap-3.5 p-3.5 lg:p-4 rounded-[1.5rem] border-2 transition-all cursor-pointer",
+                           "flex items-center gap-3.5 p-3.5 rounded-[1.2rem] border-2 transition-all cursor-pointer",
                            paymentMethod === method.id ? "border-[#225BC3] bg-[#225BC3]/5" : "border-slate-100 bg-white"
                         )}
                      >
-                        <method.icon className={cn("w-4 h-4 lg:w-5 lg:h-5", paymentMethod === method.id ? "text-[#225BC3]" : "text-slate-400")} />
+                        <method.icon className={cn("w-4 h-4", paymentMethod === method.id ? "text-[#225BC3]" : "text-slate-400")} />
                         <div className="flex-1">
                            <p className="font-black text-slate-900 text-xs">{method.name}</p>
-                           <p className="text-[8px] lg:text-[9px] font-bold text-muted-foreground">{method.description}</p>
+                           <p className="text-[8px] font-bold text-muted-foreground">{method.description}</p>
                         </div>
                      </Label>
                   </div>
                ))}
             </RadioGroup>
 
-            <Button className="w-full h-14 lg:h-16 bg-[#225BC3] text-white font-black rounded-2xl lg:rounded-[1.5rem] shadow-2xl text-base" onClick={handlePayment} disabled={isPaying}>
-               {isPaying ? "Processing..." : `Pay R ${listing.price?.toLocaleString()}`}
-            </Button>
+            {/* Dynamic Banking Feature Inputs */}
+            <div className="animate-in fade-in slide-in-from-top-2 duration-300">
+               {paymentMethod === 'card' && (
+                  <div className="space-y-4 p-4 bg-slate-50 rounded-2xl border border-slate-200">
+                     <div className="space-y-2">
+                        <Label className="text-[9px] font-black uppercase text-slate-400">Card Number</Label>
+                        <div className="relative">
+                           <CreditCard className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-300" />
+                           <Input 
+                              placeholder="0000 0000 0000 0000" 
+                              className="h-10 pl-9 rounded-xl bg-white border-slate-200 font-mono text-sm" 
+                              value={cardDetails.number}
+                              onChange={(e) => setCardDetails({...cardDetails, number: e.target.value.replace(/\D/g, '').substring(0, 16).replace(/(.{4})/g, '$1 ').trim()})}
+                           />
+                        </div>
+                     </div>
+                     <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                           <Label className="text-[9px] font-black uppercase text-slate-400">Expiry Date</Label>
+                           <Input 
+                              placeholder="MM/YY" 
+                              className="h-10 rounded-xl bg-white border-slate-200 text-sm" 
+                              value={cardDetails.expiry}
+                              onChange={(e) => setCardDetails({...cardDetails, expiry: e.target.value.replace(/\D/g, '').substring(0, 4).replace(/(.{2})/, '$1/')})}
+                           />
+                        </div>
+                        <div className="space-y-2">
+                           <Label className="text-[9px] font-black uppercase text-slate-400">CVV</Label>
+                           <Input 
+                              placeholder="123" 
+                              type="password"
+                              className="h-10 rounded-xl bg-white border-slate-200 text-sm" 
+                              value={cardDetails.cvv}
+                              onChange={(e) => setCardDetails({...cardDetails, cvv: e.target.value.replace(/\D/g, '').substring(0, 3)})}
+                           />
+                        </div>
+                     </div>
+                  </div>
+               )}
+
+               {paymentMethod === 'capitec' && (
+                  <div className="space-y-4 p-4 bg-slate-50 rounded-2xl border border-slate-200">
+                     <div className="flex items-center gap-3 mb-2">
+                        <div className="w-8 h-8 bg-white rounded-lg flex items-center justify-center border border-slate-100">
+                           <Smartphone className="w-4 h-4 text-[#225BC3]" />
+                        </div>
+                        <p className="text-[10px] font-bold text-slate-600">Enter your Capitec-linked mobile number to trigger the push notification.</p>
+                     </div>
+                     <div className="space-y-2">
+                        <Label className="text-[9px] font-black uppercase text-slate-400">Mobile Number</Label>
+                        <Input 
+                           placeholder="+27 00 000 0000" 
+                           className="h-12 rounded-xl bg-white border-slate-200 font-bold text-base text-center" 
+                           value={capitecPhone}
+                           onChange={(e) => setCapitecPhone(e.target.value)}
+                        />
+                     </div>
+                  </div>
+               )}
+
+               {paymentMethod === 'eft' && (
+                  <div className="space-y-4 p-4 bg-slate-50 rounded-2xl border border-slate-200">
+                     <div className="space-y-2">
+                        <Label className="text-[9px] font-black uppercase text-slate-400">Select Your Bank</Label>
+                        <select 
+                           className="w-full h-11 px-3 rounded-xl bg-white border border-slate-200 text-sm font-bold text-slate-700 outline-none focus:ring-2 focus:ring-[#225BC3]/10"
+                           value={eftDetails.bank}
+                           onChange={(e) => setEftDetails({...eftDetails, bank: e.target.value})}
+                        >
+                           <option value="">Choose Bank...</option>
+                           <option value="fnb">First National Bank (FNB)</option>
+                           <option value="std">Standard Bank</option>
+                           <option value="abs">ABSA</option>
+                           <option value="ned">Nedbank</option>
+                           <option value="cap">Capitec</option>
+                           <option value="tyme">TymeBank</option>
+                        </select>
+                     </div>
+                     <div className="space-y-2">
+                        <Label className="text-[9px] font-black uppercase text-slate-400">Account Number Confirmation</Label>
+                        <div className="relative">
+                           <Banknote className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-300" />
+                           <Input 
+                              placeholder="Account Number" 
+                              className="h-10 pl-9 rounded-xl bg-white border-slate-200 font-bold text-sm" 
+                              value={eftDetails.account}
+                              onChange={(e) => setEftDetails({...eftDetails, account: e.target.value.replace(/\D/g, '')})}
+                           />
+                        </div>
+                        <p className="text-[8px] text-slate-400 font-medium italic">Verified by Ozow secure banking gateway.</p>
+                     </div>
+                  </div>
+               )}
+            </div>
+
+            <div className="pt-2">
+               <Button 
+                  className="w-full h-14 bg-[#225BC3] text-white font-black rounded-2xl shadow-2xl text-base disabled:opacity-50" 
+                  onClick={handlePayment} 
+                  disabled={isPaying || (paymentMethod === 'card' && !cardDetails.number) || (paymentMethod === 'capitec' && !capitecPhone) || (paymentMethod === 'eft' && !eftDetails.account)}
+               >
+                  {isPaying ? <Loader2 className="w-5 h-5 animate-spin mr-2" /> : null}
+                  {isPaying ? "Verifying..." : `Pay R ${listing.price?.toLocaleString()}`}
+               </Button>
+               <p className="text-[8px] text-center text-slate-400 font-black uppercase tracking-widest mt-4 flex items-center justify-center gap-2">
+                  <ShieldCheck className="w-3 h-3" /> PCI-DSS Compliant • AES-256 Encrypted
+               </p>
+            </div>
           </div>
         </DialogContent>
       </Dialog>
