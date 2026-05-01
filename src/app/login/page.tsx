@@ -42,28 +42,14 @@ export default function LoginPage() {
   const recaptchaVerifierRef = useRef<RecaptchaVerifier | null>(null);
 
   useEffect(() => {
-    if (!auth) return;
-
-    if (!recaptchaVerifierRef.current) {
-      try {
-        recaptchaVerifierRef.current = new RecaptchaVerifier(auth, "recaptcha-container", {
-          size: "invisible",
-          callback: () => {
-            console.log("Recaptcha verified");
-          }
-        });
-      } catch (err: any) {
-        console.error("Recaptcha Initialization Error:", err);
-      }
-    }
-
+    // Cleanup recaptcha on unmount
     return () => {
       if (recaptchaVerifierRef.current) {
         try { recaptchaVerifierRef.current.clear(); } catch (e) {}
         recaptchaVerifierRef.current = null;
       }
     };
-  }, [auth]);
+  }, []);
 
   const handleSendOtp = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -71,14 +57,38 @@ export default function LoginPage() {
       toast({ variant: "destructive", title: "Consent Required", description: "Please agree to the Terms of Service." });
       return;
     }
+    
+    if (!phoneNumber.startsWith('+')) {
+      setError("Please include your country code (e.g. +27).");
+      return;
+    }
+
     setLoading(true);
+    setError(null);
+
     try {
-      const result = await signInWithPhoneNumber(auth, phoneNumber, recaptchaVerifierRef.current!);
+      // Initialize verifier lazily to ensure element is in DOM
+      if (!recaptchaVerifierRef.current) {
+        recaptchaVerifierRef.current = new RecaptchaVerifier(auth, "recaptcha-container", {
+          size: "invisible",
+          callback: () => {
+            console.log("Recaptcha verified");
+          }
+        });
+      }
+
+      const result = await signInWithPhoneNumber(auth, phoneNumber, recaptchaVerifierRef.current);
       setConfirmationResult(result);
       setStep("otp");
       toast({ title: "OTP Sent", description: "Verification code sent to your device." });
     } catch (err: any) {
-      setError(err.message);
+      console.error("Phone Auth Error:", err);
+      setError(err.message || "Failed to send OTP. Please check the number and try again.");
+      // Reset verifier on error
+      if (recaptchaVerifierRef.current) {
+        try { recaptchaVerifierRef.current.clear(); } catch (e) {}
+        recaptchaVerifierRef.current = null;
+      }
     } finally {
       setLoading(false);
     }
@@ -88,11 +98,12 @@ export default function LoginPage() {
     e.preventDefault();
     if (!confirmationResult) return;
     setLoading(true);
+    setError(null);
     try {
       await confirmationResult.confirm(otp);
       router.push("/");
     } catch (err: any) {
-      setError("Invalid verification code.");
+      setError("Invalid verification code. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -105,6 +116,7 @@ export default function LoginPage() {
       return;
     }
     setLoading(true);
+    setError(null);
     try {
       if (isSignUp) {
         const userCred = await createUserWithEmailAndPassword(auth, email, password);
@@ -125,7 +137,7 @@ export default function LoginPage() {
     <div className="min-h-screen bg-[#EEF1F3]">
       <Navigation />
       <main className="container mx-auto px-4 py-12 flex justify-center">
-        <div className="w-full max-w-md space-y-6">
+        <div className="w-full max-md space-y-6">
           
           {error && (
             <Alert variant="destructive" className="rounded-2xl border-none shadow-lg">
