@@ -36,7 +36,7 @@ Your task is to perform critical KYC (Know Your Customer) biometric verification
 
 PRIMARY TASKS:
 1. FACIAL RECOGNITION: Compare the facial landmarks in the live selfie with the portrait photo on the ID document. 
-2. LIVENESS CHECK: Look for signs of 'screen-of-a-screen' photos, printed photo spoofs, or digital masks (reject if suspected).
+2. LIVENESS CHECK: Look for signs of 'screen-of-a-screen' photos, printed photo spoof, or digital masks (reject if suspected).
 3. NAME VALIDATION: Verify if the 'fullName' ({{{fullName}}}) appears on the ID document correctly.
 4. CONSISTENCY: Ensure the document looks like a legitimate South African ID, Driver's License, or Passport.
 
