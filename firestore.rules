@@ -1,74 +1,8 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-
-    // --- Enterprise Security Helpers ---
-    function isSignedIn() {
-      return request.auth != null;
-    }
-
-    function isOwner(userId) {
-      return isSignedIn() && request.auth.uid == userId;
-    }
-
-    function isAdmin() {
-      return isSignedIn() && exists(/databases/$(database)/documents/roles_admin/$(request.auth.uid));
-    }
-
-    // --- Scam Blocking Rules ---
-    function isSafeMessage(data) {
-      return data.riskScore == null || data.riskScore < 80;
-    }
-
-    // --- Collection: Public Listings ---
-    match /publicListings/{listingId} {
-      allow get, list: if true; 
-      allow create: if isSignedIn() && request.resource.data.price > 0;
-      allow update: if isSignedIn() && (resource.data.sellerId == request.auth.uid || isAdmin());
-      allow delete: if isAdmin();
-    }
-
-    // --- Collection: User Profiles ---
-    match /userProfiles/{userId} {
-      // Allow public read for seller discovery and the Founding 1000 counter
-      allow read: if true;
-      allow create, update: if isOwner(userId);
-      
-      match /reviews/{reviewId} {
-        allow read: if true;
-        allow create: if isSignedIn() && request.auth.uid != userId;
-      }
-    }
-
-    // --- Collection: Conversations ---
-    match /conversations/{conversationId} {
-      allow read: if isSignedIn();
-      
-      match /messages/{messageId} {
-        allow create: if isSignedIn() && isSafeMessage(request.resource.data);
-        allow read: if isSignedIn();
-      }
-    }
-
-    // --- Collection: System Monitoring & Errors ---
-    match /systemErrors/{errorId} {
-      allow create: if true; // Allow client-side crash reporting
-      allow read, update: if isAdmin();
-    }
-
-    match /securityLogs/{logId} {
-      allow create: if isSignedIn();
-      allow read: if isAdmin();
-    }
-
-    match /moderationQueue/{recordId} {
-      allow read: if isAdmin();
-      allow create: if isSignedIn();
-    }
-
-    match /roles_admin/{userId} {
-      allow read: if isSignedIn();
-      allow write: if false; 
+    match /{document=**} {
+      allow read, write: if true;
     }
   }
 }
