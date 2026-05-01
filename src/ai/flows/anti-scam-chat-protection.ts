@@ -7,7 +7,7 @@ import {ai, runWithModelSafe} from '@/ai/genkit';
 import {z} from 'genkit';
 import { detectScam } from '@/lib/scam-rules';
 
-const maxDuration = 120;
+const maxDuration = 120; // Compliance with Next.js Server Action rules (not exported)
 
 const AntiScamChatProtectionInputSchema = z.object({
   message: z.string().describe('The chat message to be analyzed for fraud indicators.'),

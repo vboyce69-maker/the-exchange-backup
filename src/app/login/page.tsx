@@ -42,7 +42,6 @@ export default function LoginPage() {
   const recaptchaVerifierRef = useRef<RecaptchaVerifier | null>(null);
 
   useEffect(() => {
-    // Cleanup recaptcha on unmount
     return () => {
       if (recaptchaVerifierRef.current) {
         try { recaptchaVerifierRef.current.clear(); } catch (e) {}
@@ -67,13 +66,11 @@ export default function LoginPage() {
     setError(null);
 
     try {
-      // Initialize verifier lazily to ensure element is in DOM
+      // Lazy reCAPTCHA Initialization to ensure DOM element exists
       if (!recaptchaVerifierRef.current) {
         recaptchaVerifierRef.current = new RecaptchaVerifier(auth, "recaptcha-container", {
           size: "invisible",
-          callback: () => {
-            console.log("Recaptcha verified");
-          }
+          callback: () => { console.log("Recaptcha verified"); }
         });
       }
 
@@ -83,8 +80,8 @@ export default function LoginPage() {
       toast({ title: "OTP Sent", description: "Verification code sent to your device." });
     } catch (err: any) {
       console.error("Phone Auth Error:", err);
-      setError(err.message || "Failed to send OTP. Please check the number and try again.");
-      // Reset verifier on error
+      setError(err.message || "Failed to send OTP. Please check the number.");
+      // Reset verifier on error to allow retry
       if (recaptchaVerifierRef.current) {
         try { recaptchaVerifierRef.current.clear(); } catch (e) {}
         recaptchaVerifierRef.current = null;
@@ -137,7 +134,7 @@ export default function LoginPage() {
     <div className="min-h-screen bg-[#EEF1F3]">
       <Navigation />
       <main className="container mx-auto px-4 py-12 flex justify-center">
-        <div className="w-full max-md space-y-6">
+        <div className="w-full max-w-md space-y-6">
           
           {error && (
             <Alert variant="destructive" className="rounded-2xl border-none shadow-lg">

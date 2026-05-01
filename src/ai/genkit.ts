@@ -2,9 +2,8 @@ import { genkit } from 'genkit';
 import { googleAI } from '@genkit-ai/google-genai';
 
 /**
- * Robust Model Configuration for 'The Exchange'.
- * - Flash: Primary (High speed, low cost)
- * - Pro: Fallback (Complex reasoning / ID matching)
+ * Standardized Model Configuration for 'The Exchange'.
+ * Uses verified string identifiers to avoid regional API mismatches.
  */
 export const MODELS_TO_TRY = [
   'googleai/gemini-1.5-flash',
@@ -13,13 +12,12 @@ export const MODELS_TO_TRY = [
 
 export const ai = genkit({
   plugins: [googleAI()],
-  // Set the most stable flash model as global default
   model: 'googleai/gemini-1.5-flash',
 });
 
 /**
  * Enhanced Model-safe execution wrapper.
- * Implements Fallback, Latency Tracking, and Error Classification.
+ * Implements Tiered Fallback, Latency Tracking, and Graceful Error Handling.
  */
 export async function runWithModelSafe<T>(
   promptFn: (config: { model: any }) => Promise<T>
@@ -48,7 +46,6 @@ export async function runWithModelSafe<T>(
       const msg = error.message || String(error);
       const latency = Date.now() - attemptStart;
       
-      // Error Classification
       let category = 'UNKNOWN_FAILURE';
       if (msg.includes('404')) category = 'MODEL_MISMATCH_OR_UNAVAILABLE';
       else if (msg.includes('429')) category = 'RATE_LIMIT_EXCEEDED';
@@ -57,9 +54,8 @@ export async function runWithModelSafe<T>(
       console.warn(`[AI-RETRY] ${category} for ${modelId} after ${latency}ms: ${msg}`);
       errors.push(`${modelId} (${category}): ${msg}`);
       
-      // Wait briefly before attempting the next model in the fallback chain
       if (modelId !== MODELS_TO_TRY[MODELS_TO_TRY.length - 1]) {
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        await new Promise(resolve => setTimeout(resolve, 1000)); // Backoff delay
       }
       continue;
     }

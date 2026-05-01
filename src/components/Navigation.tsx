@@ -22,7 +22,10 @@ import {
   Scale,
   Settings,
   X,
-  Gift
+  Gift,
+  Mail,
+  ScanFace,
+  AlertCircle
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
@@ -33,15 +36,25 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { useUser, useAuth } from "@/firebase";
+import { useUser, useAuth, useFirestore, useDoc, useMemoFirebase } from "@/firebase";
+import { doc } from "firebase/firestore";
 import { signOut } from "firebase/auth";
+import { Badge } from "@/components/ui/badge";
 
 export function Navigation() {
   const router = useRouter();
   const { user } = useUser();
   const auth = useAuth();
+  const db = useFirestore();
   const [searchVal, setSearchVal] = useState("");
   const [isMobileSearchOpen, setIsMobileSearchOpen] = useState(false);
+
+  // Fetch real-time verification status for the profile menu
+  const profileRef = useMemoFirebase(() => {
+    return user ? doc(db, "userProfiles", user.uid) : null;
+  }, [db, user?.uid]);
+
+  const { data: profile } = useDoc(profileRef);
 
   const handleSignOut = async () => {
     try {
@@ -157,19 +170,62 @@ export function Navigation() {
                   )}
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-64 rounded-[2rem] p-3 shadow-2xl border-none ring-1 ring-black/5 mt-2 bg-white">
-                <DropdownMenuLabel className="font-black text-[9px] uppercase tracking-widest text-slate-400 p-3">Account</DropdownMenuLabel>
+              <DropdownMenuContent align="end" className="w-72 rounded-[2rem] p-4 shadow-2xl border-none ring-1 ring-black/5 mt-2 bg-white">
+                <DropdownMenuLabel className="font-black text-[10px] uppercase tracking-[0.2em] text-slate-400 px-3 pb-3">Identity Center</DropdownMenuLabel>
+                
+                {/* Verification Status Summary */}
+                <div className="px-3 mb-4 space-y-2">
+                   <div className="flex items-center justify-between p-3 bg-slate-50 rounded-2xl border border-slate-100">
+                      <div className="flex items-center gap-2">
+                        <ScanFace className={cn("w-4 h-4", profile?.isIdVerified ? "text-green-500" : "text-slate-400")} />
+                        <span className="text-[10px] font-black uppercase text-slate-700">Identity KYC</span>
+                      </div>
+                      {profile?.isIdVerified ? (
+                        <ShieldCheck className="w-4 h-4 text-green-500" />
+                      ) : (
+                        <Badge className="bg-orange-100 text-orange-600 text-[8px] font-black border-none uppercase">Pending</Badge>
+                      )}
+                   </div>
+                   <div className="flex items-center justify-between p-3 bg-slate-50 rounded-2xl border border-slate-100">
+                      <div className="flex items-center gap-2">
+                        <Mail className={cn("w-4 h-4", user.emailVerified ? "text-green-500" : "text-slate-400")} />
+                        <span className="text-[10px] font-black uppercase text-slate-700">Email Verified</span>
+                      </div>
+                      {user.emailVerified ? (
+                        <ShieldCheck className="w-4 h-4 text-green-500" />
+                      ) : (
+                        <Badge className="bg-red-100 text-red-600 text-[8px] font-black border-none uppercase">Action</Badge>
+                      )}
+                   </div>
+                </div>
+
+                {!profile?.isIdVerified && (
+                  <DropdownMenuItem asChild className="rounded-xl p-4 font-black bg-[#225BC3] text-white focus:bg-[#225BC3]/90 focus:text-white cursor-pointer mb-2">
+                    <Link href="/verify" className="flex items-center gap-3">
+                      <Fingerprint className="w-5 h-5" />
+                      <div className="flex flex-col">
+                        <span className="text-xs uppercase">Complete Verification</span>
+                        <span className="text-[8px] opacity-80">Facial Recognition & ID Upload</span>
+                      </div>
+                    </Link>
+                  </DropdownMenuItem>
+                )}
+
+                <DropdownMenuSeparator className="my-2" />
+
                 <DropdownMenuItem asChild className="rounded-xl p-3 font-bold gap-3 cursor-pointer">
                   <Link href={`/profile/${user.uid}`}>
-                    <User className="w-4 h-4" /> Public Profile
+                    <User className="w-4 h-4 text-[#225BC3]" /> Public Profile
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild className="rounded-xl p-3 font-bold gap-3 cursor-pointer">
                   <Link href="/settings">
-                    <Settings className="w-4 h-4" /> Manage Account
+                    <Settings className="w-4 h-4 text-[#225BC3]" /> Manage Account
                   </Link>
                 </DropdownMenuItem>
-                <DropdownMenuSeparator />
+                
+                <DropdownMenuSeparator className="my-2" />
+                
                 <DropdownMenuItem onClick={handleSignOut} className="rounded-xl p-3 font-bold gap-3 text-red-500 focus:bg-red-50 focus:text-red-600 cursor-pointer">
                   <LogOut className="w-4 h-4" />
                   Sign Out

@@ -35,6 +35,7 @@ export default function ReferralPage() {
   }, [user]);
 
   const copyToClipboard = () => {
+    if (typeof window === 'undefined') return;
     const link = `${window.location.origin}/login?ref=${referralCode}`;
     navigator.clipboard.writeText(link);
     setCopied(true);
