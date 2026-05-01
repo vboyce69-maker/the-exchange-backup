@@ -1,6 +1,7 @@
 /**
  * @fileOverview Production-Grade Scam Detection Engine
  * Implements normalization, weighted pattern matching, and contextual risk scoring.
+ * Aligned with Seller Onboarding API Spec (v1).
  */
 
 export type DetectionAction = 'allow' | 'warn' | 'hold' | 'block';
@@ -52,35 +53,35 @@ export const SCAM_RULES: ScamRule[] = [
     id: 'strict_phone_numbers',
     category: 'off_platform',
     weight: 95,
-    patterns: ['whatsapp', 'call me', 'number is', 'dm me', 'contact me', 'phone', 'cell', 'mobile', '+27', '072', '082', '071', '073', '074', '076', '078', '079', '081', '083', '084'],
+    patterns: ['whatsapp', 'call me', 'number is', 'dm me', 'contact me', 'phone', 'cell', 'mobile', '+27', '072', '082', '071', '073', '074', '076', '078', '079', '081', '083', '084', '060', '061', '062', '063', '064', '065'],
     explanation: 'Sharing contact details is prohibited. Keep discussions inside The Exchange for protection.'
   },
   {
     id: 'social_media',
     category: 'off_platform',
     weight: 95,
-    patterns: ['facebook', 'instagram', 'twitter', 'tiktok', 'linkedin', 'snapchat', 'fbme', 'wa.me', 'insta', 'messenger'],
+    patterns: ['facebook', 'instagram', 'twitter', 'tiktok', 'linkedin', 'snapchat', 'fbme', 'wa.me', 'insta', 'messenger', 'x.com', 't.me'],
     explanation: 'Off-platform links are blocked to maintain verified trade logs and prevent fraud.'
   },
   {
     id: 'urgency_scam',
     category: 'urgency',
-    weight: 45,
-    patterns: ['urgent sale', 'must go today', 'moving tomorrow', 'no time wasters', 'payment before viewing', 'deposit to secure', 'first come first serve'],
+    weight: 60,
+    patterns: ['urgent sale', 'must go today', 'moving tomorrow', 'no time wasters', 'payment before viewing', 'deposit to secure', 'first come first serve', 'cash only today'],
     explanation: 'High-urgency language and requests for deposits before viewing are common scam indicators.'
   },
   {
     id: 'external_payment',
     category: 'advance_fee',
-    weight: 60,
-    patterns: ['bank transfer', 'eft', 'cash send', 'instant money', 'pay me direct', 'deposit first'],
+    weight: 80,
+    patterns: ['bank transfer', 'eft', 'cash send', 'instant money', 'pay me direct', 'deposit first', 'direct payment'],
     explanation: 'Direct payment requests bypass our Protected Hold. Never pay outside the app.'
   },
   {
     id: 'courier_scam',
     category: 'courier_scam',
-    weight: 40,
-    patterns: ['courier', 'driver', 'collect', 'pickup', 'agent', 'delivery man'],
+    weight: 45,
+    patterns: ['courier', 'driver', 'collect', 'pickup', 'agent', 'delivery man', 'paxi', 'aramex'],
     explanation: 'Potential courier scam detected. Always meet at Safe Zones for physical item trades.'
   }
 ];

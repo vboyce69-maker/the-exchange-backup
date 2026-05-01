@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect, useRef } from "react";
@@ -17,18 +16,21 @@ import {
   AlertTriangle,
   Lock,
   Award,
-  ShieldAlert
+  ShieldAlert,
+  Info,
+  ShieldCheck
 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import Image from "next/image";
-import { collection, getCountFromServer, query, where, getDocs } from "firebase/firestore";
+import { collection, query, where, getDocs, doc } from "firebase/firestore";
 import { useFirestore, useUser, useStorage, useDoc, useMemoFirebase } from "@/firebase";
 import { addDocumentNonBlocking } from "@/firebase/non-blocking-updates";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { Badge } from "@/components/ui/badge";
-import { MARKET_CONFIG, isFoundingSlotAvailable } from "@/app/lib/market-config";
+import { MARKET_CONFIG, getListingLimit } from "@/app/lib/market-config";
 import { cn } from "@/lib/utils";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { useScamDetection } from "@/hooks/use-scam-detection";
 
 export default function CreateListingPage() {
   const router = useRouter();
@@ -36,6 +38,7 @@ export default function CreateListingPage() {
   const db = useFirestore();
   const storage = useStorage();
   const cameraInputRef = useRef<HTMLInputElement>(null);
+  const { checkContent, isValidating } = useScamDetection();
 
   const [images, setImages] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
@@ -48,9 +51,8 @@ export default function CreateListingPage() {
   const [description, setDescription] = useState("");
   const [userListingCount, setUserListingCount] = useState(0);
 
-  const profileRef = useMemoFirebase(() => user ? query(collection(db, "userProfiles"), where("id", "==", user.uid)) : null, [db, user]);
-  const { data: profiles } = useDoc(profileRef as any);
-  const profile = profiles?.[0];
+  const profileRef = useMemoFirebase(() => user ? doc(db, "userProfiles", user.uid) : null, [db, user]);
+  const { data: profile } = useDoc(profileRef as any);
 
   useEffect(() => {
     async function checkLimits() {
@@ -62,8 +64,8 @@ export default function CreateListingPage() {
     checkLimits();
   }, [user, db]);
 
-  const isVerified = profile?.isIdVerified === true;
-  const isLimitReached = !isVerified && userListingCount >= MARKET_CONFIG.MAX_UNVERIFIED_LISTINGS;
+  const maxListings = getListingLimit(profile);
+  const isLimitReached = userListingCount >= maxListings;
 
   const handleListingCapture = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -83,14 +85,23 @@ export default function CreateListingPage() {
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user || isLimitReached) return;
     if (images.length === 0) {
-      toast({ variant: "destructive", title: "Photos Required", description: "Use the in-app camera to take a photo of the item." });
+      toast({ variant: "destructive", title: "Photos Required", description: "Use the in-app camera to take a photo." });
       return;
     }
+
     setLoading(true);
+
+    // INTERNAL VALIDATION PIPELINE
+    const validationResult = await checkContent(`${title} ${description}`, 'listing');
+    
+    if (validationResult?.decision === 'block') {
+      setLoading(false);
+      return; // Error message handled by hook
+    }
 
     const listingData = {
       sellerId: user.uid,
@@ -102,45 +113,55 @@ export default function CreateListingPage() {
       currency: MARKET_CONFIG.CURRENCY,
       imageUrls: images,
       postedDate: new Date().toISOString(),
-      status: "available",
-      isVerified,
-      trustScore: profile?.trustScore || 50
+      status: validationResult?.decision === 'warn' ? "pending_review" : "available",
+      isVerified: profile?.kycStatus === 'verified',
+      trustScore: profile?.trustScore || 50,
+      riskFlags: validationResult?.audit.matchedRules || []
     };
 
     addDocumentNonBlocking(collection(db, "publicListings"), listingData);
     
     setTimeout(() => {
       setLoading(false);
-      toast({ title: "Listing Live", description: "Your item is now visible to buyers." });
+      toast({ 
+        title: listingData.status === 'available' ? "Listing Live" : "Sent for Review", 
+        description: listingData.status === 'available' ? "Your item is visible to buyers." : "Validation required for high-risk flags." 
+      });
       router.push("/search");
     }, 1000);
   };
 
   return (
-    <div className="min-h-screen bg-slate-50/50 pb-20">
+    <div className="min-h-screen bg-[#F8FAFC]">
       <Navigation />
       <main className="container mx-auto px-4 py-8 lg:py-12 flex justify-center">
         <div className="w-full max-w-xl">
           
           <div className="mb-8 flex justify-between items-end">
-            <div>
-              <h1 className="text-3xl font-black text-[#225BC3] uppercase tracking-tighter">List Item</h1>
-              <p className="text-muted-foreground text-sm font-medium">Capture & sell in under 60 seconds.</p>
+            <div className="space-y-1">
+              <div className="flex items-center gap-2">
+                 <Badge className="bg-[#225BC3] text-white border-none font-black text-[8px] uppercase px-3 py-1">V1 Listing Service</Badge>
+                 {profile?.kycStatus === 'verified' && <Badge className="bg-green-100 text-green-700 border-none font-black text-[8px] uppercase px-3 py-1 flex items-center gap-1"><ShieldCheck className="w-2.5 h-2.5" /> Verified</Badge>}
+              </div>
+              <h1 className="text-3xl font-black text-[#225BC3] uppercase tracking-tighter">Post Listing</h1>
             </div>
-            {!isVerified && (
-               <Badge className="bg-orange-100 text-orange-600 border-none font-black text-[9px] uppercase px-3 py-1">
-                 Limit: {userListingCount}/{MARKET_CONFIG.MAX_UNVERIFIED_LISTINGS} Used
+            <div className="text-right">
+               <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Capacity</p>
+               <Badge variant="outline" className="border-slate-200 text-slate-600 font-black text-[10px] uppercase">
+                 {userListingCount} / {maxListings === 99999 ? '∞' : maxListings}
                </Badge>
-            )}
+            </div>
           </div>
 
           {isLimitReached && (
-            <Alert variant="destructive" className="mb-8 rounded-3xl border-none shadow-xl bg-white ring-2 ring-red-100">
+            <Alert variant="destructive" className="mb-8 rounded-[2rem] border-none shadow-xl bg-white ring-2 ring-red-100">
                <ShieldAlert className="w-5 h-5" />
                <AlertTitle className="font-black uppercase text-[10px] tracking-widest">Listing Limit Reached</AlertTitle>
                <AlertDescription className="text-xs font-medium leading-relaxed">
-                 Unverified sellers are limited to 3 listings. Complete your identity verification to unlock unlimited professional trading.
-                 <Button variant="link" className="p-0 h-auto font-black text-red-600 ml-1" onClick={() => router.push('/verify')}>Verify Now</Button>
+                 {profile?.kycStatus === 'verified' 
+                   ? "You have reached your individual seller limit (10). Upgrade to a Business profile for unlimited professional trading."
+                   : "Unverified sellers are limited to 3 listings. Verify your identity in the Seller Hub to unlock 10 listings."}
+                 <Button variant="link" className="p-0 h-auto font-black text-[#225BC3] ml-1" onClick={() => router.push('/verify')}>Seller Hub</Button>
                </AlertDescription>
             </Alert>
           )}
@@ -170,6 +191,7 @@ export default function CreateListingPage() {
                       </button>
                     )}
                   </div>
+                  <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest text-center">In-App Camera Capture Required</p>
                 </div>
 
                 <div className="space-y-2">
@@ -190,13 +212,23 @@ export default function CreateListingPage() {
 
                 <div className="space-y-2">
                   <Label className="font-black text-[10px] uppercase text-[#225BC3]">Description</Label>
-                  <Textarea placeholder="Details, specs, or lot info..." className="min-h-[120px] rounded-2xl bg-slate-50 border-none resize-none" value={description} onChange={(e) => setDescription(e.target.value)} disabled={isLimitReached} />
+                  <Textarea placeholder="Details, specs, or lot info..." className="min-h-[120px] rounded-2xl bg-slate-50 border-none resize-none font-medium" value={description} onChange={(e) => setDescription(e.target.value)} disabled={isLimitReached} />
                 </div>
               </CardContent>
             </Card>
 
-            <Button type="submit" className="w-full h-16 rounded-3xl bg-[#225BC3] text-white font-black text-lg shadow-xl disabled:opacity-50" disabled={loading || images.length === 0 || isLimitReached}>
-              {loading ? <Loader2 className="w-6 h-6 animate-spin" /> : "Post Listing Live"}
+            <div className="p-6 bg-[#225BC3]/5 rounded-[2rem] border border-[#225BC3]/10 space-y-3">
+               <div className="flex items-center gap-3">
+                  <ShieldCheck className="w-5 h-5 text-[#225BC3]" />
+                  <span className="text-[10px] font-black text-[#225BC3] uppercase tracking-widest">Verification Engine v1</span>
+               </div>
+               <p className="text-[9px] text-slate-500 font-bold leading-relaxed">
+                 All listings are scanned for price anomalies, duplicated imagery, and scam patterns. High-risk items may be held for review.
+               </p>
+            </div>
+
+            <Button type="submit" className="w-full h-16 rounded-3xl bg-[#225BC3] text-white font-black text-lg shadow-xl disabled:opacity-50" disabled={loading || images.length === 0 || isLimitReached || isValidating}>
+              {loading || isValidating ? <Loader2 className="w-6 h-6 animate-spin" /> : "Initiate Listing"}
             </Button>
           </form>
         </div>
