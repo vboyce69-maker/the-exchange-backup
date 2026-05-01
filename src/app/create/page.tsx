@@ -18,7 +18,8 @@ import {
   Award,
   ShieldAlert,
   Info,
-  ShieldCheck
+  ShieldCheck,
+  MapPin
 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import Image from "next/image";
@@ -49,6 +50,7 @@ export default function CreateListingPage() {
   const [condition, setCondition] = useState("");
   const [price, setPrice] = useState("");
   const [description, setDescription] = useState("");
+  const [location, setLocation] = useState("");
   const [userListingCount, setUserListingCount] = useState(0);
 
   const profileRef = useMemoFirebase(() => user ? doc(db, "userProfiles", user.uid) : null, [db, user]);
@@ -69,19 +71,19 @@ export default function CreateListingPage() {
 
   const handleListingCapture = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (!file || !user) return;
-
-    setUploadingImage(true);
-    try {
-      const storageRef = ref(storage, `listings/${user.uid}/${Date.now()}`);
-      await uploadBytes(storageRef, file);
-      const downloadURL = await getDownloadURL(storageRef);
-      setImages([...images, downloadURL]);
-      toast({ title: "Live Photo Added", description: "In-app camera capture secured." });
-    } catch (err: any) {
-      toast({ variant: "destructive", title: "Capture Error", description: "Could not upload live photo." });
-    } finally {
-      setUploadingImage(false);
+    if (file && user) {
+      setUploadingImage(true);
+      try {
+        const storageRef = ref(storage, `listings/${user.uid}/${Date.now()}`);
+        await uploadBytes(storageRef, file);
+        const downloadURL = await getDownloadURL(storageRef);
+        setImages([...images, downloadURL]);
+        toast({ title: "Live Photo Added", description: "In-app camera capture secured." });
+      } catch (err: any) {
+        toast({ variant: "destructive", title: "Capture Error", description: "Could not upload live photo." });
+      } finally {
+        setUploadingImage(false);
+      }
     }
   };
 
@@ -109,6 +111,7 @@ export default function CreateListingPage() {
       title,
       description,
       condition,
+      location: location || "Local",
       price: parseFloat(price),
       currency: MARKET_CONFIG.CURRENCY,
       imageUrls: images,
@@ -207,6 +210,20 @@ export default function CreateListingPage() {
                   <div className="space-y-2">
                     <Label className="font-black text-[10px] uppercase text-[#225BC3]">Condition</Label>
                     <Input placeholder="New/Used" className="h-14 rounded-2xl bg-slate-50 border-none font-bold" value={condition} onChange={(e) => setCondition(e.target.value)} disabled={isLimitReached} />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label className="font-black text-[10px] uppercase text-[#225BC3]">Location</Label>
+                  <div className="relative">
+                    <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                    <Input 
+                      placeholder="e.g. Sandton, GP" 
+                      className="h-14 pl-12 rounded-2xl bg-slate-50 border-none font-bold" 
+                      value={location} 
+                      onChange={(e) => setLocation(e.target.value)} 
+                      disabled={isLimitReached} 
+                    />
                   </div>
                 </div>
 
