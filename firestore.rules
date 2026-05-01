@@ -1,9 +1,23 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    // UNIVERSAL ACCESS FOR PROTOTYPING
-    // This resolves all "Missing or insufficient permissions" console errors
+    // Universal permissive rules for all marketplace collections
+    // This resolves the "Missing or insufficient permissions" error for all paths
     match /{document=**} {
+      allow read, write: if true;
+    }
+    
+    // Explicitly permissive rules for core collections to ensure index generation and recursive access
+    match /userProfiles/{userId} {
+      allow read, write: if true;
+    }
+    match /publicListings/{listingId} {
+      allow read, write: if true;
+    }
+    match /systemErrors/{errorId} {
+      allow read, write: if true;
+    }
+    match /moderationQueue/{recordId} {
       allow read, write: if true;
     }
   }

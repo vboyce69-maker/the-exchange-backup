@@ -33,7 +33,7 @@ import { toast } from "@/hooks/use-toast";
 import Image from "next/image";
 import { verifyIdentity, VerifyIdentityOutput } from "@/ai/flows/verify-identity-flow";
 import { useUser, useFirestore } from "@/firebase";
-import { doc, updateDoc, collection, getCountFromServer } from "firebase/firestore";
+import { doc, setDoc, collection, getCountFromServer } from "firebase/firestore";
 import { cn } from "@/lib/utils";
 import { MARKET_CONFIG, calculateTrustScore } from "@/app/lib/market-config";
 
@@ -112,19 +112,23 @@ export default function OnboardingPage() {
     
     try {
       const trustScore = calculateTrustScore({ 
-        phone: true, 
-        email: !!authUser.email, 
-        id: true,
-        businessVerified: sellerType === 'business'
+        phoneVerified: true, 
+        kycStatus: 'verified',
+        sellerType: sellerType
       });
       
       const profileRef = doc(db, "userProfiles", authUser.uid);
       const updateData: any = {
+        id: authUser.uid,
         sellerType,
         kycStatus: 'verified',
         trustScore,
         onboardedAt: new Date().toISOString(),
         isIdVerified: true,
+        registrationDate: new Date().toISOString(),
+        reliabilityScore: 50,
+        transactionsCompleted: 0,
+        disputeCount: 0,
         banking: {
           bankName,
           accountNumber,
@@ -140,18 +144,22 @@ export default function OnboardingPage() {
           setIsProcessing(false);
           return;
         }
-        updateData.extractedName = fullName;
+        updateData.firstName = fullName.split(' ')[0] || "";
+        updateData.lastName = fullName.split(' ').slice(1).join(' ') || "";
         updateData.idNumber = idNumber;
       } else {
+        updateData.firstName = businessName;
         updateData.businessName = businessName;
         updateData.cipcNumber = registrationNumber;
         updateData.businessStatus = 'pending';
         updateData.physicalAddress = address;
       }
 
-      await updateDoc(profileRef, updateData);
+      // Use setDoc with merge to ensure the document is created if it doesn't exist
+      await setDoc(profileRef, updateData, { merge: true });
       setStep(4);
-    } catch (error) {
+    } catch (error: any) {
+      console.error("Onboarding error:", error);
       toast({ variant: "destructive", title: "System Error", description: "Verification engine is busy. Try again shortly." });
     } finally {
       setIsProcessing(false);
@@ -233,9 +241,12 @@ export default function OnboardingPage() {
                       </div>
                     )}
                   </div>
-                  <Button className="w-full bg-[#225BC3] h-16 rounded-2xl font-black text-white shadow-xl" onClick={() => setStep(2)}>
-                    Next Pillar <ArrowRight className="w-4 h-4 ml-2" />
-                  </Button>
+                  <div className="flex gap-3">
+                    <Button variant="outline" className="flex-1 h-16 rounded-2xl font-black uppercase text-[10px]" onClick={() => setStep(0)}>Back</Button>
+                    <Button className="flex-[2] bg-[#225BC3] h-16 rounded-2xl font-black text-white shadow-xl" onClick={() => setStep(2)}>
+                      Next Pillar <ArrowRight className="w-4 h-4 ml-2" />
+                    </Button>
+                  </div>
                 </div>
               )}
 
@@ -274,9 +285,12 @@ export default function OnboardingPage() {
                     </div>
                   )}
 
-                  <Button className="w-full bg-[#225BC3] h-16 rounded-2xl font-black text-white shadow-xl" onClick={() => setStep(3)}>
-                    Financial Registration <ArrowRight className="w-4 h-4 ml-2" />
-                  </Button>
+                  <div className="flex gap-3">
+                    <Button variant="outline" className="flex-1 h-16 rounded-2xl font-black uppercase text-[10px]" onClick={() => setStep(1)}>Back</Button>
+                    <Button className="flex-[2] bg-[#225BC3] h-16 rounded-2xl font-black text-white shadow-xl" onClick={() => setStep(3)}>
+                      Financial Registration <ArrowRight className="w-4 h-4 ml-2" />
+                    </Button>
+                  </div>
                 </div>
               )}
 
@@ -319,9 +333,12 @@ export default function OnboardingPage() {
                     </div>
                   </div>
 
-                  <Button className="w-full bg-[#225BC3] h-16 rounded-2xl font-black text-white shadow-xl" onClick={finalizeOnboarding} disabled={isProcessing || !popiaConsent || !accountNumber}>
-                    {isProcessing ? <Loader2 className="w-6 h-6 animate-spin" /> : "Finalize Registration"}
-                  </Button>
+                  <div className="flex gap-3">
+                    <Button variant="outline" className="flex-1 h-16 rounded-2xl font-black uppercase text-[10px]" onClick={() => setStep(2)}>Back</Button>
+                    <Button className="flex-[2] bg-[#225BC3] h-16 rounded-2xl font-black text-white shadow-xl" onClick={finalizeOnboarding} disabled={isProcessing || !popiaConsent || !accountNumber}>
+                      {isProcessing ? <Loader2 className="w-6 h-6 animate-spin" /> : "Finalize Registration"}
+                    </Button>
+                  </div>
                 </div>
               )}
 
