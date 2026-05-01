@@ -19,7 +19,8 @@ import {
   Zap,
   Navigation as NavIcon,
   MapPin,
-  Car
+  Car,
+  X
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { VerifiedBadge } from "@/components/VerifiedBadge";
@@ -129,13 +130,22 @@ export default function MessagesPage() {
               <h3 className="font-black text-[#225BC3] uppercase tracking-tight">Alex Rivera <VerifiedBadge /></h3>
             </div>
             <div className="flex items-center gap-3">
-              {!isMeetupActive && (
+              {!isMeetupActive ? (
                 <Button
                   size="sm"
                   className="bg-[#FF8C00] text-white font-black rounded-full h-9 px-4 text-[9px] uppercase tracking-widest gap-2 shadow-lg hover:scale-105 transition-transform"
                   onClick={startMeetup}
                 >
                   <NavIcon className="w-3.5 h-3.5" /> Start Tracker
+                </Button>
+              ) : (
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  className="text-slate-400 font-black rounded-full h-9 px-4 text-[9px] uppercase tracking-widest gap-2 hover:bg-slate-50"
+                  onClick={() => setIsMeetupActive(false)}
+                >
+                  <X className="w-3.5 h-3.5" /> Close Tracker
                 </Button>
               )}
               <Badge className="bg-[#225BC3] text-white border-none px-4 py-1.5 flex items-center gap-2 rounded-full uppercase text-[9px] font-black tracking-widest">
@@ -146,7 +156,7 @@ export default function MessagesPage() {
 
           <div className="flex-1 overflow-y-auto p-6 space-y-6 bg-slate-50/30">
             {isMeetupActive && (
-              <div className="mb-8">
+              <div className="mb-8 sticky top-0 z-20">
                 <LiveMeetupTracker
                   buyerName="You"
                   sellerName="Alex Rivera"
