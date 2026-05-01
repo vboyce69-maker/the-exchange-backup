@@ -60,15 +60,15 @@ export default function ReferralPage() {
       <main className="container mx-auto px-4 py-12">
         <div className="max-w-5xl mx-auto space-y-12">
           
-          {/* Hero Promo */}
-          <div className="bg-[#225BC3] rounded-[3.5rem] p-10 lg:p-16 text-white relative overflow-hidden shadow-2xl">
+          {/* Hero Promo - SIZED DOWN */}
+          <div className="bg-[#225BC3] rounded-[3.5rem] p-8 lg:p-12 text-white relative overflow-hidden shadow-2xl">
              <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl -mr-32 -mt-32" />
              <div className="relative z-10 space-y-6">
                 <div className="inline-flex items-center gap-2 bg-[#34CBED] text-white px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest shadow-lg">
                    <Rocket className="w-3 h-3" /> Viral Growth Engine
                 </div>
-                <h1 className="text-4xl lg:text-7xl font-black tracking-tighter uppercase leading-none">Refer & <span className="text-[#34CBED]">Grow</span></h1>
-                <p className="text-xl text-white/80 font-bold max-w-xl leading-relaxed">
+                <h1 className="text-3xl lg:text-5xl font-black tracking-tighter uppercase leading-none">Refer & <span className="text-[#34CBED]">Grow</span></h1>
+                <p className="text-lg text-white/80 font-bold max-w-md leading-relaxed">
                   Join the movement. Invite 3 friends to unlock your first **Free Featured Listing**. It's how platforms like PayPal and Dropbox scaled—now it's your turn to profit.
                 </p>
              </div>
