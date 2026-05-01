@@ -129,7 +129,7 @@ export default function UserProfilePage() {
                   )}
                 </div>
                 
-                <h1 className="text-4xl font-black text-[#225BC3] mb-2 leading-none uppercase tracking-tighter">
+                <h1 className="text-2xl font-black text-[#225BC3] mb-2 leading-none uppercase tracking-tighter">
                   {user.firstName} {user.lastName}
                 </h1>
                 <div className="flex flex-col items-center gap-3 mb-6">
