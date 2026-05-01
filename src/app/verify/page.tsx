@@ -26,7 +26,8 @@ import {
   Smartphone,
   FileCheck,
   CreditCard,
-  MapPin
+  MapPin,
+  Banknote
 } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "@/hooks/use-toast";
@@ -42,7 +43,7 @@ export default function OnboardingPage() {
   const db = useFirestore();
   
   const [sellerType, setSellerType] = useState<'individual' | 'business' | null>(null);
-  const [step, setStep] = useState(0); // 0: Type Selection, 1: Identity, 2: KYC/Business, 3: Success
+  const [step, setStep] = useState(0); // 0: Type Selection, 1: Identity, 2: Verification, 3: Banking, 4: Success
   const [isProcessing, setIsProcessing] = useState(false);
   const [hasCameraPermission, setHasCameraPermission] = useState<boolean | null>(null);
   
@@ -57,7 +58,11 @@ export default function OnboardingPage() {
   const [businessName, setBusinessName] = useState("");
   const [registrationNumber, setRegistrationNumber] = useState("");
   const [address, setAddress] = useState("");
-  const [bankAccount, setBankAccount] = useState("");
+  
+  // Banking State
+  const [bankName, setBankName] = useState("");
+  const [accountNumber, setAccountNumber] = useState("");
+  const [accountType, setAccountNumberType] = useState("");
   const [popiaConsent, setPopiaConsent] = useState(false);
   
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -116,6 +121,12 @@ export default function OnboardingPage() {
         trustScore,
         onboardedAt: new Date().toISOString(),
         isIdVerified: true,
+        banking: {
+          bankName,
+          accountNumber,
+          accountType,
+          registeredAt: new Date().toISOString()
+        }
       };
 
       if (sellerType === 'individual') {
@@ -126,10 +137,12 @@ export default function OnboardingPage() {
           return;
         }
         updateData.extractedName = fullName;
+        updateData.idNumber = idNumber;
       } else {
         updateData.businessName = businessName;
         updateData.cipcNumber = registrationNumber;
         updateData.businessStatus = 'pending';
+        updateData.physicalAddress = address;
       }
 
       await updateDoc(profileRef, updateData);
@@ -151,8 +164,8 @@ export default function OnboardingPage() {
             <div className="inline-flex items-center justify-center w-16 h-16 bg-[#225BC3]/10 rounded-3xl mb-4">
               <ShieldCheck className="w-8 h-8 text-[#225BC3]" />
             </div>
-            <h1 className="text-3xl font-black text-[#225BC3] uppercase tracking-tighter">Trust Onboarding</h1>
-            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-1">Verified Sellers Sell Faster</p>
+            <h1 className="text-3xl font-black text-[#225BC3] uppercase tracking-tighter">Seller Hub Onboarding</h1>
+            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-1">Register • Verify • Sell</p>
           </div>
 
           <Card className="rounded-[3rem] shadow-2xl border-none bg-white overflow-hidden ring-1 ring-slate-100">
@@ -222,12 +235,12 @@ export default function OnboardingPage() {
                 </div>
               )}
 
-              {/* STEP 2: VERIFICATION (MEDIA) */}
+              {/* STEP 2: VERIFICATION (MEDIA / ADDRESS) */}
               {step === 2 && (
                 <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4">
                   <div className="text-center space-y-2">
-                    <h2 className="text-xl font-black text-slate-900 uppercase">Verification Pillar</h2>
-                    <p className="text-sm text-slate-500">Upload your proof to unlock the **Verified** badge.</p>
+                    <h2 className="text-xl font-black text-slate-900 uppercase">Step 2: Verification</h2>
+                    <p className="text-sm text-slate-500">Pillar: Physical Presence</p>
                   </div>
 
                   {sellerType === 'individual' ? (
@@ -251,27 +264,59 @@ export default function OnboardingPage() {
                   ) : (
                     <div className="space-y-4">
                        <div className="space-y-2">
-                          <Label className="text-[10px] font-black uppercase text-[#225BC3]">Physical Address</Label>
-                          <Input placeholder="Street, City" className="h-14 rounded-2xl bg-slate-50 border-none font-bold" value={address} onChange={(e) => setAddress(e.target.value)} />
-                       </div>
-                       <div className="space-y-2">
-                          <Label className="text-[10px] font-black uppercase text-[#225BC3]">Payout Bank Account</Label>
-                          <Input placeholder="Account Number" className="h-14 rounded-2xl bg-slate-50 border-none font-bold" value={bankAccount} onChange={(e) => setBankAccount(e.target.value)} />
+                          <Label className="text-[10px] font-black uppercase text-[#225BC3]">Physical Business Address</Label>
+                          <Input placeholder="Street, City, Province" className="h-14 rounded-2xl bg-slate-50 border-none font-bold" value={address} onChange={(e) => setAddress(e.target.value)} />
                        </div>
                     </div>
                   )}
+
+                  <Button className="w-full bg-[#225BC3] h-16 rounded-2xl font-black text-white shadow-xl" onClick={() => setStep(3)}>
+                    Financial Registration <ArrowRight className="w-4 h-4 ml-2" />
+                  </Button>
+                </div>
+              )}
+
+              {/* STEP 3: BANKING DETAILS */}
+              {step === 3 && (
+                <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4">
+                  <div className="text-center space-y-2">
+                    <h2 className="text-xl font-black text-slate-900 uppercase">Step 3: Banking</h2>
+                    <p className="text-sm text-slate-500">Pillar: Payouts & Escrow</p>
+                  </div>
+
+                  <div className="space-y-4">
+                    <div className="p-4 bg-blue-50 rounded-2xl border border-blue-100 flex items-center gap-3">
+                      <CreditCard className="w-6 h-6 text-[#225BC3]" />
+                      <p className="text-[10px] font-bold text-blue-700 leading-tight">
+                        Register your local South African bank account to receive funds from Protected Hold transactions.
+                      </p>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label className="text-[10px] font-black uppercase text-[#225BC3]">Bank Name</Label>
+                      <Input placeholder="e.g. Capitec, FNB, Standard Bank" className="h-14 rounded-2xl bg-slate-50 border-none font-bold" value={bankName} onChange={(e) => setBankName(e.target.value)} />
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="text-[10px] font-black uppercase text-[#225BC3]">Account Number</Label>
+                      <Input placeholder="1234567890" className="h-14 rounded-2xl bg-slate-50 border-none font-bold" value={accountNumber} onChange={(e) => setAccountNumber(e.target.value)} />
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="text-[10px] font-black uppercase text-[#225BC3]">Account Type</Label>
+                      <Input placeholder="Savings / Cheque" className="h-14 rounded-2xl bg-slate-50 border-none font-bold" value={accountType} onChange={(e) => setAccountNumberType(e.target.value)} />
+                    </div>
+                  </div>
 
                   <div className="p-6 bg-slate-50 rounded-3xl space-y-4">
                     <div className="flex items-start gap-3">
                       <Checkbox id="popia" checked={popiaConsent} onCheckedChange={(c) => setPopiaConsent(c === true)} />
                       <Label htmlFor="popia" className="text-[10px] font-bold text-slate-500 leading-relaxed uppercase">
-                        I consent to biometric processing and FICA validation. All data is AES-256 encrypted.
+                        I consent to biometric processing and FICA validation. All banking data is AES-256 encrypted for payouts only.
                       </Label>
                     </div>
                   </div>
 
-                  <Button className="w-full bg-[#225BC3] h-16 rounded-2xl font-black text-white shadow-xl" onClick={finalizeOnboarding} disabled={isProcessing || !popiaConsent}>
-                    {isProcessing ? <Loader2 className="w-6 h-6 animate-spin" /> : "Finalize Verification"}
+                  <Button className="w-full bg-[#225BC3] h-16 rounded-2xl font-black text-white shadow-xl" onClick={finalizeOnboarding} disabled={isProcessing || !popiaConsent || !accountNumber}>
+                    {isProcessing ? <Loader2 className="w-6 h-6 animate-spin" /> : "Finalize Registration"}
                   </Button>
                 </div>
               )}
@@ -286,9 +331,9 @@ export default function OnboardingPage() {
                     </div>
                   </div>
                   <div className="space-y-2">
-                    <h2 className="text-3xl font-black text-slate-900 uppercase tracking-tighter">Identity Authenticated</h2>
+                    <h2 className="text-3xl font-black text-slate-900 uppercase tracking-tighter">Hub Activated</h2>
                     <p className="text-sm text-muted-foreground font-medium px-6">
-                      Welcome to The Exchange. You are now a **Trusted Seller**. Start listing your items securely.
+                      Identity & Financials verified. You are now a **Trusted Seller**. Your listings are platform-protected.
                     </p>
                   </div>
                   <Button className="w-full bg-[#225BC3] h-16 rounded-2xl font-black text-white shadow-xl" onClick={() => window.location.href = '/'}>

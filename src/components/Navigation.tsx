@@ -1,3 +1,4 @@
+
 "use client";
 
 import Link from "next/link";
@@ -119,6 +120,13 @@ export function Navigation() {
           >
             <Search className="w-4 h-4" />
           </Button>
+
+          <Link href="/verify">
+            <Button variant="outline" className="border-[#225BC3]/20 text-[#225BC3] font-black rounded-xl lg:rounded-2xl h-8 lg:h-9 px-2.5 lg:px-6 uppercase text-[8px] lg:text-[10px] tracking-tighter active:scale-95 transition-transform hover:bg-[#225BC3]/5">
+              <Briefcase className="w-3.5 h-3.5 lg:w-4 lg:mr-2" />
+              <span className="hidden sm:inline">Seller Hub</span>
+            </Button>
+          </Link>
 
           <Link href="/create">
             <Button className="bg-[#FF8C00] hover:bg-[#FF8C00]/90 text-white font-black rounded-xl lg:rounded-2xl h-8 lg:h-9 px-2.5 lg:px-6 shadow-lg shadow-orange-500/20 uppercase text-[8px] lg:text-[10px] tracking-tighter active:scale-95 transition-transform">
