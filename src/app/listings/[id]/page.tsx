@@ -273,35 +273,35 @@ export default function ListingDetailPage() {
           <div className="lg:col-span-5 space-y-6">
             <Card className="rounded-[2.5rem] lg:rounded-[3rem] border-none shadow-2xl bg-white overflow-hidden ring-1 ring-slate-100">
               <div className="bg-[#225BC3] p-4 lg:p-6 text-white">
-                <div className="flex justify-between items-start mb-4">
-                   <div className="flex flex-col gap-2">
-                     <Badge className="bg-[#34CBED] text-white border-none px-3 uppercase text-[8px] font-black w-fit">Protected Hold</Badge>
+                <div className="flex justify-between items-start mb-3 lg:mb-4">
+                   <div className="flex flex-col gap-1.5 lg:gap-2">
+                     <Badge className="bg-[#34CBED] text-white border-none px-2 lg:px-3 uppercase text-[7px] lg:text-[8px] font-black w-fit">Protected Hold</Badge>
                      {listing.isBulk && (
-                       <Badge className="bg-[#FF8C00] text-white border-none px-3 uppercase text-[8px] font-black w-fit flex items-center gap-1">
+                       <Badge className="bg-[#FF8C00] text-white border-none px-2 lg:px-3 uppercase text-[7px] lg:text-[8px] font-black w-fit flex items-center gap-1">
                          <Layers className="w-2.5 h-2.5" /> Bulk Lot ({listing.quantity})
                        </Badge>
                      )}
                    </div>
                    {listing.isAuction && (
                      <div className="text-right">
-                        <p className="text-[10px] font-black uppercase tracking-widest text-white/60 mb-1">Status</p>
-                        <p className="text-lg lg:text-xl font-black whitespace-nowrap">{isAuctionEnded ? "Ended" : "Live Bidding"}</p>
+                        <p className="text-[9px] lg:text-[10px] font-black uppercase tracking-widest text-white/60 mb-0.5 lg:mb-1">Status</p>
+                        <p className="text-base lg:text-xl font-black whitespace-nowrap">{isAuctionEnded ? "Ended" : "Live Bidding"}</p>
                      </div>
                    )}
                 </div>
-                <h1 className="text-xl lg:text-2xl font-black mb-2 leading-tight">{listing.title}</h1>
+                <h1 className="text-lg lg:text-2xl font-black mb-1.5 lg:mb-2 leading-tight">{listing.title}</h1>
                 <p className="text-white/60 text-xs lg:text-sm font-bold flex items-center gap-1">
                   <MapPin className="w-3.5 h-3.5" /> {listing.location || 'Local'}
                 </p>
               </div>
               
-              <CardContent className="p-5 lg:p-6 space-y-8">
+              <CardContent className="p-4 lg:p-6 space-y-6 lg:space-y-8">
                 <div className="flex justify-between items-center">
                   <div>
-                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-1">
+                    <span className="text-[9px] lg:text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-1">
                       {listing.isAuction ? (listing.highestBid ? 'Highest Bid' : 'Starting Bid') : 'Price'}
                     </span>
-                    <span className="text-3xl lg:text-4xl font-black text-[#225BC3]">R {(listing.highestBid || listing.price || 0).toLocaleString()}</span>
+                    <span className="text-2xl lg:text-4xl font-black text-[#225BC3]">R {(listing.highestBid || listing.price || 0).toLocaleString()}</span>
                   </div>
                   <VerifiedBadge />
                 </div>
@@ -361,10 +361,10 @@ export default function ListingDetailPage() {
                   )}
                 </div>
 
-                <div className="p-5 lg:p-6 bg-green-50 rounded-[2rem] border border-green-100 space-y-3">
+                <div className="p-4 lg:p-6 bg-green-50 rounded-[2rem] border border-green-100 space-y-2 lg:space-y-3">
                    <div className="flex items-center gap-3">
                       <ShieldCheck className="w-6 h-6 lg:w-8 lg:h-8 text-green-600 shrink-0" />
-                      <h4 className="font-black text-green-800 uppercase text-[10px] tracking-widest">Safe Trade Guarantee</h4>
+                      <h4 className="font-black text-green-800 uppercase text-[9px] lg:text-[10px] tracking-widest">Safe Trade Guarantee</h4>
                    </div>
                    <p className="text-[9px] lg:text-[10px] text-green-700 leading-relaxed font-bold">
                      Funds are held in platform escrow until you verify the item at a Safe Zone.
@@ -428,47 +428,47 @@ export default function ListingDetailPage() {
 
       {/* Payment Sheet */}
       <Dialog open={isPaymentOpen} onOpenChange={setIsPaymentOpen}>
-        <DialogContent className="sm:max-w-[450px] rounded-[2.5rem] lg:rounded-[3rem] border-none p-0 overflow-hidden shadow-2xl mx-4">
-          <div className="bg-[#225BC3] p-8 lg:p-10 text-white">
-            <DialogTitle className="text-2xl lg:text-3xl font-black flex items-center gap-3 uppercase tracking-tighter text-white">
-              <Lock className="w-6 h-6 lg:w-8 lg:h-8 text-[#34CBED]" />
+        <DialogContent className="sm:max-w-[400px] rounded-[2.5rem] lg:rounded-[3rem] border-none p-0 overflow-hidden shadow-2xl mx-4">
+          <div className="bg-[#225BC3] p-6 lg:p-8 text-white">
+            <DialogTitle className="text-xl lg:text-2xl font-black flex items-center gap-3 uppercase tracking-tighter text-white">
+              <Lock className="w-5 h-5 lg:w-6 lg:h-6 text-[#34CBED]" />
               Secure Pay
             </DialogTitle>
             <DialogDescription className="sr-only">
               Complete your payment for this item securely via our protected hold system.
             </DialogDescription>
           </div>
-          <div className="p-8 lg:p-10 space-y-8">
-            <div className="bg-slate-50 p-6 rounded-[2rem] border border-slate-100 flex justify-between items-center">
+          <div className="p-6 lg:p-8 space-y-6">
+            <div className="bg-slate-50 p-4 lg:p-5 rounded-[2rem] border border-slate-100 flex justify-between items-center">
                <div>
-                  <p className="text-[10px] font-black text-slate-400 uppercase mb-1">Hold Amount</p>
-                  <p className="text-2xl lg:text-3xl font-black text-[#225BC3]">R {listing.price?.toLocaleString()}</p>
+                  <p className="text-[9px] font-black text-slate-400 uppercase mb-0.5">Hold Amount</p>
+                  <p className="text-xl lg:text-2xl font-black text-[#225BC3]">R {listing.price?.toLocaleString()}</p>
                </div>
-               <ShieldCheck className="w-10 h-10 lg:w-12 lg:h-12 text-green-500" />
+               <ShieldCheck className="w-8 h-8 lg:w-10 lg:h-10 text-green-500" />
             </div>
 
-            <RadioGroup value={paymentMethod} onValueChange={setPaymentMethod} className="gap-3">
+            <RadioGroup value={paymentMethod} onValueChange={setPaymentMethod} className="gap-2.5">
                {PAYMENT_METHODS.map((method) => (
                   <div key={method.id} className="relative">
                      <RadioGroupItem value={method.id} id={method.id} className="sr-only" />
                      <Label 
                         htmlFor={method.id} 
                         className={cn(
-                           "flex items-center gap-4 p-4 lg:p-5 rounded-3xl border-2 transition-all cursor-pointer",
+                           "flex items-center gap-3.5 p-3.5 lg:p-4 rounded-[1.5rem] border-2 transition-all cursor-pointer",
                            paymentMethod === method.id ? "border-[#225BC3] bg-[#225BC3]/5" : "border-slate-100 bg-white"
                         )}
                      >
-                        <method.icon className={cn("w-5 h-5 lg:w-6 lg:h-6", paymentMethod === method.id ? "text-[#225BC3]" : "text-slate-400")} />
+                        <method.icon className={cn("w-4 h-4 lg:w-5 lg:h-5", paymentMethod === method.id ? "text-[#225BC3]" : "text-slate-400")} />
                         <div>
-                           <p className="font-black text-slate-900 text-xs lg:text-sm">{method.name}</p>
-                           <p className="text-[9px] lg:text-[10px] font-bold text-muted-foreground">{method.description}</p>
+                           <p className="font-black text-slate-900 text-xs">{method.name}</p>
+                           <p className="text-[8px] lg:text-[9px] font-bold text-muted-foreground">{method.description}</p>
                         </div>
                      </Label>
                   </div>
                ))}
             </RadioGroup>
 
-            <Button className="w-full h-16 lg:h-18 bg-[#225BC3] text-white font-black rounded-2xl lg:rounded-3xl shadow-2xl text-base lg:text-lg" onClick={handlePayment} disabled={isPaying}>
+            <Button className="w-full h-14 lg:h-16 bg-[#225BC3] text-white font-black rounded-2xl lg:rounded-[1.5rem] shadow-2xl text-base" onClick={handlePayment} disabled={isPaying}>
                {isPaying ? "Processing..." : `Pay R ${listing.price?.toLocaleString()}`}
             </Button>
           </div>
