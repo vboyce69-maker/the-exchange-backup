@@ -49,16 +49,20 @@ If the error contains 'Missing or insufficient permissions', focus on Firestore 
 });
 
 export async function resolveSystemError(input: ErrorResolverInput): Promise<ErrorResolverOutput> {
-  const result = await runWithModelSafe((config) => resolverPrompt(input, config));
+  try {
+    const result = await runWithModelSafe((config) => resolverPrompt(input, config));
 
-  if (result.ok && result.output?.output) {
-    return result.output.output;
+    if (result.ok && result.output?.output) {
+      return result.output.output;
+    }
+  } catch (err) {
+    console.error("Error Resolver AI Failure:", err);
   }
 
   return {
     rootCause: "AI_DIAGNOSTIC_FAILURE",
-    explanation: "The AI Debugger encountered a rate limit and could not analyze this specific crash.",
-    suggestedFix: "Check logs manually or try again in 60 seconds.",
+    explanation: "The AI Debugger encountered a rate limit or infrastructure delay and could not analyze this specific crash.",
+    suggestedFix: "Check logs manually in the Firebase console or try again in 60 seconds.",
     severity: "medium",
     isRecoverable: true
   };

@@ -54,16 +54,29 @@ REJECTION RULE: If the faces do not match, set isVerified to false regardless of
 
 /**
  * Handles the identity verification process using multi-model fallback.
+ * Wraps calls in try/catch to return structured failure instead of crashing.
  */
 export async function verifyIdentity(input: VerifyIdentityInput): Promise<VerifyIdentityOutput> {
-  const result = await runWithModelSafe((config) => verifyIdentityPrompt(input, config));
+  try {
+    const result = await runWithModelSafe((config) => verifyIdentityPrompt(input, config));
 
-  if (result.ok && result.output?.output) {
-    return result.output.output;
+    if (result.ok && result.output?.output) {
+      return result.output.output;
+    }
+
+    return {
+      isVerified: false,
+      confidenceScore: 0,
+      reason: "The Identity Verification engine is currently experiencing a high-load delay. Please wait 60 seconds and try your face scan again.",
+    };
+  } catch (err) {
+    console.error("Identity Flow Critical Fault:", err);
+    return {
+      isVerified: false,
+      confidenceScore: 0,
+      reason: "A technical error occurred during biometric analysis. Please ensure you are in a well-lit area and retry.",
+    };
   }
-
-  // Fallback if AI infrastructure is completely down
-  throw new Error(result.error || "Identity Verification engine is busy. Please wait a moment before trying again.");
 }
 
 const verifyIdentityFlow = ai.defineFlow(

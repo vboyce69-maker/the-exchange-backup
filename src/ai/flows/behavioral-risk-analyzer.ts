@@ -53,15 +53,19 @@ Provide a clear security recommendation and threat indicators.`,
 });
 
 export async function analyzeBehavioralRisk(input: BehavioralRiskInput): Promise<BehavioralRiskOutput> {
-  const result = await runWithModelSafe((config) => 
-    riskPrompt({
-      ...input,
-      metadataJson: JSON.stringify(input.metadata || {}),
-    }, config)
-  );
+  try {
+    const result = await runWithModelSafe((config) => 
+      riskPrompt({
+        ...input,
+        metadataJson: JSON.stringify(input.metadata || {}),
+      }, config)
+    );
 
-  if (result.ok && result.output?.output) {
-    return result.output.output;
+    if (result.ok && result.output?.output) {
+      return result.output.output;
+    }
+  } catch (err) {
+    console.warn("Behavioral Risk AI failure, using safe default.");
   }
 
   return {

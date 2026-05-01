@@ -57,7 +57,10 @@ export async function runWithModelSafe<T>(
       console.warn(`[AI-RETRY] ${category} for ${modelId} after ${latency}ms: ${msg}`);
       errors.push(`${modelId} (${category}): ${msg}`);
       
-      // Attempt the next model in the fallback chain
+      // Wait briefly before attempting the next model in the fallback chain
+      if (modelId !== MODELS_TO_TRY[MODELS_TO_TRY.length - 1]) {
+        await new Promise(resolve => setTimeout(resolve, 1000));
+      }
       continue;
     }
   }
