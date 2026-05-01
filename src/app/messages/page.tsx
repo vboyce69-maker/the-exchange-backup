@@ -78,6 +78,7 @@ export default function MessagesPage() {
 
     if (result.decision === 'block') {
       setScamAudit(result);
+      // DO NOT send message if blocked
       return;
     }
 
@@ -170,7 +171,7 @@ export default function MessagesPage() {
                   <div className="space-y-1">
                     <AlertTitle className="font-black uppercase text-[10px] tracking-widest flex items-center gap-2">
                       {scamAudit.aiAnalysisPerformed && <Cpu className="w-3 h-3 text-blue-500" />}
-                      {scamAudit.decision === 'block' ? "Immediate Block" : "Verification Required"}
+                      {scamAudit.decision === 'block' ? "Policy Violation Block" : "Verification Required"}
                     </AlertTitle>
                     <AlertDescription className="text-xs font-medium leading-relaxed">
                       {scamAudit.reason}
@@ -209,19 +210,23 @@ export default function MessagesPage() {
           <div className="p-6 border-t bg-white space-y-4">
             <div className="flex gap-3">
               <Input
-                placeholder="Type a message..."
+                placeholder={scamAudit?.decision === 'block' ? "Message blocked by security policy" : "Type a message..."}
+                disabled={scamAudit?.decision === 'block'}
                 className="rounded-full bg-slate-50 border-none h-14 px-6 font-medium"
                 value={inputValue}
-                onChange={(e) => setInputValue(e.target.value)}
+                onChange={(e) => {
+                  setInputValue(e.target.value);
+                  if (scamAudit) setScamAudit(null);
+                }}
                 onKeyDown={(e) => e.key === "Enter" && handleSend()}
               />
-              <Button size="icon" className="rounded-full bg-[#225BC3] shrink-0 h-14 w-14" onClick={handleSend} disabled={isValidating}>
+              <Button size="icon" className="rounded-full bg-[#225BC3] shrink-0 h-14 w-14" onClick={handleSend} disabled={isValidating || scamAudit?.decision === 'block'}>
                 {isValidating ? <Loader2 className="w-5 h-5 animate-spin" /> : <Send className="w-5 h-5" />}
               </Button>
             </div>
             <div className="flex items-center justify-center gap-2 opacity-40">
                <ShieldCheck className="w-3 h-3 text-[#34CBED]" />
-               <span className="text-[8px] font-black uppercase tracking-widest">Hybrid AI/Rule Protection Enabled</span>
+               <span className="text-[8px] font-black uppercase tracking-widest">In-App Protection: External Contacts Blocked</span>
             </div>
           </div>
         </div>

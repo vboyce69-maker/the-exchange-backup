@@ -67,70 +67,51 @@ export const SCAM_RULES: ScamRule[] = [
   {
     id: 'strict_phone_numbers',
     category: 'off_platform',
-    weight: 90,
+    weight: 95,
     patterns: [
       '060', '061', '062', '063', '064', '065', '066', '067', '068', '069',
       '070', '071', '072', '073', '074', '075', '076', '077', '078', '079',
       '080', '081', '082', '083', '084', '085', '086', '087', '088', '089',
-      'plus27', '277', '276', '278', 'cell', 'mobile', 'whatsapp'
+      'plus27', '277', '276', '278', 'cell', 'mobile', 'whatsapp', 'call me',
+      'number is', 'dm me', 'contact me', 'phone'
     ],
-    explanation: 'Phone numbers are strictly prohibited. Keep all communication within The Exchange for your safety.'
+    explanation: 'Sharing phone numbers or contact details is strictly prohibited. Keep all communication within The Exchange for your safety.'
   },
   
-  // --- Category: Social Media Blocking (+90 -> BLOCK) ---
+  // --- Category: Social Media Blocking (+95 -> BLOCK) ---
   {
     id: 'strict_social_media',
     category: 'off_platform',
-    weight: 90,
+    weight: 95,
     patterns: [
       'facebook', 'instagram', 'twitter', 'tiktok', 'linkedin', 'snapchat', 
-      'fbme', 'igme', 'wa.me', 'tme', 'xcom', 'messenger'
+      'fbme', 'igme', 'wa.me', 'tme', 'xcom', 'messenger', 'insta', 'fb group',
+      'my page', 'follow me', 'telegram'
     ],
-    explanation: 'Social media links or profiles are blocked to prevent off-platform fraud.'
+    explanation: 'Social media links or profiles are blocked to prevent off-platform fraud and maintain verified trade logs.'
   },
 
-  // --- Category: External Payment Request (+40) ---
+  // --- Category: External Payment Request (+60) ---
   {
     id: 'external_payment',
     category: 'advance_fee',
-    weight: 40,
+    weight: 60,
     patterns: ['bank transfer', 'eft', 'capitec pay', 'ozow', 'cash send', 'instant money', 'pay me direct', 'outside the app', 'direct payment', 'deposit first'],
-    explanation: 'Request for external payment detected. This bypasses Protected Hold.'
+    explanation: 'Request for external payment detected. All payments must stay in Protected Hold.'
   },
 
-  // --- Category: Price Anomaly (+20) ---
-  {
-    id: 'price_anomaly',
-    category: 'price_anomaly',
-    weight: 20,
-    patterns: ['discount 70', '70 off', 'half price', 'unbelievable deal', 'urgent sale price', 'way below market'],
-    explanation: 'Price-related pressure or anomaly detected.'
-  },
-
-  // --- Category: Courier & Collection Scams ---
+  // --- Category: Courier & Collection Scams (+40) ---
   {
     id: 'courier_scam',
     category: 'courier_scam',
-    weight: 35,
+    weight: 40,
     patterns: ['courier', 'driver', 'collect', 'pickup', 'agent', 'delivery man', 'collection fee'],
-    explanation: 'Request for courier pickup often linked to fake payment scams.'
-  },
-
-  // --- Category: Phishing & High Risk ---
-  {
-    id: 'phishing',
-    category: 'phishing',
-    weight: 50,
-    patterns: ['verify account', 'account blocked', 'login here', 'security update', 'click here', 'otp', 'verification code'],
-    explanation: 'High-risk phishing attempt detected.'
+    explanation: 'Potential courier scam detected. Always meet at Safe Zones for physical items.'
   }
 ];
 
 /**
  * Analyzes text for scam patterns with Layer 2 scoring logic.
- * @param text The raw input text.
- * @param userTrustScore A value from 0-100 (higher = more trusted). 
- *                       Scores < 20 represent "New Accounts".
  */
 export function detectScam(text: string, userTrustScore: number = 50): DetectionResult {
   const normalized = normalizeText(text);
@@ -165,19 +146,15 @@ export function detectScam(text: string, userTrustScore: number = 50): Detection
   let severity: Severity = 'none';
 
   if (score >= 90) {
-    // Critical score -> Immediate Block
     action = 'block';
     severity = 'critical';
   } else if (score > 60) {
-    // High score -> send to AI analysis (Hold)
     action = 'hold';
     severity = 'high';
   } else if (score >= 30) {
-    // Threshold 30–60 → warn user
     action = 'warn';
     severity = 'medium';
   } else {
-    // Threshold < 30 → allow
     severity = 'low';
   }
 
