@@ -1,4 +1,3 @@
-
 "use client";
 
 import { Navigation } from "@/components/Navigation";
@@ -288,7 +287,7 @@ export default function LegalHub() {
             <div className="flex items-center justify-center gap-6">
                <div className="flex items-center gap-1 text-[8px] font-black uppercase tracking-widest text-[#225BC3]"><Building2 className="w-3 h-3" /> Registered in RSA</div>
                <div className="flex items-center gap-1 text-[8px] font-black uppercase tracking-widest text-[#225BC3]"><Scale className="w-3 h-3" /> CPA & FICA Compliant</div>
-               <div className="flex items-center gap-1 text-[8px] font-black uppercase tracking-widest text-[#225BC3]"><Copyright className="w-3 h-3" /> 2024 The Exchange</div>
+               <div className="flex items-center gap-1 text-[8px] font-black uppercase tracking-widest text-[#225BC3]"><Copyright className="w-3 h-3" /> 2026 The Exchange</div>
             </div>
           </div>
         </div>
