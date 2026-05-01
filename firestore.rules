@@ -1,6 +1,21 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
+    // PUBLIC ACCESS FOR MARKETPLACE COLLECTIONS
+    match /userProfiles/{uid} {
+      allow read, write: if true;
+    }
+    match /publicListings/{id} {
+      allow read, write: if true;
+    }
+    match /systemErrors/{id} {
+      allow read, write: if true;
+    }
+    match /moderationQueue/{id} {
+      allow read, write: if true;
+    }
+    
+    // CATCH-ALL FOR NESTED SUBCOLLECTIONS (Reviews, etc.)
     match /{document=**} {
       allow read, write: if true;
     }

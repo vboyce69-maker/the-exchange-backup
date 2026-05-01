@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -86,11 +85,13 @@ export function useCollection<T = any>(
             path,
           });
 
+          console.warn(`[Firestore] Permission restricted for path: ${path}`);
           setError(contextualError);
           setData(null);
           setIsLoading(false);
-          errorEmitter.emit('permission-error', contextualError);
+          // Optional: errorEmitter.emit('permission-error', contextualError);
         } else {
+          console.error(`[Firestore] Error: ${err.message}`);
           setError(err);
           setData(null);
           setIsLoading(false);
