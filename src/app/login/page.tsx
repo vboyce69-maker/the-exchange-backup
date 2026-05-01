@@ -66,7 +66,12 @@ export default function LoginPage() {
     setError(null);
 
     try {
-      // Lazy reCAPTCHA Initialization to ensure DOM element exists
+      // Lazy initialization with DOM safety check
+      const container = document.getElementById("recaptcha-container");
+      if (!container) {
+        throw new Error("Security container not ready. Please try again.");
+      }
+
       if (!recaptchaVerifierRef.current) {
         recaptchaVerifierRef.current = new RecaptchaVerifier(auth, "recaptcha-container", {
           size: "invisible",
@@ -81,7 +86,6 @@ export default function LoginPage() {
     } catch (err: any) {
       console.error("Phone Auth Error:", err);
       setError(err.message || "Failed to send OTP. Please check the number.");
-      // Reset verifier on error to allow retry
       if (recaptchaVerifierRef.current) {
         try { recaptchaVerifierRef.current.clear(); } catch (e) {}
         recaptchaVerifierRef.current = null;
