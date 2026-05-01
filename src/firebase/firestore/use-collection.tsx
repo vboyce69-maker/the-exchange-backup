@@ -85,11 +85,11 @@ export function useCollection<T = any>(
             path,
           });
 
-          console.warn(`[Firestore] Permission restricted for path: ${path}`);
+          // Handled gracefully: stop loading and set error, but don't force a global crash
           setError(contextualError);
-          setData(null);
+          setData([]);
           setIsLoading(false);
-          // Optional: errorEmitter.emit('permission-error', contextualError);
+          errorEmitter.emit('permission-error', contextualError);
         } else {
           console.error(`[Firestore] Error: ${err.message}`);
           setError(err);
@@ -103,7 +103,7 @@ export function useCollection<T = any>(
   }, [memoizedTargetRefOrQuery]);
 
   if(memoizedTargetRefOrQuery && !memoizedTargetRefOrQuery.__memo) {
-    throw new Error(memoizedTargetRefOrQuery + ' was not properly memoized using useMemoFirebase');
+    throw new Error('Firestore Reference was not properly memoized using useMemoFirebase');
   }
   return { data, isLoading, error };
 }
