@@ -67,56 +67,56 @@ export default function AutonomousTestCenter() {
   return (
     <div className="min-h-screen bg-[#F8FAFC]">
       <Navigation />
-      <main className="container mx-auto px-4 py-8 lg:py-12">
-        <div className="max-w-6xl mx-auto space-y-12">
+      <main className="container mx-auto px-4 py-8 lg:py-10">
+        <div className="max-w-6xl mx-auto space-y-8">
           
-          {/* Elite Header */}
-          <div className="flex flex-col lg:flex-row items-center justify-between gap-10 bg-[#225BC3] p-10 lg:p-14 rounded-[3.5rem] shadow-2xl relative overflow-hidden text-white">
-            <div className="absolute top-0 right-0 w-96 h-96 bg-white/5 rounded-full blur-3xl -mr-48 -mt-48" />
-            <div className="absolute bottom-0 left-0 w-64 h-64 bg-[#34CBED]/10 rounded-full blur-[100px] -ml-32 -mb-32" />
+          {/* Compact Header */}
+          <div className="flex flex-col lg:flex-row items-center justify-between gap-8 bg-[#225BC3] p-8 lg:p-10 rounded-[2.5rem] shadow-2xl relative overflow-hidden text-white">
+            <div className="absolute top-0 right-0 w-80 h-80 bg-white/5 rounded-full blur-3xl -mr-40 -mt-40" />
+            <div className="absolute bottom-0 left-0 w-48 h-48 bg-[#34CBED]/10 rounded-full blur-[80px] -ml-24 -mb-24" />
             
-            <div className="relative z-10 space-y-6 text-center lg:text-left flex-1">
-              <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-md px-4 py-1.5 rounded-full border border-white/20">
-                 <Cpu className="w-3.5 h-3.5 text-[#34CBED]" />
-                 <span className="text-[10px] font-black uppercase tracking-widest">Elite QA Stress Agent v2.5</span>
+            <div className="relative z-10 space-y-4 text-center lg:text-left flex-1">
+              <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-md px-3 py-1 rounded-full border border-white/20">
+                 <Cpu className="w-3 h-3 text-[#34CBED]" />
+                 <span className="text-[9px] font-black uppercase tracking-widest">Elite QA Stress Agent v2.5</span>
               </div>
-              <h1 className="text-4xl lg:text-6xl font-black tracking-tighter uppercase leading-none">Security Lab</h1>
-              <p className="text-white/80 font-bold text-lg max-w-xl leading-relaxed italic">
+              <h1 className="text-3xl lg:text-5xl font-black tracking-tighter uppercase leading-none">Security Lab</h1>
+              <p className="text-white/80 font-bold text-sm max-w-lg leading-relaxed italic">
                 "Breaking the platform to build a fortress. Stress testing 100k concurrent users and adversarial security flows."
               </p>
               
-              <div className="flex flex-wrap gap-4 justify-center lg:justify-start">
+              <div className="flex flex-wrap gap-2 justify-center lg:justify-start">
                 {['NORMAL', 'HIGH', 'EXTREME'].map((lvl) => (
                   <button 
                     key={lvl}
                     onClick={() => setIntensity(lvl as any)}
                     className={cn(
-                      "px-6 py-2.5 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all",
-                      intensity === lvl ? "bg-white text-[#225BC3] shadow-xl" : "bg-white/10 text-white hover:bg-white/20"
+                      "px-4 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all",
+                      intensity === lvl ? "bg-white text-[#225BC3] shadow-lg" : "bg-white/10 text-white hover:bg-white/20"
                     )}
                   >
-                    {lvl === 'EXTREME' && <Flame className="w-3 h-3 mr-1 inline-block animate-pulse" />}
-                    {lvl} Intensity
+                    {lvl === 'EXTREME' && <Flame className="w-2.5 h-2.5 mr-1 inline-block animate-pulse" />}
+                    {lvl}
                   </button>
                 ))}
               </div>
             </div>
             
-            <div className="relative z-10 flex flex-col gap-4 w-full md:w-auto shrink-0">
+            <div className="relative z-10 flex flex-col gap-3 w-full md:w-auto shrink-0">
               <Button 
                 className={cn(
-                  "h-24 px-12 rounded-[2.5rem] font-black text-xl shadow-2xl transition-all border-4",
+                  "h-16 px-10 rounded-2xl font-black text-lg shadow-xl transition-all border-2",
                   intensity === 'EXTREME' ? "bg-red-600 border-red-400 hover:bg-red-700" : "bg-white text-[#225BC3] border-white/20"
                 )}
                 onClick={() => runAllTests()}
                 disabled={isRunning}
               >
-                {isRunning ? <Loader2 className="w-10 h-10 animate-spin" /> : "Run Full System Audit"}
+                {isRunning ? <Loader2 className="w-8 h-8 animate-spin" /> : "Run Full Audit"}
               </Button>
               {isRunning && (
-                <div className="flex items-center justify-center gap-3 text-xs font-black uppercase animate-pulse">
-                  <Activity className="w-4 h-4" />
-                  Simulating Load & Attacks...
+                <div className="flex items-center justify-center gap-2 text-[10px] font-black uppercase animate-pulse">
+                  <Activity className="w-3.5 h-3.5" />
+                  Simulating Load...
                 </div>
               )}
             </div>
