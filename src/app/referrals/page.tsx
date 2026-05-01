@@ -27,8 +27,10 @@ export default function ReferralPage() {
   const { user } = useUser();
   const [referralCode, setReferralCode] = useState("");
   const [copied, setCopied] = useState(false);
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
+    setMounted(true);
     if (user) {
       setReferralCode(`EXCH-${user.uid.substring(0, 6).toUpperCase()}`);
     }
@@ -90,7 +92,7 @@ export default function ReferralPage() {
 
                 <div className="flex items-center gap-3 p-4 bg-slate-50 rounded-[2.5rem] border-2 border-dashed border-slate-200">
                   <div className="flex-1 font-mono text-sm text-[#225BC3] truncate font-black px-4">
-                    {typeof window !== 'undefined' ? `${window.location.origin}/login?ref=${referralCode || "..."}` : '...'}
+                    {mounted ? `${window.location.origin}/login?ref=${referralCode || "..."}` : '...'}
                   </div>
                   <Button 
                     onClick={copyToClipboard}
