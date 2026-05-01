@@ -41,7 +41,7 @@ export function SellerTierBadge({ level, className }: SellerTierBadgeProps) {
     <Badge 
       variant="outline" 
       className={cn(
-        "flex items-center gap-1.5 px-3 py-1 rounded-xl font-black uppercase text-[9px] tracking-widest border shadow-sm",
+        "flex items-center justify-center gap-1.5 px-3 py-1 rounded-xl font-black uppercase text-[9px] tracking-widest border shadow-sm",
         config.color,
         className
       )}
