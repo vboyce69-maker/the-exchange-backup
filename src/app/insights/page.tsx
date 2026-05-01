@@ -17,14 +17,18 @@ import {
   Clock
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useUser } from "@/firebase";
+import { toast } from "@/hooks/use-toast";
 
 const INSIGHTS_CACHE_KEY = 'exchange_insights_cache';
 const CACHE_TTL = 3600000; // 1 hour
 
 export default function InsightsPage() {
+  const { user } = useUser();
   const [insights, setInsights] = useState<SellerDemandInsightsOutput | null>(null);
   const [loading, setLoading] = useState(true);
   const [isCached, setIsCached] = useState(false);
+  const [isBoosting, setIsBoosting] = useState(false);
 
   useEffect(() => {
     async function fetchInsights() {
@@ -46,7 +50,7 @@ export default function InsightsPage() {
 
       try {
         const result = await getSellerDemandInsights({
-          sellerId: "user_123",
+          sellerId: user?.uid || "guest_123",
           currentListingsCategories: ["Electronics", "Bikes"],
           recentSearchTerms: ["laptop", "camera", "ebike"],
           sellerLocation: { latitude: -26.2041, longitude: 28.0473 } // Johannesburg
@@ -66,11 +70,32 @@ export default function InsightsPage() {
       }
     }
     fetchInsights();
-  }, []);
+  }, [user]);
 
   const refreshInsights = () => {
     localStorage.removeItem(INSIGHTS_CACHE_KEY);
     window.location.reload();
+  };
+
+  const handleBoostListings = () => {
+    if (!user) {
+      toast({
+        variant: "destructive",
+        title: "Authentication Required",
+        description: "Please sign in to boost your listings.",
+      });
+      return;
+    }
+
+    setIsBoosting(true);
+    // Simulate API call to boost listings
+    setTimeout(() => {
+      setIsBoosting(false);
+      toast({
+        title: "Listings Boosted!",
+        description: "Your active items are now prioritized in search results for 48 hours.",
+      });
+    }, 1500);
   };
 
   if (loading) {
@@ -111,8 +136,13 @@ export default function InsightsPage() {
             <Button variant="outline" onClick={refreshInsights} className="rounded-2xl h-12 font-black uppercase text-[10px] tracking-widest">
               Refresh Data
             </Button>
-            <Button className="bg-[#FF8C00] text-white font-black rounded-2xl h-12 px-8 shadow-xl" size="lg">
-              Boost Active Listings
+            <Button 
+              className="bg-[#FF8C00] text-white font-black rounded-2xl h-12 px-8 shadow-xl hover:scale-105 transition-transform" 
+              size="lg"
+              onClick={handleBoostListings}
+              disabled={isBoosting}
+            >
+              {isBoosting ? <Loader2 className="w-5 h-5 animate-spin" /> : "Boost Active Listings"}
             </Button>
           </div>
         </div>
