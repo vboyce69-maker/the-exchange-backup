@@ -60,7 +60,7 @@ export default function ReferralPage() {
       <main className="container mx-auto px-4 py-12">
         <div className="max-w-5xl mx-auto space-y-12">
           
-          {/* Hero Promo - SIZED DOWN */}
+          {/* Hero Promo - COMPACT VERSION */}
           <div className="bg-[#225BC3] rounded-[3.5rem] p-8 lg:p-12 text-white relative overflow-hidden shadow-2xl">
              <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl -mr-32 -mt-32" />
              <div className="relative z-10 space-y-6">
@@ -69,7 +69,7 @@ export default function ReferralPage() {
                 </div>
                 <h1 className="text-3xl lg:text-5xl font-black tracking-tighter uppercase leading-none">Refer & <span className="text-[#34CBED]">Grow</span></h1>
                 <p className="text-lg text-white/80 font-bold max-w-md leading-relaxed">
-                  Join the movement. Invite 3 friends to unlock your first **Free Featured Listing**. It's how platforms like PayPal and Dropbox scaled—now it's your turn to profit.
+                  Join the movement. Invite 3 friends to unlock your first **Free Featured Listing**.
                 </p>
              </div>
           </div>
