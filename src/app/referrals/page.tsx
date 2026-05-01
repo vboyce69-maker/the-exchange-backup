@@ -150,38 +150,6 @@ export default function ReferralPage() {
                </div>
             </Card>
           </div>
-
-          {/* Social Strategy */}
-          <div className="bg-white rounded-[4rem] p-12 lg:p-20 shadow-xl border border-slate-100">
-             <div className="text-center max-w-2xl mx-auto mb-16">
-                <h2 className="text-3xl lg:text-4xl font-black text-[#225BC3] uppercase tracking-tighter mb-4">How to Scale Your Rewards</h2>
-                <p className="text-slate-500 font-medium">Use these proven viral strategies to maximize your earnings.</p>
-             </div>
-             
-             <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
-                <div className="space-y-4">
-                   <div className="w-16 h-16 bg-blue-50 rounded-2xl flex items-center justify-center text-[#225BC3] shadow-sm">
-                      <MessageSquare className="w-8 h-8" />
-                   </div>
-                   <h4 className="text-xl font-black text-slate-900 uppercase">Direct Groups</h4>
-                   <p className="text-sm text-slate-500 font-medium leading-relaxed">Share your link in local business and trade WhatsApp groups. Personal invites convert 5x faster.</p>
-                </div>
-                <div className="space-y-4">
-                   <div className="w-16 h-16 bg-orange-50 rounded-2xl flex items-center justify-center text-[#FF8C00] shadow-sm">
-                      <Star className="w-8 h-8" />
-                   </div>
-                   <h4 className="text-xl font-black text-slate-900 uppercase">Showcase Trust</h4>
-                   <p className="text-sm text-slate-500 font-medium leading-relaxed">Remind friends that 'The Exchange' is the only platform with AI Scam Protection and Biometric KYC.</p>
-                </div>
-                <div className="space-y-4">
-                   <div className="w-16 h-16 bg-green-50 rounded-2xl flex items-center justify-center text-green-600 shadow-sm">
-                      <Zap className="w-8 h-8" />
-                   </div>
-                   <h4 className="text-xl font-black text-slate-900 uppercase">Founding Perk</h4>
-                   <p className="text-sm text-slate-500 font-medium leading-relaxed">Mention the 1000 free slots. Scarcity drives action—help them get in before the fees start.</p>
-                </div>
-             </div>
-          </div>
         </div>
       </main>
     </div>

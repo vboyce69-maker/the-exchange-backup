@@ -71,6 +71,23 @@ Listing Focus: {{{currentListingsCategories}}}
 3. Provide a Strategic Trend summary.`,
 });
 
+export async function getSellerDemandInsights(
+  input: SellerDemandInsightsInput
+): Promise<SellerDemandInsightsOutput> {
+  const result = await runWithModelSafe((config) => prompt(input, config));
+
+  if (result.ok && result.output?.output) {
+    return result.output.output as SellerDemandInsightsOutput;
+  }
+
+  // Graceful Fallback
+  return {
+    highDemandAreas: [],
+    optimalListingCategories: [],
+    generalMarketTrends: "The market analysis service is temporarily busy. Strategic trends remain stable. Check back in a moment for localized hotspot data."
+  };
+}
+
 const sellerDemandInsightsFlow = ai.defineFlow(
   {
     name: 'sellerDemandInsightsFlow',
@@ -78,27 +95,6 @@ const sellerDemandInsightsFlow = ai.defineFlow(
     outputSchema: SellerDemandInsightsOutputSchema,
   },
   async input => {
-    try {
-      const result = await runWithModelSafe((config) => prompt(input, config));
-      
-      if (result.ok && result.output?.output) {
-        return result.output.output as SellerDemandInsightsOutput;
-      }
-    } catch (err) {
-      console.warn("Market Insights AI failure, returning fallback data.");
-    }
-
-    // GRACEFUL FALLBACK: Provide neutral trend data if AI is down
-    return {
-      highDemandAreas: [],
-      optimalListingCategories: [],
-      generalMarketTrends: "The market is currently experiencing high volume. Demand remains stable across core categories. Please check back in a moment for localized hotspot data."
-    };
+    return getSellerDemandInsights(input);
   }
 );
-
-export async function getSellerDemandInsights(
-  input: SellerDemandInsightsInput
-): Promise<SellerDemandInsightsOutput> {
-  return sellerDemandInsightsFlow(input);
-}
