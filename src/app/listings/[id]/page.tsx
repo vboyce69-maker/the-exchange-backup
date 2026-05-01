@@ -430,10 +430,13 @@ export default function ListingDetailPage() {
       <Dialog open={isPaymentOpen} onOpenChange={setIsPaymentOpen}>
         <DialogContent className="sm:max-w-[450px] rounded-[2.5rem] lg:rounded-[3rem] border-none p-0 overflow-hidden shadow-2xl mx-4">
           <div className="bg-[#225BC3] p-8 lg:p-10 text-white">
-            <h2 className="text-2xl lg:text-3xl font-black flex items-center gap-3 uppercase tracking-tighter">
+            <DialogTitle className="text-2xl lg:text-3xl font-black flex items-center gap-3 uppercase tracking-tighter text-white">
               <Lock className="w-6 h-6 lg:w-8 lg:h-8 text-[#34CBED]" />
               Secure Pay
-            </h2>
+            </DialogTitle>
+            <DialogDescription className="sr-only">
+              Complete your payment for this item securely via our protected hold system.
+            </DialogDescription>
           </div>
           <div className="p-8 lg:p-10 space-y-8">
             <div className="bg-slate-50 p-6 rounded-[2rem] border border-slate-100 flex justify-between items-center">
