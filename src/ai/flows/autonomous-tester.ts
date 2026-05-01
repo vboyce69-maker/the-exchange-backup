@@ -8,7 +8,7 @@ import { ai, runWithModelSafe } from '@/ai/genkit';
 import { z } from 'genkit';
 import { TEST_SUITES } from '@/lib/test-manifest';
 
-const maxDuration = 120;
+const maxDuration = 120; // Internal constraint, not exported
 
 const SuiteReportSchema = z.object({
   suite: z.string(),

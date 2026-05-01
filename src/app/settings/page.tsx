@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { Navigation } from "@/components/Navigation";
 import { Button } from "@/components/ui/button";
@@ -8,8 +8,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent } from "@/components/ui/card";
-import { useUser, useFirestore, useDoc, useMemoFirebase } from "@/firebase";
+import { useUser, useFirestore, useDoc, useMemoFirebase, useStorage } from "@/firebase";
 import { doc, setDoc, updateDoc } from "firebase/firestore";
+import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
+import { updateProfile } from "firebase/auth";
 import { toast } from "@/hooks/use-toast";
 import { 
   Settings, 
@@ -29,6 +31,8 @@ export default function SettingsPage() {
   const { user, isUserLoading } = useUser();
   const router = useRouter();
   const db = useFirestore();
+  const storage = useStorage();
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // STABLE MEMOIZATION FIX: Prevents infinite Firestore subscription loops
   const profileRef = useMemoFirebase(() => {
@@ -42,6 +46,7 @@ export default function SettingsPage() {
   const [bio, setBio] = useState("");
   const [locationName, setLocationName] = useState("");
   const [isSaving, setIsSaving] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
 
   useEffect(() => {
     if (profile) {
@@ -51,6 +56,31 @@ export default function SettingsPage() {
       setLocationName(profile.locationName || "");
     }
   }, [profile]);
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !user) return;
+
+    setIsUploading(true);
+    try {
+      const storageRef = ref(storage, `profile_pics/${user.uid}`);
+      await uploadBytes(storageRef, file);
+      const downloadURL = await getDownloadURL(storageRef);
+
+      // Update Auth Profile
+      await updateProfile(user, { photoURL: downloadURL });
+
+      // Update Firestore Profile
+      const userRef = doc(db, "userProfiles", user.uid);
+      await updateDoc(userRef, { profileImageUrl: downloadURL });
+
+      toast({ title: "Avatar Updated", description: "Your new profile picture is live." });
+    } catch (err: any) {
+      toast({ variant: "destructive", title: "Upload Failed", description: err.message });
+    } finally {
+      setIsUploading(false);
+    }
+  };
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -124,10 +154,21 @@ export default function SettingsPage() {
                     <div className="relative mb-6">
                        <Avatar className="w-24 h-24 border-4 border-white shadow-xl rounded-[2rem]">
                           <AvatarImage src={user.photoURL || `https://picsum.photos/seed/${user.uid}/200/200`} />
-                          <AvatarFallback className="bg-[#225BC3] text-white font-black text-xl">{user.email?.[0]?.toUpperCase() || "U"}</AvatarFallback>
+                          <AvatarFallback className="bg-[#225BC3] text-white font-black text-xl">{user.displayName?.[0]?.toUpperCase() || user.email?.[0]?.toUpperCase() || "U"}</AvatarFallback>
                        </Avatar>
-                       <button className="absolute bottom-0 right-0 bg-[#225BC3] text-white p-2 rounded-xl shadow-lg border-2 border-white">
-                          <Camera className="w-4 h-4" />
+                       <input 
+                        type="file" 
+                        ref={fileInputRef} 
+                        className="hidden" 
+                        accept="image/*" 
+                        onChange={handleImageUpload} 
+                       />
+                       <button 
+                        className="absolute bottom-0 right-0 bg-[#225BC3] text-white p-2 rounded-xl shadow-lg border-2 border-white hover:scale-110 active:scale-95 transition-all"
+                        onClick={() => fileInputRef.current?.click()}
+                        disabled={isUploading}
+                       >
+                          {isUploading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Camera className="w-4 h-4" />}
                        </button>
                     </div>
                     <h3 className="text-xl font-black text-slate-900 leading-tight">

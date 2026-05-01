@@ -7,7 +7,7 @@
 import { ai, runWithModelSafe } from '@/ai/genkit';
 import { z } from 'genkit';
 
-const maxDuration = 120; // Compliance with Next.js Server Action rules (not exported)
+const maxDuration = 120; // Internal constraint, not exported
 
 const VerifyIdentityInputSchema = z.object({
   idPhotoDataUri: z.string().describe("Data URI of the ID document photo. Must be base64."),

@@ -6,7 +6,7 @@
 import { ai, runWithModelSafe } from '@/ai/genkit';
 import { z } from 'genkit';
 
-const maxDuration = 120;
+const maxDuration = 120; // Internal constraint, not exported
 
 const ErrorResolverInputSchema = z.object({
   errorMessage: z.string(),
