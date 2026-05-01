@@ -100,13 +100,13 @@ export function Navigation() {
 
         {/* Desktop Search */}
         <form onSubmit={handleSearchSubmit} className="hidden lg:flex flex-1 max-w-md mx-8 relative group">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-[#225BC3] transition-colors" />
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[#225BC3] group-focus-within:scale-110 transition-all duration-300 z-10" />
           <input 
             type="text" 
             placeholder="Search for items, brands..." 
             value={searchVal}
             onChange={(e) => setSearchVal(e.target.value)}
-            className="w-full h-10 pl-10 pr-4 rounded-2xl bg-slate-50 border-none focus:ring-2 focus:ring-[#225BC3]/10 outline-none font-medium text-sm transition-all"
+            className="w-full h-10 pl-11 pr-4 rounded-2xl bg-white border border-[#225BC3]/20 shadow-sm focus:border-[#225BC3]/40 focus:ring-4 focus:ring-[#225BC3]/5 outline-none font-medium text-sm transition-all"
           />
         </form>
 
@@ -255,14 +255,14 @@ export function Navigation() {
       {isMobileSearchOpen && (
         <div className="lg:hidden absolute left-0 right-0 top-14 bg-white p-4 shadow-xl border-b animate-in slide-in-from-top-4">
           <form onSubmit={handleSearchSubmit} className="relative">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[#225BC3] z-10" />
             <input 
               autoFocus
               type="text" 
               placeholder="Search marketplace..." 
               value={searchVal}
               onChange={(e) => setSearchVal(e.target.value)}
-              className="w-full h-11 pl-12 pr-12 rounded-2xl bg-slate-50 border-none outline-none font-bold text-sm"
+              className="w-full h-11 pl-11 pr-12 rounded-2xl bg-white border border-[#225BC3]/20 outline-none font-bold text-sm shadow-sm focus:border-[#225BC3]/40 transition-all"
             />
             <Button 
               type="button" 
