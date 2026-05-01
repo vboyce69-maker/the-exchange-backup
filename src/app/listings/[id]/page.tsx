@@ -272,7 +272,7 @@ export default function ListingDetailPage() {
           {/* Action Sidebar */}
           <div className="lg:col-span-5 space-y-6">
             <Card className="rounded-[2.5rem] lg:rounded-[3rem] border-none shadow-2xl bg-white overflow-hidden ring-1 ring-slate-100">
-              <div className="bg-[#225BC3] p-6 lg:p-8 text-white">
+              <div className="bg-[#225BC3] p-4 lg:p-6 text-white">
                 <div className="flex justify-between items-start mb-4">
                    <div className="flex flex-col gap-2">
                      <Badge className="bg-[#34CBED] text-white border-none px-3 uppercase text-[8px] font-black w-fit">Protected Hold</Badge>
@@ -289,19 +289,19 @@ export default function ListingDetailPage() {
                      </div>
                    )}
                 </div>
-                <h1 className="text-2xl lg:text-3xl font-black mb-2 leading-tight">{listing.title}</h1>
+                <h1 className="text-xl lg:text-2xl font-black mb-2 leading-tight">{listing.title}</h1>
                 <p className="text-white/60 text-xs lg:text-sm font-bold flex items-center gap-1">
                   <MapPin className="w-3.5 h-3.5" /> {listing.location || 'Local'}
                 </p>
               </div>
               
-              <CardContent className="p-6 lg:p-8 space-y-8">
+              <CardContent className="p-5 lg:p-6 space-y-8">
                 <div className="flex justify-between items-center">
                   <div>
                     <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-1">
                       {listing.isAuction ? (listing.highestBid ? 'Highest Bid' : 'Starting Bid') : 'Price'}
                     </span>
-                    <span className="text-3xl lg:text-5xl font-black text-[#225BC3]">R {(listing.highestBid || listing.price || 0).toLocaleString()}</span>
+                    <span className="text-3xl lg:text-4xl font-black text-[#225BC3]">R {(listing.highestBid || listing.price || 0).toLocaleString()}</span>
                   </div>
                   <VerifiedBadge />
                 </div>
