@@ -49,9 +49,17 @@ export function getListingLimit(profile: any): number {
 export function calculateTrustScore(profile: any): number {
   let trust = MARKET_CONFIG.BASE_TRUST_SCORE;
   
-  if (profile.isIdVerified) trust += MARKET_CONFIG.WEIGHTS.ID_VERIFIED;
-  if (profile.phoneVerified) trust += MARKET_CONFIG.WEIGHTS.PHONE_VERIFIED;
-  if (profile.sellerType === 'business' && profile.kycStatus === 'verified') {
+  if (!profile) return trust;
+
+  // Handle both production profile and initial onboarding state
+  if (profile.isIdVerified || profile.idVerified || profile.id) trust += MARKET_CONFIG.WEIGHTS.ID_VERIFIED;
+  if (profile.phoneVerified || profile.phone) trust += MARKET_CONFIG.WEIGHTS.PHONE_VERIFIED;
+  
+  const isBusinessVerified = 
+    (profile.sellerType === 'business' && profile.kycStatus === 'verified') || 
+    profile.businessVerified;
+
+  if (isBusinessVerified) {
     trust += MARKET_CONFIG.WEIGHTS.BUSINESS_VERIFIED;
   }
 

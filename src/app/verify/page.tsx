@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useRef, useEffect } from "react";
@@ -36,7 +35,7 @@ import { verifyIdentity, VerifyIdentityOutput } from "@/ai/flows/verify-identity
 import { useUser, useFirestore } from "@/firebase";
 import { doc, updateDoc, collection, getCountFromServer } from "firebase/firestore";
 import { cn } from "@/lib/utils";
-import { MARKET_CONFIG, calculateInitialTrust } from "@/app/lib/market-config";
+import { MARKET_CONFIG, calculateTrustScore } from "@/app/lib/market-config";
 
 export default function OnboardingPage() {
   const { user: authUser } = useUser();
@@ -112,7 +111,12 @@ export default function OnboardingPage() {
     setIsProcessing(true);
     
     try {
-      let trustScore = calculateInitialTrust({ phone: true, email: !!authUser.email, id: true });
+      const trustScore = calculateTrustScore({ 
+        phone: true, 
+        email: !!authUser.email, 
+        id: true,
+        businessVerified: sellerType === 'business'
+      });
       
       const profileRef = doc(db, "userProfiles", authUser.uid);
       const updateData: any = {
