@@ -7,6 +7,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { 
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { 
   ShieldCheck, 
   Upload, 
   CheckCircle2, 
@@ -36,6 +43,19 @@ import { useUser, useFirestore } from "@/firebase";
 import { doc, setDoc, collection, getCountFromServer } from "firebase/firestore";
 import { cn } from "@/lib/utils";
 import { MARKET_CONFIG, calculateTrustScore } from "@/app/lib/market-config";
+
+const SA_BANKS = [
+  { id: "capitec", name: "Capitec Bank" },
+  { id: "fnb", name: "First National Bank (FNB)" },
+  { id: "std", name: "Standard Bank" },
+  { id: "abs", name: "ABSA" },
+  { id: "ned", name: "Nedbank" },
+  { id: "tyme", name: "TymeBank" },
+  { id: "afri", name: "African Bank" },
+  { id: "disc", name: "Discovery Bank" },
+  { id: "bidv", name: "Bidvest Bank" },
+  { id: "sasf", name: "SASFIN" },
+];
 
 export default function OnboardingPage() {
   const { user: authUser } = useUser();
@@ -312,7 +332,18 @@ export default function OnboardingPage() {
 
                     <div className="space-y-2">
                       <Label className="text-[10px] font-black uppercase text-[#225BC3]">Bank Name</Label>
-                      <Input placeholder="e.g. Capitec, FNB, Standard Bank" className="h-14 rounded-2xl bg-slate-50 border-none font-bold" value={bankName} onChange={(e) => setBankName(e.target.value)} />
+                      <Select value={bankName} onValueChange={setBankName}>
+                        <SelectTrigger className="h-14 rounded-2xl bg-slate-50 border-none font-bold">
+                          <SelectValue placeholder="Select your bank" />
+                        </SelectTrigger>
+                        <SelectContent className="rounded-2xl border-none shadow-2xl">
+                          {SA_BANKS.map((bank) => (
+                            <SelectItem key={bank.id} value={bank.id} className="font-bold">
+                              {bank.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                     </div>
                     <div className="space-y-2">
                       <Label className="text-[10px] font-black uppercase text-[#225BC3]">Account Number</Label>
