@@ -34,7 +34,6 @@ export default function SettingsPage() {
   const storage = useStorage();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // STABLE MEMOIZATION FIX: Prevents infinite Firestore subscription loops
   const profileRef = useMemoFirebase(() => {
     return user ? doc(db, "userProfiles", user.uid) : null;
   }, [db, user?.uid]);
@@ -67,16 +66,13 @@ export default function SettingsPage() {
       await uploadBytes(storageRef, file);
       const downloadURL = await getDownloadURL(storageRef);
 
-      // Update Auth Profile
       await updateProfile(user, { photoURL: downloadURL });
-
-      // Update Firestore Profile
       const userRef = doc(db, "userProfiles", user.uid);
       await updateDoc(userRef, { profileImageUrl: downloadURL });
 
-      toast({ title: "Avatar Updated", description: "Your new profile picture is live." });
+      toast({ title: "Avatar Updated", description: "Your live photo is now active." });
     } catch (err: any) {
-      toast({ variant: "destructive", title: "Upload Failed", description: err.message });
+      toast({ variant: "destructive", title: "Capture Failed", description: err.message });
     } finally {
       setIsUploading(false);
     }
@@ -161,6 +157,7 @@ export default function SettingsPage() {
                         ref={fileInputRef} 
                         className="hidden" 
                         accept="image/*" 
+                        capture="user"
                         onChange={handleImageUpload} 
                        />
                        <button 
@@ -179,6 +176,7 @@ export default function SettingsPage() {
                           {profile?.isIdVerified ? "Verified User" : "Account Setup"}
                        </Badge>
                     </div>
+                    <p className="mt-4 text-[8px] font-black text-slate-400 uppercase tracking-widest">In-App Camera Only</p>
                   </div>
                </Card>
 

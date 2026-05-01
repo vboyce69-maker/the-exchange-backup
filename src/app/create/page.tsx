@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { Navigation } from "@/components/Navigation";
 import { Card, CardContent } from "@/components/ui/card";
@@ -12,7 +12,7 @@ import {
   X, 
   Zap,
   Loader2, 
-  ImagePlus,
+  Camera,
   CreditCard,
   Lock,
   Award
@@ -20,8 +20,9 @@ import {
 import { toast } from "@/hooks/use-toast";
 import Image from "next/image";
 import { collection, getCountFromServer } from "firebase/firestore";
-import { useFirestore, useUser } from "@/firebase";
+import { useFirestore, useUser, useStorage } from "@/firebase";
 import { addDocumentNonBlocking } from "@/firebase/non-blocking-updates";
+import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { Badge } from "@/components/ui/badge";
 import { MARKET_CONFIG, isFoundingSlotAvailable } from "@/app/lib/market-config";
 import { cn } from "@/lib/utils";
@@ -30,9 +31,12 @@ export default function CreateListingPage() {
   const router = useRouter();
   const { user } = useUser();
   const db = useFirestore();
+  const storage = useStorage();
+  const cameraInputRef = useRef<HTMLInputElement>(null);
 
   const [images, setImages] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
+  const [uploadingImage, setUploadingImage] = useState(false);
   const [location, setLocation] = useState<{ lat: number; lng: number; name: string } | null>(null);
   
   const [isAuction, setIsAuction] = useState(false);
@@ -61,31 +65,22 @@ export default function CreateListingPage() {
 
   const isFoundingMember = isFoundingSlotAvailable(filledCount);
 
-  useEffect(() => {
-    const draft = localStorage.getItem("exchange_listing_v2");
-    if (draft) {
-      try {
-        const data = JSON.parse(draft);
-        setTitle(data.title || "");
-        setCategory(data.category || "");
-        setCondition(data.condition || "");
-        setPrice(data.price || "");
-        setDescription(data.description || "");
-      } catch (e) {
-        console.error("Draft load error", e);
-      }
+  const handleListingCapture = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !user) return;
+
+    setUploadingImage(true);
+    try {
+      const storageRef = ref(storage, `listings/${user.uid}/${Date.now()}`);
+      await uploadBytes(storageRef, file);
+      const downloadURL = await getDownloadURL(storageRef);
+      setImages([...images, downloadURL]);
+      toast({ title: "Photo Captured", description: "Item image added from camera." });
+    } catch (err: any) {
+      toast({ variant: "destructive", title: "Capture Error", description: "Could not upload live photo." });
+    } finally {
+      setUploadingImage(false);
     }
-  }, []);
-
-  useEffect(() => {
-    const draftData = { title, category, condition, price, description };
-    localStorage.setItem("exchange_listing_v2", JSON.stringify(draftData));
-  }, [title, category, condition, price, description]);
-
-  const handleImageUpload = () => {
-    const nextId = Date.now();
-    const newImage = `https://picsum.photos/seed/${nextId}/800/600`;
-    setImages([...images, newImage]);
   };
 
   const removeImage = (index: number) => {
@@ -95,6 +90,10 @@ export default function CreateListingPage() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!user) return;
+    if (images.length === 0) {
+      toast({ variant: "destructive", title: "Photos Required", description: "Please capture at least one photo of the item." });
+      return;
+    }
     setLoading(true);
 
     const listingData = {
@@ -120,7 +119,6 @@ export default function CreateListingPage() {
 
     const listingsCol = collection(db, "publicListings");
     addDocumentNonBlocking(listingsCol, listingData);
-    localStorage.removeItem("exchange_listing_v2");
     
     setTimeout(() => {
       setLoading(false);
@@ -155,30 +153,11 @@ export default function CreateListingPage() {
             <Card className="rounded-[2.5rem] border-none shadow-xl bg-white ring-1 ring-[#225BC3]/5">
               <CardContent className="p-8 space-y-6">
                 
-                {isFoundingMember ? (
-                  <div className="p-6 bg-orange-50 rounded-3xl border border-orange-100 flex gap-4">
-                    <Zap className="w-10 h-10 text-[#FF8C00] shrink-0" />
-                    <div>
-                      <p className="text-[10px] font-black text-[#FF8C00] uppercase tracking-widest mb-1">Early Bird Incentive</p>
-                      <p className="text-[11px] text-orange-800 font-bold leading-relaxed">
-                        As a Founding 1000 member, your listing fee is <span className="underline">R0.00</span> and you get a complimentary <span className="underline">Featured Boost</span>.
-                      </p>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="p-6 bg-blue-50 rounded-3xl border border-blue-100 flex gap-4">
-                    <CreditCard className="w-10 h-10 text-[#225BC3] shrink-0" />
-                    <div>
-                      <p className="text-[10px] font-black text-[#225BC3] uppercase tracking-widest mb-1">Standard Listing</p>
-                      <p className="text-[11px] text-blue-800 font-bold leading-relaxed">
-                        The Founding 1000 program has reached capacity. A standard platform fee of <span className="font-black">R{MARKET_CONFIG.STANDARD_LISTING_FEE.toFixed(2)}</span> applies.
-                      </p>
-                    </div>
-                  </div>
-                )}
-
                 <div className="space-y-4">
-                  <Label className="text-xs font-black uppercase tracking-widest text-[#225BC3]">Photos ({images.length}/10)</Label>
+                  <div className="flex justify-between items-center">
+                    <Label className="text-xs font-black uppercase tracking-widest text-[#225BC3]">Item Photos ({images.length}/10)</Label>
+                    <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest">In-App Camera Only</span>
+                  </div>
                   <div className="grid grid-cols-3 sm:grid-cols-4 gap-3">
                     {images.map((img, i) => (
                       <div key={i} className="relative aspect-square rounded-[1.5rem] overflow-hidden border-2 border-white bg-white shadow-md group">
@@ -187,10 +166,31 @@ export default function CreateListingPage() {
                       </div>
                     ))}
                     {images.length < 10 && (
-                      <button type="button" onClick={handleImageUpload} className="aspect-square rounded-[1.5rem] border-2 border-dashed border-[#225BC3]/20 bg-white flex flex-col items-center justify-center gap-1 hover:bg-[#225BC3]/5">
-                        <ImagePlus className="w-6 h-6 text-[#225BC3]" />
-                        <span className="text-[10px] font-black text-[#225BC3] uppercase">Add Photo</span>
-                      </button>
+                      <div className="relative">
+                        <input 
+                          type="file" 
+                          ref={cameraInputRef}
+                          className="hidden" 
+                          accept="image/*" 
+                          capture="environment"
+                          onChange={handleListingCapture}
+                        />
+                        <button 
+                          type="button" 
+                          disabled={uploadingImage}
+                          onClick={() => cameraInputRef.current?.click()} 
+                          className="aspect-square w-full rounded-[1.5rem] border-2 border-dashed border-[#225BC3]/20 bg-white flex flex-col items-center justify-center gap-1 hover:bg-[#225BC3]/5 transition-all"
+                        >
+                          {uploadingImage ? (
+                            <Loader2 className="w-6 h-6 text-[#225BC3] animate-spin" />
+                          ) : (
+                            <>
+                              <Camera className="w-6 h-6 text-[#225BC3]" />
+                              <span className="text-[10px] font-black text-[#225BC3] uppercase">Capture</span>
+                            </>
+                          )}
+                        </button>
+                      </div>
                     )}
                   </div>
                 </div>
@@ -230,16 +230,10 @@ export default function CreateListingPage() {
                   "w-full h-16 rounded-[1.5rem] text-white font-black text-lg shadow-2xl hover:scale-[1.02] transition-transform",
                   isFoundingMember ? "bg-[#225BC3]" : "bg-[#FF8C00]"
                 )}
-                disabled={loading}
+                disabled={loading || images.length === 0}
               >
                 {loading ? <Loader2 className="w-6 h-6 animate-spin" /> : (isFoundingMember ? "List for R0.00" : `List for R${MARKET_CONFIG.STANDARD_LISTING_FEE.toFixed(2)}`)}
               </Button>
-              
-              {!isFoundingMember && (
-                <p className="text-[9px] text-center text-slate-400 font-bold flex items-center justify-center gap-2">
-                   <Lock className="w-2.5 h-2.5" /> SECURE CHECKOUT • NO HIDDEN FEES
-                </p>
-              )}
             </div>
           </form>
         </div>

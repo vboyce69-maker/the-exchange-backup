@@ -63,15 +63,32 @@ export function normalizeText(text: string): string {
 }
 
 export const SCAM_RULES: ScamRule[] = [
-  // --- Category: Phone numbers / Contact Redirection (+15) ---
+  // --- Category: Strict Contact Blocking (+90 -> BLOCK) ---
   {
-    id: 'phone_contact',
+    id: 'strict_phone_numbers',
     category: 'off_platform',
-    weight: 15,
-    patterns: ['whatsapp', 'watsapp', 'whatsap', 'whtsapp', 'wsap', 'number', 'phone', 'contact me', 'call me', 'text me', '071', '072', '073', '074', '076', '078', '079', '081', '082', '083', '084'],
-    explanation: 'Detected phone number or off-platform contact request.'
+    weight: 90,
+    patterns: [
+      '060', '061', '062', '063', '064', '065', '066', '067', '068', '069',
+      '070', '071', '072', '073', '074', '075', '076', '077', '078', '079',
+      '080', '081', '082', '083', '084', '085', '086', '087', '088', '089',
+      'plus27', '277', '276', '278', 'cell', 'mobile', 'whatsapp'
+    ],
+    explanation: 'Phone numbers are strictly prohibited. Keep all communication within The Exchange for your safety.'
   },
   
+  // --- Category: Social Media Blocking (+90 -> BLOCK) ---
+  {
+    id: 'strict_social_media',
+    category: 'off_platform',
+    weight: 90,
+    patterns: [
+      'facebook', 'instagram', 'twitter', 'tiktok', 'linkedin', 'snapchat', 
+      'fbme', 'igme', 'wa.me', 'tme', 'xcom', 'messenger'
+    ],
+    explanation: 'Social media links or profiles are blocked to prevent off-platform fraud.'
+  },
+
   // --- Category: External Payment Request (+40) ---
   {
     id: 'external_payment',
@@ -147,8 +164,12 @@ export function detectScam(text: string, userTrustScore: number = 50): Detection
   let action: DetectionAction = 'allow';
   let severity: Severity = 'none';
 
-  if (score > 60) {
-    // Threshold > 60 → send to AI analysis (Hold)
+  if (score >= 90) {
+    // Critical score -> Immediate Block
+    action = 'block';
+    severity = 'critical';
+  } else if (score > 60) {
+    // High score -> send to AI analysis (Hold)
     action = 'hold';
     severity = 'high';
   } else if (score >= 30) {

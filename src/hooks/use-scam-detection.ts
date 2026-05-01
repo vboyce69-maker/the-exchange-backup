@@ -7,7 +7,7 @@ import { useUser } from '@/firebase';
 
 /**
  * Reusable hook for marketplace security.
- * Implements the Tiered AI Architecture.
+ * Implements the Tiered AI Architecture and strict policy blocking.
  */
 export function useScamDetection() {
   const [isValidating, setIsValidating] = useState(false);
@@ -18,28 +18,20 @@ export function useScamDetection() {
     
     setIsValidating(true);
     try {
-      // Use user profile trust indicators if logged in
       const userTrustScore = user ? 50 : 0; 
-      
       const result = await antiScamChatProtection({ message: text, userTrustScore });
       
       if (result.decision === 'block') {
         toast({
           variant: 'destructive',
-          title: 'Security Alert: Message Blocked',
-          description: result.reason || 'This content contains high-risk fraud indicators.',
+          title: 'Policy Violation: Message Blocked',
+          description: result.reason || 'Sending contact details or social media links is not allowed.',
         });
       } else if (result.decision === 'warn') {
         toast({
           variant: 'default',
           title: 'Safety Notice',
-          description: 'Platform AI suggests caution. Keep communication in-app.',
-        });
-      } else if (result.decision === 'hold') {
-        toast({
-          variant: 'default',
-          title: 'Security Review',
-          description: 'This content is being verified by our safety engine.',
+          description: 'Keep all trade discussions inside the platform to remain protected.',
         });
       }
 
