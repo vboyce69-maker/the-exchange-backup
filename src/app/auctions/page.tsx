@@ -8,7 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Gavel, Loader2, Search, TrendingUp, Clock, AlertCircle, X } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { useCollection, useFirestore, useMemoFirebase } from "@/firebase";
-import { collection, query, where, orderBy, QueryConstraint } from "firebase/firestore";
+import { collection, query, orderBy } from "firebase/firestore";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 
@@ -29,34 +29,36 @@ function AuctionsContent() {
     return () => clearInterval(interval);
   }, []);
 
+  // Simplified query to avoid complex index requirements
   const auctionsQuery = useMemoFirebase(() => {
-    const constraints: QueryConstraint[] = [];
-    
-    // STRICTLY AUCTIONS
-    constraints.push(where("isAuction", "==", true));
+    return query(collection(db, "publicListings"), orderBy("postedDate", "desc"));
+  }, [db]);
 
-    if (categoryFilter) {
-      constraints.push(where("categoryId", "==", categoryFilter.toLowerCase()));
-    }
+  const { data: rawData, isLoading, error } = useCollection(auctionsQuery);
 
-    constraints.push(orderBy("postedDate", "desc"));
-
-    return query(collection(db, "publicListings"), ...constraints);
-  }, [db, categoryFilter]);
-
-  const { data: rawAuctions, isLoading, error } = useCollection(auctionsQuery);
-
-  // Client-side search filtering
+  // Client-side search and status filtering
   const auctions = useMemo(() => {
-    if (!rawAuctions) return [];
-    if (!searchQuery) return rawAuctions;
+    if (!rawData) return [];
     
-    const term = searchQuery.toLowerCase();
-    return rawAuctions.filter(a => 
-      a.title.toLowerCase().includes(term) || 
-      a.description.toLowerCase().includes(term)
-    );
-  }, [rawAuctions, searchQuery]);
+    return rawData.filter(item => {
+      // Must be an auction
+      const isAuction = item.isAuction === true;
+      if (!isAuction) return false;
+
+      // Category filter
+      if (categoryFilter && item.categoryId !== categoryFilter.toLowerCase()) return false;
+
+      // Search query filter
+      if (searchQuery) {
+        const term = searchQuery.toLowerCase();
+        const inTitle = item.title?.toLowerCase().includes(term);
+        const inDesc = item.description?.toLowerCase().includes(term);
+        if (!inTitle && !inDesc) return false;
+      }
+
+      return true;
+    });
+  }, [rawData, categoryFilter, searchQuery]);
 
   const endingSoon = useMemo(() => {
     if (!auctions || now === null) return [];

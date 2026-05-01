@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useMemo, useState, useEffect, Suspense } from "react";
@@ -18,7 +17,7 @@ import {
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { useCollection, useFirestore, useMemoFirebase } from "@/firebase";
-import { collection, query, where, orderBy, QueryConstraint } from "firebase/firestore";
+import { collection, query, orderBy } from "firebase/firestore";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { 
@@ -39,18 +38,10 @@ function SearchContent() {
   const [priceRange, setPriceRange] = useState([0, 100000]);
   const [activeCondition, setActiveCondition] = useState<string | null>(null);
 
+  // Simplified query to avoid index requirement for category filtering
   const listingsQuery = useMemoFirebase(() => {
-    const constraints: QueryConstraint[] = [];
-    
-    if (categoryFilter) {
-      constraints.push(where("categoryId", "==", categoryFilter.toLowerCase()));
-    }
-
-    // Default sorting by date
-    constraints.push(orderBy("postedDate", "desc"));
-
-    return query(collection(db, "publicListings"), ...constraints);
-  }, [db, categoryFilter]);
+    return query(collection(db, "publicListings"), orderBy("postedDate", "desc"));
+  }, [db]);
 
   const { data: rawListings, isLoading, error } = useCollection(listingsQuery);
 
@@ -59,17 +50,19 @@ function SearchContent() {
     if (!rawListings) return [];
     
     return rawListings.filter(item => {
+      const matchesCategory = categoryFilter ? item.categoryId === categoryFilter.toLowerCase() : true;
+      
       const matchesSearch = searchQuery 
-        ? (item.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
-           item.description.toLowerCase().includes(searchQuery.toLowerCase()))
+        ? (item.title?.toLowerCase().includes(searchQuery.toLowerCase()) || 
+           item.description?.toLowerCase().includes(searchQuery.toLowerCase()))
         : true;
       
       const matchesPrice = item.price >= priceRange[0] && item.price <= priceRange[1];
       const matchesCondition = activeCondition ? item.condition === activeCondition : true;
       
-      return matchesSearch && matchesPrice && matchesCondition;
+      return matchesCategory && matchesSearch && matchesPrice && matchesCondition;
     });
-  }, [rawListings, searchQuery, priceRange, activeCondition]);
+  }, [rawListings, categoryFilter, searchQuery, priceRange, activeCondition]);
 
   const clearFilters = () => {
     router.push('/search');
