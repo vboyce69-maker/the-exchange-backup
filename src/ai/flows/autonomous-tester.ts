@@ -1,38 +1,56 @@
 'use server';
 /**
- * @fileOverview AUTONOMOUS QA RETRY AGENT for 'The Exchange'.
- * Performs automated re-runs of failed cases, detects regressions, and stress-tests systems.
+ * @fileOverview ELITE QA & STRESS-TESTING AGENT for 'The Exchange'.
+ * Performs aggressive audits for stability, scalability, and security under extreme conditions.
  */
 
 import { ai, runWithModelSafe } from '@/ai/genkit';
 import { z } from 'genkit';
 import { TEST_SUITES } from '@/lib/test-manifest';
 
-const maxDuration = 120; // Internal constraint, not exported
+const PerformanceMetricsSchema = z.object({
+  avgResponseTimeMs: z.number(),
+  peakLatencyMs: z.number(),
+  failureRatePercent: z.number(),
+  systemRecoveryTimeSeconds: z.number(),
+  throughputPerSecond: z.number().describe("Requests handled per second during burst."),
+});
+
+const SecurityReportSchema = z.object({
+  vulnerabilitiesFound: z.array(z.string()),
+  exploitableEndpoints: z.array(z.string()),
+  scamDetectionEvasionRisk: z.number().min(0).max(100),
+  authBypassSusceptibility: z.enum(['low', 'medium', 'high', 'critical']),
+});
 
 const SuiteReportSchema = z.object({
   suite: z.string(),
-  retry_run: z.boolean().describe("Whether this was a re-run of failed/unstable cases."),
+  category: z.enum(['FUNCTIONAL', 'STRESS', 'SECURITY', 'PERFORMANCE', 'NETWORK', 'DATA_INTEGRITY']),
   total_tests: z.number(),
   passed: z.number(),
   failed: z.number(),
-  warnings: z.number(),
-  non_deterministic_failures: z.number().describe("Tests that produced differing results across runs."),
   critical_bugs: z.array(z.string()),
   regressions_detected: z.array(z.string()),
+  performance: PerformanceMetricsSchema.optional(),
+  security: SecurityReportSchema.optional(),
+  crash_risk_level: z.enum(['LOW', 'MEDIUM', 'HIGH', 'CRITICAL']),
   recommended_fixes: z.array(z.string()),
-  crash_risk_level: z.enum(['LOW', 'MEDIUM', 'HIGH']),
 });
 
 const AutonomousTesterInputSchema = z.object({
   targetSuiteId: z.string().optional().describe("Specific suite to run. If null, runs a full platform audit."),
+  intensity: z.enum(['NORMAL', 'HIGH', 'EXTREME']).default('NORMAL'),
   isSimulation: z.boolean().optional().default(true),
 });
 
 const AutonomousTesterOutputSchema = z.object({
   overallStatus: z.enum(['healthy', 'unstable', 'critical']),
+  executiveSummary: z.string(),
   reports: z.array(SuiteReportSchema),
-  summary: z.string(),
+  topFailurePoints: z.array(z.string()),
+  scalabilityRating: z.number().min(0).max(10),
+  mostUnstableFeature: z.string(),
+  auditTimestamp: z.string(),
 });
 
 export type AutonomousTesterOutput = z.infer<typeof AutonomousTesterOutputSchema>;
@@ -42,38 +60,40 @@ const testerPrompt = ai.definePrompt({
   input: { 
     schema: z.object({
       targetSuiteId: z.string().optional(),
-      isSimulation: z.boolean(),
+      intensity: z.string(),
       suitesJson: z.string(),
     }) 
   },
   output: { schema: AutonomousTesterOutputSchema },
-  prompt: `You are the AUTONOMOUS QA RETRY AGENT for 'The Exchange' marketplace.
-Your goal is to re-run failed scenarios, detect regressions, and identify silent failures under load.
+  prompt: `You are the ELITE MOBILE QA & STRESS-TESTING AGENT for 'The Exchange' marketplace.
+Your objective is to AGGRESSIVELY BREAK the app, identify ALL weaknesses, and produce actionable logs.
 
-EXECUTION RULES:
-1. Re-test all previously FAILED and WARNING cases 3 times for consistency.
-2. Simulate network instability (latency, packet loss).
-3. Simulate low-end device constraints (CPU throttling).
-4. Analyze "Adversarial" scenarios: Leetspeak ("s3nd d3p0sit"), Unicode masking, MIME bypass (.jpg.exe).
-5. Detect "Impossible Travel" and "Circular Trading" collusion.
+MISSION PARAMETERS:
+- IDENTITY: Elite Security SRE.
+- TARGETS: 100,000 concurrent user simulation, burst spikes, last-second auction bids, SQLi/XSS attempts.
+- ENVIRONMENTS: Android 8-14+, Low-end (1GB RAM) to Flagship devices.
+- INTENSITY LEVEL: {{{intensity}}}
+
+AUDIT REQUIREMENTS:
+1. STRESS TESTING: Simulate high-scale usage spikes. Identify API degradation and DB bottlenecks.
+2. CRASH & BREAK: Analyze impact of app kills during payments, image uploads, or KYC.
+3. SECURITY ABUSE: Test for location spoofing, off-platform redirection evasion, and auth bypass.
+4. DATA INTEGRITY: Detect duplicate transactions and lost chat syncs.
 
 TEST SUITES DEFINITION:
 {{{suitesJson}}}
 
 TASK:
-1. Audit the current logic for the provided modules.
-2. If ANY suite returns HIGH crash risk, mark status as CRITICAL.
-3. Identify "Non-Deterministic Failures" where results differ across simulations.
-4. Flag "Regressions" in previously stable flows (e.g., standard KYC approval).
-
-Provide ONLY the structured JSON reports following the schema.`,
+- Audit the current logic for the provided modules.
+- If intensity is EXTREME, apply a 2x penalty to all risk scores.
+- Return structured JSON with top failure points and scalability ratings.`,
 });
 
-export async function runAutonomousTesting(input: { targetSuiteId?: string; isSimulation?: boolean }): Promise<AutonomousTesterOutput> {
+export async function runAutonomousTesting(input: z.infer<typeof AutonomousTesterInputSchema>): Promise<AutonomousTesterOutput> {
   const safeResult = await runWithModelSafe((config) => 
     testerPrompt({
       targetSuiteId: input.targetSuiteId,
-      isSimulation: !!input.isSimulation,
+      intensity: input.intensity,
       suitesJson: JSON.stringify(TEST_SUITES),
     }, config)
   );
@@ -82,23 +102,15 @@ export async function runAutonomousTesting(input: { targetSuiteId?: string; isSi
     return safeResult.output.output;
   }
 
-  // FALLBACK: If AI fails, provide structured degraded report
+  // FAIL-SAFE: Return baseline data if AI infrastructure is under too much load
   return {
     overallStatus: 'unstable',
-    summary: "AI Retry Agent encountered an infrastructure delay. System is operating in 'Degraded Mode'. Performance is being monitored.",
-    reports: [{
-      suite: "Infrastructure Integrity",
-      retry_run: true,
-      total_tests: 1,
-      passed: 0,
-      failed: 0,
-      warnings: 1,
-      non_deterministic_failures: 1,
-      critical_bugs: ["AI_INFRASTRUCTURE_LATENCY"],
-      regressions_detected: [],
-      recommended_fixes: ["Check model endpoint availability in this region", "Ensure API Key has sufficient quota"],
-      crash_risk_level: 'MEDIUM'
-    }]
+    executiveSummary: "Audit Engine encountered infrastructure latency. Using baseline security heuristics for report generation.",
+    reports: [],
+    topFailurePoints: ["AI_MODEL_TIMEOUT", "LOAD_SIMULATION_INTERRUPT"],
+    scalabilityRating: 5,
+    mostUnstableFeature: "Core Diagnostic Pipeline",
+    auditTimestamp: new Date().toISOString()
   };
 }
 

@@ -1,7 +1,7 @@
 /**
  * @fileOverview Comprehensive Test Manifest for QA Testing Agent.
  * Defines scenarios for KYC, Scam Detection, Location Tracking, and Auth Stress Testing.
- * Optimized for the QA Retry Agent.
+ * Optimized for the Elite QA Retry Agent.
  */
 
 export const TEST_SUITES = {
@@ -16,7 +16,7 @@ export const TEST_SUITES = {
     { id: "LEETSPEAK_EVASION", name: "Leetspeak Detection", input: "W3st3rn Un10n - s3nd d3p0sit", expected: "NLP_SCAM_FLAG" },
     { id: "UNICODE_MASKING", name: "Unicode Invisible Chars", input: "W\u200BhatsA\u200Bpp m\u200Be", expected: "SCAM_FLAG_HIGH" },
     { id: "IMAGE_OCR_RETRY", name: "Rotated Text in Photo", input: "rotated_phone_number_image", expected: "OCR_FLAG_SUCCESS" },
-    { id: "AI_FALLBACK_STRESS", name: "AI Model Null Response Fallback", input: "model_timeout", expected: "RULE_BASED_TRIGGERED" }
+    { id: "COURIER_STORY_AI", name: "Social Engineering Intent", input: "I am sending a courier to collect", expected: "HOLD_FOR_REVIEW" }
   ],
   MEETUP_TRACKER: [
     { id: "GPS_GRADUAL_DRIFT", name: "Gradual GPS Drift Spoof", expected: "SPOOF_DETECTED_ANOMALY" },
@@ -24,20 +24,21 @@ export const TEST_SUITES = {
     { id: "SESSION_HARD_STOP", name: "Server-side Session Termination", expected: "ZERO_LOCATION_RETENTION" },
     { id: "RAPID_JUMP_RETRY", name: "Realistic Pause/Jump Pattern", expected: "TRAJECTORY_VALIDATED" }
   ],
-  RELIABILITY_SCORE: [
-    { id: "MICRO_TX_COLLUSION", name: "Micro-transaction Collusion", expected: "INFLATION_PREVENTED" },
-    { id: "CIRCULAR_TRADING", name: "3-Account Circular Trade", expected: "AUDIT_LOG_FLAG" },
-    { id: "RAPID_FAKE_REVIEWS", name: "Velocity Review Spike", expected: "ACCOUNT_TEMP_HOLD" }
+  STRESS_LOAD: [
+    { id: "LOAD_100K_CONCURRENT", name: "100,000 Concurrent Users", expected: "API_LATENCY_PEAK" },
+    { id: "BURST_10X_SPIKE", name: "10x Traffic Spike in 30s", expected: "AUTOSCALE_TRIGGER" },
+    { id: "LONG_TAIL_CONCURRENCY", name: "72-Hour Continuous Load", expected: "MEMORY_LEAK_ZERO" }
   ],
-  CRASH_LOAD: [
-    { id: "LOAD_1500_CONCURRENT", name: "1,500 Concurrent Users", expected: "STABLE_LATENCY" },
-    { id: "DB_WRITE_ROLLBACK", name: "Partial Transaction Failure", expected: "ATOMIC_ROLLBACK" },
-    { id: "MIME_WHITELIST_BYPASS", name: ".jpg.exe Upload Attempt", expected: "SILENT_REJECT_LOG" }
+  SECURITY_ADVERSARIAL: [
+    { id: "SQL_INJECTION_CHAT", name: "SQLi via Chat Input", input: "' OR 1=1 --", expected: "INPUT_SANITIZED" },
+    { id: "XSS_LISTING_DESCRIPTION", name: "XSS via Listing Description", input: "<script>alert('xss')</script>", expected: "BLOCKED_BY_CONTENT_POLICY" },
+    { id: "AUTH_TOKEN_REPLAY", name: "JWT Reuse Simulation", expected: "401_UNAUTHORIZED" },
+    { id: "API_RATE_LIMIT_BYPASS", name: "Rapid API Exhaustion", expected: "429_TOO_MANY_REQUESTS" }
   ],
-  AUTH_SECURITY: [
-    { id: "JWT_REUSE_RETRY", name: "Token Replay Attack", expected: "401_UNAUTHORIZED" },
-    { id: "BRUTE_FORCE_RETRY", name: "Locked After 5 Failures", expected: "ACCOUNT_LOCK_ENFORCED" },
-    { id: "FINGERPRINT_MISMATCH", name: "Session Hijack Simulation", expected: "STEP_UP_VERIFICATION" }
+  DATA_INTEGRITY: [
+    { id: "DUPLICATE_PAYMENT_INIT", name: "Simultaneous Payment Click", expected: "IDEMPOTENCY_LOCK" },
+    { id: "RACE_CONDITION_BID", name: "Last-Second simultaneous Bid", expected: "ATOMIC_BID_STABLE" },
+    { id: "LOST_MESSAGE_SYNC", name: "Offline Sync Verification", expected: "PERSISTENT_SYNC_RECOVERY" }
   ]
 };
 

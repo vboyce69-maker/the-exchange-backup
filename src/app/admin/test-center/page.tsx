@@ -6,8 +6,8 @@ import { runAutonomousTesting, AutonomousTesterOutput } from "@/ai/flows/autonom
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Progress } from "@/components/ui/progress";
 import { 
-  Play, 
   ShieldCheck, 
   AlertTriangle, 
   Loader2, 
@@ -20,47 +20,49 @@ import {
   Zap,
   Terminal,
   Server,
-  HeartPulse,
-  Gavel,
-  FlaskConical,
   Bug,
   ChevronRight,
   ShieldQuestion,
   Wrench,
   RotateCcw,
-  AlertCircle
+  AlertCircle,
+  Database,
+  Wifi,
+  MonitorSmartphone,
+  Flame,
+  Globe
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "@/hooks/use-toast";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export default function AutonomousTestCenter() {
   const [isRunning, setIsRunning] = useState(false);
   const [results, setResults] = useState<AutonomousTesterOutput | null>(null);
-  const [currentStep, setCurrentStep] = useState<string>("");
+  const [intensity, setIntensity] = useState<'NORMAL' | 'HIGH' | 'EXTREME'>('NORMAL');
 
   const runAllTests = async (suiteId?: string) => {
     setIsRunning(true);
     setResults(null);
-    setCurrentStep(suiteId ? `Retrying ${suiteId} Suite...` : "Running Autonomous Retry Agent...");
     
     try {
-      const data = await runAutonomousTesting({ targetSuiteId: suiteId });
+      const data = await runAutonomousTesting({ 
+        targetSuiteId: suiteId,
+        intensity: intensity
+      });
       setResults(data);
 
       toast({
-        title: "Retry Run Complete",
-        description: data.overallStatus === 'critical' ? "Critical vulnerabilities detected." : "Platform integrity scan finished.",
+        title: "Audit Complete",
+        description: data.overallStatus === 'critical' ? "CRITICAL vulnerabilities exposed." : "System limits verified.",
       });
     } catch (err: any) {
       console.error(err);
-      toast({ variant: "destructive", title: "Audit Error", description: "The retry agent encountered a timeout." });
+      toast({ variant: "destructive", title: "Audit Error", description: "The agent encountered a system timeout." });
     } finally {
       setIsRunning(false);
-      setCurrentStep("");
     }
   };
-
-  const isProductionReady = results ? results.overallStatus === 'healthy' : true;
 
   return (
     <div className="min-h-screen bg-[#F8FAFC]">
@@ -68,118 +70,145 @@ export default function AutonomousTestCenter() {
       <main className="container mx-auto px-4 py-8 lg:py-12">
         <div className="max-w-6xl mx-auto space-y-12">
           
-          {/* Header */}
-          <div className="flex flex-col md:flex-row items-center justify-between gap-8 bg-white p-10 lg:p-12 rounded-[3.5rem] shadow-2xl border border-[#225BC3]/5 relative overflow-hidden">
-            <div className="absolute top-0 right-0 w-64 h-64 bg-[#225BC3]/5 rounded-full blur-3xl -mr-32 -mt-32" />
+          {/* Elite Header */}
+          <div className="flex flex-col lg:flex-row items-center justify-between gap-10 bg-[#225BC3] p-10 lg:p-14 rounded-[3.5rem] shadow-2xl relative overflow-hidden text-white">
+            <div className="absolute top-0 right-0 w-96 h-96 bg-white/5 rounded-full blur-3xl -mr-48 -mt-48" />
+            <div className="absolute bottom-0 left-0 w-64 h-64 bg-[#34CBED]/10 rounded-full blur-[100px] -ml-32 -mb-32" />
             
-            <div className="relative z-10 space-y-4">
-              <div className="inline-flex items-center gap-2 bg-[#225BC3]/10 px-4 py-1.5 rounded-full">
-                 <RotateCcw className="w-3 h-3 text-[#225BC3]" />
-                 <span className="text-[10px] font-black text-[#225BC3] uppercase tracking-widest">Autonomous QA Retry Agent</span>
+            <div className="relative z-10 space-y-6 text-center lg:text-left flex-1">
+              <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-md px-4 py-1.5 rounded-full border border-white/20">
+                 <Cpu className="w-3.5 h-3.5 text-[#34CBED]" />
+                 <span className="text-[10px] font-black uppercase tracking-widest">Elite QA Stress Agent v2.5</span>
               </div>
-              <h1 className="text-4xl lg:text-5xl font-black text-slate-900 tracking-tighter uppercase leading-none">Security Lab</h1>
-              <p className="text-muted-foreground font-medium text-lg max-w-md italic">"Re-running failed cases, detecting regressions, and stress-testing core systems."</p>
+              <h1 className="text-4xl lg:text-6xl font-black tracking-tighter uppercase leading-none">Security Lab</h1>
+              <p className="text-white/80 font-bold text-lg max-w-xl leading-relaxed italic">
+                "Breaking the platform to build a fortress. Stress testing 100k concurrent users and adversarial security flows."
+              </p>
+              
+              <div className="flex flex-wrap gap-4 justify-center lg:justify-start">
+                {['NORMAL', 'HIGH', 'EXTREME'].map((lvl) => (
+                  <button 
+                    key={lvl}
+                    onClick={() => setIntensity(lvl as any)}
+                    className={cn(
+                      "px-6 py-2.5 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all",
+                      intensity === lvl ? "bg-white text-[#225BC3] shadow-xl" : "bg-white/10 text-white hover:bg-white/20"
+                    )}
+                  >
+                    {lvl === 'EXTREME' && <Flame className="w-3 h-3 mr-1 inline-block animate-pulse" />}
+                    {lvl} Intensity
+                  </button>
+                ))}
+              </div>
             </div>
             
-            <div className="relative z-10 flex flex-col gap-4 w-full md:w-auto">
+            <div className="relative z-10 flex flex-col gap-4 w-full md:w-auto shrink-0">
               <Button 
-                className="h-20 px-12 rounded-[2rem] bg-[#225BC3] text-white font-black text-xl shadow-2xl hover:scale-105 active:scale-95 transition-all"
+                className={cn(
+                  "h-24 px-12 rounded-[2.5rem] font-black text-xl shadow-2xl transition-all border-4",
+                  intensity === 'EXTREME' ? "bg-red-600 border-red-400 hover:bg-red-700" : "bg-white text-[#225BC3] border-white/20"
+                )}
                 onClick={() => runAllTests()}
                 disabled={isRunning}
               >
-                {isRunning ? <Loader2 className="w-8 h-8 animate-spin" /> : "Run Full Retry Audit"}
+                {isRunning ? <Loader2 className="w-10 h-10 animate-spin" /> : "Run Full System Audit"}
               </Button>
               {isRunning && (
-                <div className="flex items-center justify-center gap-3 text-xs font-black text-[#225BC3] uppercase animate-pulse">
+                <div className="flex items-center justify-center gap-3 text-xs font-black uppercase animate-pulse">
                   <Activity className="w-4 h-4" />
-                  {currentStep}
+                  Simulating Load & Attacks...
                 </div>
               )}
             </div>
           </div>
 
-          {results && results.overallStatus === 'critical' && (
-            <div className="bg-red-600 p-8 rounded-[2.5rem] text-white flex flex-col md:flex-row items-center gap-6 shadow-2xl animate-in zoom-in-95">
-               <ShieldAlert className="w-16 h-16 shrink-0 animate-pulse" />
-               <div>
-                  <h2 className="text-2xl font-black uppercase tracking-tight">Deployment Blocked</h2>
-                  <p className="font-bold opacity-80">The Retry Agent detected critical bugs or regressions. System is NOT production ready.</p>
-               </div>
+          {results && (
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 animate-in zoom-in-95">
+              <Card className="rounded-[2.5rem] border-none shadow-xl bg-white p-8 flex flex-col items-center text-center gap-4">
+                 <div className="p-5 bg-blue-50 rounded-[2rem] text-[#225BC3]"><Activity className="w-8 h-8" /></div>
+                 <div>
+                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Scalability Rating</p>
+                    <p className="text-4xl font-black text-slate-900">{results.scalabilityRating}/10</p>
+                 </div>
+              </Card>
+              <Card className="rounded-[2.5rem] border-none shadow-xl bg-white p-8 flex flex-col items-center text-center gap-4">
+                 <div className="p-5 bg-orange-50 rounded-[2rem] text-[#FF8C00]"><ShieldAlert className="w-8 h-8" /></div>
+                 <div>
+                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Status</p>
+                    <p className={cn("text-4xl font-black uppercase", results.overallStatus === 'healthy' ? "text-green-600" : "text-red-600")}>
+                      {results.overallStatus}
+                    </p>
+                 </div>
+              </Card>
+              <Card className="rounded-[2.5rem] border-none shadow-xl bg-white p-8 flex flex-col items-center text-center gap-4">
+                 <div className="p-5 bg-red-50 rounded-[2rem] text-red-600"><Bug className="w-8 h-8" /></div>
+                 <div>
+                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Top Weakness</p>
+                    <p className="text-xl font-black text-slate-900 truncate max-w-[200px]">{results.mostUnstableFeature}</p>
+                 </div>
+              </Card>
             </div>
           )}
 
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-            <Card className="rounded-[2.5rem] border-none shadow-xl bg-white p-6 space-y-4 group hover:ring-2 hover:ring-[#225BC3]/5 transition-all cursor-pointer" onClick={() => runAllTests("KYC")}>
-               <div className="p-4 bg-blue-100 rounded-2xl w-fit text-[#225BC3]"><Fingerprint className="w-6 h-6" /></div>
-               <h3 className="font-black text-xs uppercase tracking-widest text-slate-400">KYC Onboarding</h3>
-               <p className="text-lg font-black text-slate-900">Race Conditions</p>
-            </Card>
-            <Card className="rounded-[2.5rem] border-none shadow-xl bg-white p-6 space-y-4 group hover:ring-2 hover:ring-[#225BC3]/5 transition-all cursor-pointer" onClick={() => runAllTests("Scam")}>
-               <div className="p-4 bg-orange-100 rounded-2xl w-fit text-[#FF8C00]"><Ban className="w-6 h-6" /></div>
-               <h3 className="font-black text-xs uppercase tracking-widest text-slate-400">Scam Evasion</h3>
-               <p className="text-lg font-black text-slate-900">Leetspeak & Unicode</p>
-            </Card>
-            <Card className="rounded-[2.5rem] border-none shadow-xl bg-white p-6 space-y-4 group hover:ring-2 hover:ring-[#225BC3]/5 transition-all cursor-pointer" onClick={() => runAllTests("Location")}>
-               <div className="p-4 bg-green-100 rounded-2xl w-fit text-green-600"><Gavel className="w-6 h-6" /></div>
-               <h3 className="font-black text-xs uppercase tracking-widest text-slate-400">Meetup Points</h3>
-               <p className="text-lg font-black text-slate-900">GPS Drift & Spoof</p>
-            </Card>
-            <Card className="rounded-[2.5rem] border-none shadow-xl bg-white p-6 space-y-4 group hover:ring-2 hover:ring-[#225BC3]/5 transition-all cursor-pointer" onClick={() => runAllTests("Crash")}>
-               <div className="p-4 bg-red-100 rounded-2xl w-fit text-red-600"><Bug className="w-6 h-6" /></div>
-               <h3 className="font-black text-xs uppercase tracking-widest text-slate-400">Crash & Load</h3>
-               <p className="text-lg font-black text-slate-900">1,500 Users Simulation</p>
-            </Card>
-          </div>
-
           {results && (
-            <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4">
-              <div className="flex items-center gap-3">
-                 <Terminal className="w-8 h-8 text-[#225BC3]" />
-                 <h2 className="text-2xl font-black text-slate-900 uppercase tracking-tight">Structured Audit Findings</h2>
+            <div className="space-y-8 animate-in fade-in slide-in-from-bottom-6">
+              <div className="flex items-center justify-between">
+                 <div className="flex items-center gap-3">
+                    <Terminal className="w-8 h-8 text-[#225BC3]" />
+                    <h2 className="text-2xl font-black text-slate-900 uppercase tracking-tight">Structured Audit Findings</h2>
+                 </div>
+                 <Badge variant="outline" className="font-black text-[10px] px-4 py-1.5 rounded-full border-slate-200">
+                    Audit Date: {new Date(results.auditTimestamp).toLocaleString()}
+                 </Badge>
               </div>
 
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                 {results.reports.map((report, i) => (
-                  <Card key={i} className="rounded-[3rem] border-none shadow-2xl bg-white overflow-hidden ring-1 ring-slate-100 flex flex-col">
+                  <Card key={i} className="rounded-[3rem] border-none shadow-2xl bg-white overflow-hidden ring-1 ring-slate-100">
                      <div className={cn(
                        "p-8 flex items-center justify-between",
-                       report.crash_risk_level === 'HIGH' ? "bg-red-600 text-white" : "bg-slate-50 text-slate-900"
+                       report.crash_risk_level === 'CRITICAL' || report.crash_risk_level === 'HIGH' ? "bg-red-600 text-white" : "bg-slate-50 text-slate-900"
                      )}>
                         <div className="space-y-1">
-                           <h3 className="text-2xl font-black uppercase tracking-tighter">{report.suite}</h3>
+                           <div className="flex items-center gap-2">
+                             {report.category === 'SECURITY' && <Lock className="w-4 h-4" />}
+                             {report.category === 'STRESS' && <Activity className="w-4 h-4" />}
+                             {report.category === 'NETWORK' && <Wifi className="w-4 h-4" />}
+                             <h3 className="text-2xl font-black uppercase tracking-tighter">{report.suite}</h3>
+                           </div>
                            <p className="text-[10px] font-black uppercase tracking-widest opacity-70">
-                             {report.passed}/{report.total_tests} Tests Passed • {report.retry_run ? "Retry Run" : "First Run"}
+                             {report.passed}/{report.total_tests} Tests Passed • {report.category}
                            </p>
                         </div>
                         <Badge className={cn(
                           "px-4 py-1.5 rounded-full font-black text-[10px] uppercase border-none shadow-lg",
-                          report.crash_risk_level === 'HIGH' ? "bg-white text-red-600 animate-pulse" : 
+                          report.crash_risk_level === 'CRITICAL' ? "bg-white text-red-600 animate-pulse" : 
+                          report.crash_risk_level === 'HIGH' ? "bg-white text-red-600" :
                           report.crash_risk_level === 'MEDIUM' ? "bg-orange-100 text-orange-600" : "bg-green-100 text-green-600"
                         )}>
                           Risk: {report.crash_risk_level}
                         </Badge>
                      </div>
 
-                     <div className="p-8 space-y-6 flex-1">
-                        {report.regressions_detected.length > 0 && (
-                          <div className="space-y-3">
-                             <div className="flex items-center gap-2 text-orange-600">
-                                <RotateCcw className="w-4 h-4" />
-                                <span className="font-black uppercase text-[10px] tracking-widest">Regressions Detected</span>
-                             </div>
-                             {report.regressions_detected.map((bug, bi) => (
-                               <div key={bi} className="p-4 bg-orange-50 rounded-2xl border border-orange-100 text-orange-800 text-xs font-bold">
-                                 ⚠️ {bug}
-                               </div>
-                             ))}
-                          </div>
+                     <div className="p-8 space-y-6">
+                        {report.performance && (
+                           <div className="grid grid-cols-2 gap-4">
+                              <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100 space-y-1">
+                                 <p className="text-[8px] font-black text-slate-400 uppercase">Avg Response</p>
+                                 <p className="text-xl font-black text-[#225BC3]">{report.performance.avgResponseTimeMs}ms</p>
+                              </div>
+                              <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100 space-y-1">
+                                 <p className="text-[8px] font-black text-slate-400 uppercase">Peak Latency</p>
+                                 <p className="text-xl font-black text-[#FF8C00]">{report.performance.peakLatencyMs}ms</p>
+                              </div>
+                           </div>
                         )}
 
                         {report.critical_bugs.length > 0 && (
                           <div className="space-y-3">
                              <div className="flex items-center gap-2 text-red-600">
                                 <Bug className="w-4 h-4" />
-                                <span className="font-black uppercase text-[10px] tracking-widest">Critical Vulnerabilities</span>
+                                <span className="font-black uppercase text-[10px] tracking-widest">Adversarial Failures</span>
                              </div>
                              {report.critical_bugs.map((bug, bi) => (
                                <div key={bi} className="p-4 bg-red-50 rounded-2xl border border-red-100 text-red-800 text-xs font-bold leading-relaxed">
@@ -189,21 +218,10 @@ export default function AutonomousTestCenter() {
                           </div>
                         )}
 
-                        <div className="grid grid-cols-2 gap-4">
-                           <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100">
-                              <p className="text-[8px] font-black text-slate-400 uppercase mb-1">Non-Deterministic</p>
-                              <p className="text-xl font-black text-[#225BC3]">{report.non_deterministic_failures}</p>
-                           </div>
-                           <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100">
-                              <p className="text-[8px] font-black text-slate-400 uppercase mb-1">Total Warnings</p>
-                              <p className="text-xl font-black text-orange-500">{report.warnings}</p>
-                           </div>
-                        </div>
-
                         <div className="space-y-3">
                            <div className="flex items-center gap-2 text-[#225BC3]">
                               <Wrench className="w-4 h-4" />
-                              <span className="font-black uppercase text-[10px] tracking-widest">Recommended Fixes</span>
+                              <span className="font-black uppercase text-[10px] tracking-widest">Fix Strategy</span>
                            </div>
                            <div className="space-y-2">
                              {report.recommended_fixes.map((fix, fi) => (
@@ -219,21 +237,28 @@ export default function AutonomousTestCenter() {
                 ))}
               </div>
 
-              <Card className="rounded-[3rem] border-none shadow-xl bg-[#225BC3] p-10 text-white relative overflow-hidden">
-                <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full blur-3xl -mr-32 -mt-32" />
-                <div className="relative z-10 space-y-4">
-                   <h3 className="text-3xl font-black uppercase tracking-tighter">Executive Summary</h3>
-                   <p className="text-xl font-bold text-white/80 max-w-3xl leading-relaxed italic">"{results.summary}"</p>
-                </div>
+              <Card className="rounded-[3.5rem] border-none shadow-2xl bg-white p-12 overflow-hidden relative">
+                 <div className="absolute top-0 right-0 p-8 opacity-10"><Database className="w-32 h-32" /></div>
+                 <div className="relative z-10 space-y-6">
+                    <h3 className="text-3xl font-black text-[#225BC3] uppercase tracking-tighter">Executive Audit Summary</h3>
+                    <p className="text-xl font-bold text-slate-700 max-w-4xl leading-relaxed italic border-l-8 border-[#225BC3] pl-8">
+                       "{results.executiveSummary}"
+                    </p>
+                    <div className="flex flex-wrap gap-3">
+                       {results.topFailurePoints.map((point, pi) => (
+                         <Badge key={pi} className="bg-red-100 text-red-700 border-none px-4 py-1 font-black text-[10px] uppercase">{point}</Badge>
+                       ))}
+                    </div>
+                 </div>
               </Card>
             </div>
           )}
 
           {!results && !isRunning && (
-            <div className="text-center py-24 bg-white rounded-[4rem] shadow-sm border-2 border-dashed border-slate-100">
+            <div className="text-center py-32 bg-white rounded-[4rem] shadow-sm border-2 border-dashed border-slate-100">
                <ShieldQuestion className="w-20 h-20 text-slate-100 mx-auto mb-6" />
-               <p className="font-black text-[#225BC3] uppercase tracking-widest text-lg">Select a Module to Audit</p>
-               <p className="text-muted-foreground text-sm font-medium mt-2">Run the Retry Agent to validate fixes and detect regressions.</p>
+               <p className="font-black text-[#225BC3] uppercase tracking-widest text-lg">Initialize Security Hub</p>
+               <p className="text-muted-foreground text-sm font-medium mt-2">Select an intensity level and run the full suite audit.</p>
             </div>
           )}
         </div>
