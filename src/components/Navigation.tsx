@@ -85,15 +85,15 @@ export function Navigation() {
   ];
 
   return (
-    <nav className="sticky top-0 z-50 w-full border-b bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/60 px-4">
-      <div className="container mx-auto h-14 lg:h-16 flex items-center justify-between gap-2">
-        <Link href="/" className="flex items-center gap-2 shrink-0 group">
-          <div className="bg-[#225BC3] p-1.5 lg:p-2 rounded-xl shadow-lg shadow-blue-500/20 group-hover:scale-110 transition-transform">
+    <nav className="sticky top-0 z-50 w-full border-b bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/60 px-2 lg:px-4">
+      <div className="container mx-auto h-14 lg:h-16 flex items-center justify-between gap-1 lg:gap-2">
+        <Link href="/" className="flex items-center gap-1.5 lg:gap-2 shrink-0 group">
+          <div className="bg-[#225BC3] p-1 lg:p-2 rounded-lg lg:rounded-xl shadow-lg shadow-blue-500/20 group-hover:scale-110 transition-transform">
             <ShieldCheck className="w-4 h-4 lg:w-5 lg:h-5 text-white" />
           </div>
           <div className="flex flex-col -space-y-1">
-            <span className="font-black text-lg lg:text-xl text-[#225BC3] tracking-tighter uppercase">THE <span className="text-[#34CBED]">EXCHANGE</span></span>
-            <span className="text-[6px] lg:text-[7px] font-black text-[#225BC3]/60 tracking-widest uppercase">Verified Marketplace</span>
+            <span className="font-black text-sm lg:text-xl text-[#225BC3] tracking-tighter uppercase leading-none">THE <span className="text-[#34CBED]">EXCHANGE</span></span>
+            <span className="text-[5px] lg:text-[7px] font-black text-[#225BC3]/60 tracking-widest uppercase">Verified Marketplace</span>
           </div>
         </Link>
 
@@ -109,28 +109,28 @@ export function Navigation() {
           />
         </form>
 
-        <div className="flex items-center gap-1.5 lg:gap-4">
+        <div className="flex items-center gap-1 lg:gap-4">
           {/* Mobile Search Toggle */}
           <Button 
             variant="ghost" 
             size="icon" 
-            className="lg:hidden rounded-xl h-9 w-9 text-[#225BC3] active:scale-95"
+            className="lg:hidden rounded-xl h-8 w-8 lg:h-9 lg:w-9 text-[#225BC3] active:scale-95"
             onClick={() => setIsMobileSearchOpen(!isMobileSearchOpen)}
           >
             <Search className="w-4 h-4" />
           </Button>
 
           <Link href="/create">
-            <Button className="bg-[#FF8C00] hover:bg-[#FF8C00]/90 text-white font-black rounded-2xl h-9 px-3 lg:px-6 shadow-lg shadow-orange-500/20 uppercase text-[9px] lg:text-[10px] tracking-tighter active:scale-95 transition-transform">
-              <PlusCircle className="w-4 h-4 lg:mr-2" />
+            <Button className="bg-[#FF8C00] hover:bg-[#FF8C00]/90 text-white font-black rounded-xl lg:rounded-2xl h-8 lg:h-9 px-2.5 lg:px-6 shadow-lg shadow-orange-500/20 uppercase text-[8px] lg:text-[10px] tracking-tighter active:scale-95 transition-transform">
+              <PlusCircle className="w-3.5 h-3.5 lg:w-4 lg:mr-2" />
               <span className="hidden sm:inline">List Item</span>
             </Button>
           </Link>
 
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <button className="flex items-center gap-1.5 text-[9px] lg:text-[10px] font-black uppercase tracking-tighter text-[#225BC3] hover:text-[#34CBED] outline-none h-9 px-3 lg:px-4 rounded-2xl bg-[#225BC3]/5 hover:bg-[#225BC3]/10 transition-colors border border-[#225BC3]/10 active:scale-95">
-                Hub <ChevronDown className="w-3 h-3" />
+              <button className="flex items-center gap-1 text-[8px] lg:text-[10px] font-black uppercase tracking-tighter text-[#225BC3] hover:text-[#34CBED] outline-none h-8 lg:h-9 px-2 lg:px-4 rounded-xl lg:rounded-2xl bg-[#225BC3]/5 hover:bg-[#225BC3]/10 transition-colors border border-[#225BC3]/10 active:scale-95">
+                <span className="hidden xs:inline">Hub</span> <ChevronDown className="w-3 h-3" />
               </button>
             </DropdownMenuTrigger>
             <DropdownMenuContent className="w-72 max-h-[80vh] overflow-y-auto rounded-[2rem] p-4 shadow-2xl border-none ring-1 ring-black/5 mt-2 bg-white grid grid-cols-1 gap-1">
@@ -162,11 +162,11 @@ export function Navigation() {
           {user ? (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button size="icon" variant="ghost" className="rounded-2xl h-9 w-9 bg-slate-50 overflow-hidden border border-slate-100 active:scale-95">
+                <Button size="icon" variant="ghost" className="rounded-xl lg:rounded-2xl h-8 w-8 lg:h-9 lg:w-9 bg-slate-50 overflow-hidden border border-slate-100 active:scale-95">
                   {user.photoURL ? (
                     <img src={user.photoURL} alt="user" className="w-full h-full object-cover" />
                   ) : (
-                    <User className="w-5 h-5 text-[#225BC3]" />
+                    <User className="w-4 h-4 lg:w-5 lg:h-5 text-[#225BC3]" />
                   )}
                 </Button>
               </DropdownMenuTrigger>
@@ -234,8 +234,8 @@ export function Navigation() {
             </DropdownMenu>
           ) : (
             <Link href="/login">
-              <Button variant="ghost" className="rounded-2xl h-9 font-black uppercase text-[9px] lg:text-[10px] tracking-tighter text-[#225BC3] gap-1.5 border border-[#225BC3]/10 active:scale-95">
-                <LogIn className="w-4 h-4" />
+              <Button variant="ghost" className="rounded-xl lg:rounded-2xl h-8 lg:h-9 font-black uppercase text-[8px] lg:text-[10px] tracking-tighter text-[#225BC3] gap-1 lg:gap-1.5 border border-[#225BC3]/10 active:scale-95">
+                <LogIn className="w-3.5 h-3.5 lg:w-4" />
                 <span className="hidden xs:inline">Sign In</span>
               </Button>
             </Link>
