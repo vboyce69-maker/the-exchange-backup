@@ -20,7 +20,9 @@ import {
   Navigation as NavIcon,
   MapPin,
   Car,
-  X
+  X,
+  Star,
+  CheckCircle2
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { VerifiedBadge } from "@/components/VerifiedBadge";
@@ -109,16 +111,70 @@ export default function MessagesPage() {
       <Navigation />
 
       <main className="flex-1 container mx-auto px-4 py-8 flex flex-col lg:flex-row gap-6">
-        <aside className="hidden lg:block w-80 bg-white border rounded-[2rem] shadow-sm overflow-hidden">
+        <aside className="hidden lg:block w-80 bg-white border rounded-[2rem] shadow-sm overflow-hidden flex flex-col">
           <div className="p-6 border-b bg-[#225BC3]/5 flex items-center justify-between">
             <h2 className="font-black text-lg text-[#225BC3] uppercase tracking-tighter">Inbox</h2>
             <Globe className="w-4 h-4 text-[#34CBED]" />
           </div>
-          <div className="p-5 bg-blue-50/50 border-l-4 border-[#225BC3] flex gap-3 cursor-pointer">
-            <Avatar className="h-12 w-12 border-2 border-white shadow-sm"><AvatarImage src="https://picsum.photos/seed/user1/200/200" /></Avatar>
-            <div className="flex-1 min-w-0">
-              <span className="font-bold text-sm">Alex Rivera</span>
-              <p className="text-[10px] text-muted-foreground truncate uppercase font-black">Protected Hold Active</p>
+          
+          <div className="flex-1 overflow-y-auto">
+            <div className="p-5 bg-blue-50/50 border-l-4 border-[#225BC3] flex gap-3 cursor-pointer">
+              <Avatar className="h-12 w-12 border-2 border-white shadow-sm"><AvatarImage src="https://picsum.photos/seed/user1/200/200" /></Avatar>
+              <div className="flex-1 min-w-0">
+                <span className="font-bold text-sm">Alex Rivera</span>
+                <p className="text-[10px] text-muted-foreground truncate uppercase font-black">Protected Hold Active</p>
+              </div>
+            </div>
+
+            {/* Trust Summary Section */}
+            <div className="p-6 border-t space-y-6">
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <h3 className="font-black text-[10px] uppercase tracking-widest text-[#225BC3]">Trust Profile</h3>
+                  <Badge className="bg-green-100 text-green-700 border-none font-black text-[8px] uppercase px-2">High Reliability</Badge>
+                </div>
+                
+                <div className="flex items-center gap-4 p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                  <div className="relative w-12 h-12 flex items-center justify-center shrink-0">
+                    <svg className="w-full h-full transform -rotate-90">
+                      <circle cx="24" cy="24" r="20" stroke="currentColor" strokeWidth="4" fill="transparent" className="text-slate-200" />
+                      <circle cx="24" cy="24" r="20" stroke="currentColor" strokeWidth="4" fill="transparent" strokeDasharray={126} strokeDashoffset={126 * (1 - 0.94)} className="text-[#225BC3]" />
+                    </svg>
+                    <span className="absolute text-[10px] font-black text-[#225BC3]">94%</span>
+                  </div>
+                  <div>
+                    <p className="text-xs font-black text-slate-900 leading-none">Reliability Score</p>
+                    <p className="text-[9px] text-slate-500 font-bold mt-1">Based on 56 successful meetups</p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <h3 className="font-black text-[10px] uppercase tracking-widest text-[#225BC3]">Verified Reviews</h3>
+                  <span className="text-[9px] font-bold text-slate-400">View All</span>
+                </div>
+                <div className="space-y-3">
+                  {[
+                    { user: "Sarah M.", text: "Excellent trader, arrived on time at the safe zone." },
+                    { user: "David K.", text: "Item was exactly as described. Very professional." }
+                  ].map((review, i) => (
+                    <div key={i} className="p-3 bg-white border border-slate-100 rounded-xl space-y-1.5 shadow-sm">
+                      <div className="flex items-center justify-between">
+                        <span className="text-[9px] font-black text-slate-900 flex items-center gap-1">
+                          <CheckCircle2 className="w-2.5 h-2.5 text-blue-500" /> {review.user}
+                        </span>
+                        <div className="flex gap-0.5">
+                          {[...Array(5)].map((_, j) => (
+                            <Star key={j} className="w-2 h-2 text-[#FF8C00] fill-current" />
+                          ))}
+                        </div>
+                      </div>
+                      <p className="text-[10px] text-slate-500 leading-tight italic font-medium">"{review.text}"</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
             </div>
           </div>
         </aside>
