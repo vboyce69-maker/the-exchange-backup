@@ -98,6 +98,13 @@ export default function InsightsPage() {
     }, 1500);
   };
 
+  const handleViewVolumeDetails = () => {
+    toast({
+      title: "Analysis Depth",
+      description: "Calculating historical volume trends and competitive density for these categories...",
+    });
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-background">
@@ -214,7 +221,11 @@ export default function InsightsPage() {
                 </div>
               ))}
               <div className="pt-4">
-                <Button className="w-full rounded-2xl font-black uppercase text-[10px] tracking-widest bg-slate-900 text-white h-12 shadow-xl" variant="default">
+                <Button 
+                  className="w-full rounded-2xl font-black uppercase text-[10px] tracking-widest bg-slate-900 text-white h-12 shadow-xl" 
+                  variant="default"
+                  onClick={handleViewVolumeDetails}
+                >
                   View Volume Details
                   <ChevronRight className="w-4 h-4 ml-2" />
                 </Button>
