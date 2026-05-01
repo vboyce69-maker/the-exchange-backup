@@ -201,7 +201,9 @@ export default function LandingPage() {
                       <p className="text-lg font-black text-slate-900 leading-tight">Professional Video Suite</p>
                       <div className="flex items-center justify-between mt-2">
                           <span className="text-xl font-black text-[#225BC3]">R 42,500</span>
-                          <Button size="sm" className="bg-[#34CBED] text-white font-black rounded-lg h-8 px-4 text-[10px]">Bid Now</Button>
+                          <Link href="/auctions">
+                            <Button size="sm" className="bg-[#34CBED] text-white font-black rounded-lg h-8 px-4 text-[10px]">Bid Now</Button>
+                          </Link>
                       </div>
                     </div>
                 </div>
@@ -363,7 +365,7 @@ export default function LandingPage() {
                    <ShieldCheck className="w-6 h-6 text-[#34CBED]" />
                 </div>
                 <h2 className="text-2xl lg:text-3xl font-black leading-tight tracking-tighter">Shop with total confidence.</h2>
-                <p className="text-white/70 text-xs font-medium leading-relaxed max-w-sm mx-auto lg:mx-0">
+                <p className="text-white/70 text-xs font-medium leading-relaxed max-sm mx-auto lg:mx-0">
                   Verified Sellers, Secure Deals, No Scams, Just Good Trades.
                 </p>
                 <div className="flex flex-wrap gap-3 justify-center lg:justify-start pt-2">
