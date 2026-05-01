@@ -102,7 +102,6 @@ export default function ListingDetailPage() {
     return `${h}h ${m}m remaining`;
   }, [listing, now]);
 
-  // Determine Seller Tier
   const getSellerTier = (transactions: number, score: number): SellerTier => {
     if (transactions >= 50 && score >= 95) return 'pro';
     if (transactions >= 10 && score >= 90) return 'trusted';
@@ -181,8 +180,8 @@ export default function ListingDetailPage() {
 
   if (!listing) return null;
 
-  const sellerTransactions = 56; // Mock data for demo
-  const sellerReliability = 94; // Mock data for demo
+  const sellerTransactions = 56;
+  const sellerReliability = 94;
   const sellerTier = getSellerTier(sellerTransactions, sellerReliability);
 
   return (
@@ -272,8 +271,8 @@ export default function ListingDetailPage() {
           {/* Action Sidebar */}
           <div className="lg:col-span-5 space-y-6">
             <Card className="rounded-[2.5rem] lg:rounded-[3rem] border-none shadow-2xl bg-white overflow-hidden ring-1 ring-slate-100">
-              <div className="bg-[#225BC3] p-4 lg:p-6 text-white">
-                <div className="flex justify-between items-start mb-3 lg:mb-4">
+              <div className="bg-[#225BC3] p-4 lg:p-5 text-white">
+                <div className="flex justify-between items-start mb-2 lg:mb-3">
                    <div className="flex flex-col gap-1.5 lg:gap-2">
                      <Badge className="bg-[#34CBED] text-white border-none px-2 lg:px-3 uppercase text-[7px] lg:text-[8px] font-black w-fit">Protected Hold</Badge>
                      {listing.isBulk && (
@@ -289,19 +288,19 @@ export default function ListingDetailPage() {
                      </div>
                    )}
                 </div>
-                <h1 className="text-lg lg:text-2xl font-black mb-1.5 lg:mb-2 leading-tight">{listing.title}</h1>
+                <h1 className="text-base lg:text-xl font-black mb-1.5 lg:mb-2 leading-tight">{listing.title}</h1>
                 <p className="text-white/60 text-xs lg:text-sm font-bold flex items-center gap-1">
                   <MapPin className="w-3.5 h-3.5" /> {listing.location || 'Local'}
                 </p>
               </div>
               
-              <CardContent className="p-4 lg:p-6 space-y-6 lg:space-y-8">
+              <CardContent className="p-4 lg:p-5 space-y-6 lg:space-y-8">
                 <div className="flex justify-between items-center">
                   <div>
                     <span className="text-[9px] lg:text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-1">
                       {listing.isAuction ? (listing.highestBid ? 'Highest Bid' : 'Starting Bid') : 'Price'}
                     </span>
-                    <span className="text-2xl lg:text-4xl font-black text-[#225BC3]">R {(listing.highestBid || listing.price || 0).toLocaleString()}</span>
+                    <span className="text-xl lg:text-3xl font-black text-[#225BC3]">R {(listing.highestBid || listing.price || 0).toLocaleString()}</span>
                   </div>
                   <VerifiedBadge />
                 </div>
@@ -373,7 +372,6 @@ export default function ListingDetailPage() {
               </CardContent>
             </Card>
 
-            {/* Enhanced Transaction History Sidebar Card */}
             <Card className="rounded-[2.5rem] border-none shadow-xl bg-white overflow-hidden">
                <div className="p-6 lg:p-8 space-y-6">
                   <div className="flex items-center justify-between">
@@ -449,7 +447,11 @@ export default function ListingDetailPage() {
 
             <RadioGroup value={paymentMethod} onValueChange={setPaymentMethod} className="gap-2.5">
                {PAYMENT_METHODS.map((method) => (
-                  <div key={method.id} className="relative">
+                  <div 
+                    key={method.id} 
+                    className="relative"
+                    onClick={() => setPaymentMethod(method.id)}
+                  >
                      <RadioGroupItem value={method.id} id={method.id} className="sr-only" />
                      <Label 
                         htmlFor={method.id} 
@@ -459,7 +461,7 @@ export default function ListingDetailPage() {
                         )}
                      >
                         <method.icon className={cn("w-4 h-4 lg:w-5 lg:h-5", paymentMethod === method.id ? "text-[#225BC3]" : "text-slate-400")} />
-                        <div>
+                        <div className="flex-1">
                            <p className="font-black text-slate-900 text-xs">{method.name}</p>
                            <p className="text-[8px] lg:text-[9px] font-bold text-muted-foreground">{method.description}</p>
                         </div>
