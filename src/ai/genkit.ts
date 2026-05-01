@@ -3,7 +3,7 @@ import { googleAI } from '@genkit-ai/google-genai';
 
 /**
  * Standardized Model Configuration for 'The Exchange'.
- * Uses verified string identifiers to avoid regional API mismatches.
+ * Uses verified identifiers to avoid infrastructure latency or 404 mismatches.
  */
 export const MODELS_TO_TRY = [
   'googleai/gemini-1.5-flash',
@@ -54,8 +54,9 @@ export async function runWithModelSafe<T>(
       console.warn(`[AI-RETRY] ${category} for ${modelId} after ${latency}ms: ${msg}`);
       errors.push(`${modelId} (${category}): ${msg}`);
       
+      // Wait before trying the next model in the chain
       if (modelId !== MODELS_TO_TRY[MODELS_TO_TRY.length - 1]) {
-        await new Promise(resolve => setTimeout(resolve, 1000)); // Backoff delay
+        await new Promise(resolve => setTimeout(resolve, 1500));
       }
       continue;
     }

@@ -17,7 +17,8 @@ export function initializeFirebase() {
     return getSdks(firebaseApp);
   }
 
-  return getSdks(getApp());
+  const app = getApp();
+  return getSdks(app);
 }
 
 export function getSdks(firebaseApp: FirebaseApp) {
