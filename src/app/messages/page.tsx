@@ -32,6 +32,7 @@ import { useUser, useFirestore } from "@/firebase";
 import { collection } from "firebase/firestore";
 import { addDocumentNonBlocking } from "@/firebase/non-blocking-updates";
 import { toast } from "@/hooks/use-toast";
+import { useRouter } from "next/navigation";
 
 interface Message {
   id: string;
@@ -45,6 +46,7 @@ interface Message {
 export default function MessagesPage() {
   const { user } = useUser();
   const db = useFirestore();
+  const router = useRouter();
   const { checkContent, isValidating } = useScamDetection();
 
   const [messages, setMessages] = useState<Message[]>([
@@ -134,7 +136,7 @@ export default function MessagesPage() {
                   <Badge className="bg-green-100 text-green-700 border-none font-black text-[8px] uppercase px-2">High Reliability</Badge>
                 </div>
                 
-                <div className="flex items-center gap-4 p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                <div className="flex items-center gap-4 p-4 bg-slate-50 rounded-2xl border border-slate-100 cursor-pointer hover:bg-slate-100 transition-colors" onClick={() => router.push('/profile/seller_id')}>
                   <div className="relative w-12 h-12 flex items-center justify-center shrink-0">
                     <svg className="w-full h-full transform -rotate-90">
                       <circle cx="24" cy="24" r="20" stroke="currentColor" strokeWidth="4" fill="transparent" className="text-slate-200" />
@@ -152,7 +154,12 @@ export default function MessagesPage() {
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
                   <h3 className="font-black text-[10px] uppercase tracking-widest text-[#225BC3]">Verified Reviews</h3>
-                  <span className="text-[9px] font-bold text-slate-400">View All</span>
+                  <button 
+                    className="text-[9px] font-black uppercase tracking-widest text-slate-400 hover:text-[#225BC3] transition-colors"
+                    onClick={() => router.push('/profile/seller_id')}
+                  >
+                    View All
+                  </button>
                 </div>
                 <div className="space-y-3">
                   {[
