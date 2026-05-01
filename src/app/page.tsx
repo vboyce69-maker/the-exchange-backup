@@ -188,20 +188,22 @@ export default function LandingPage() {
             </div>
           </div>
           
-          <div className="hidden lg:block relative aspect-[4/3] group max-h-[350px]">
-             <div className="absolute inset-0 bg-white/10 rounded-[2rem] rotate-3 group-hover:rotate-1 transition-transform duration-500" />
-             <div className="relative h-full w-full rounded-[2rem] overflow-hidden border-4 border-white/10 shadow-2xl">
-                <Image src="https://picsum.photos/seed/premium-deal/800/600" alt="Premium Listing" fill className="object-cover" data-ai-hint="luxury products" />
-                <div className="absolute bottom-3 left-3 right-3 bg-white/95 backdrop-blur-sm p-4 rounded-xl shadow-2xl animate-in slide-in-from-bottom-8">
-                   <div className="flex justify-between items-center mb-1">
-                     <Badge className="bg-[#225BC3] text-white border-none text-[7px] font-black uppercase">Live Auction</Badge>
-                     <span className="text-[8px] font-black text-[#FF8C00] flex items-center gap-1"><Clock className="w-2.5 h-2.5" /> 2h 14m left</span>
-                   </div>
-                   <p className="text-lg font-black text-slate-900 leading-tight">Professional Video Suite</p>
-                   <div className="flex items-center justify-between mt-2">
-                      <span className="text-xl font-black text-[#225BC3]">R 42,500</span>
-                      <Button size="sm" className="bg-[#34CBED] text-white font-black rounded-lg h-8 px-4 text-[10px]">Bid Now</Button>
-                   </div>
+          <div className="hidden lg:flex items-center justify-center">
+             <div className="relative aspect-[4/3] group max-h-[280px] w-full max-w-[380px]">
+                <div className="absolute inset-0 bg-white/10 rounded-[2rem] rotate-3 group-hover:rotate-1 transition-transform duration-500" />
+                <div className="relative h-full w-full rounded-[2rem] overflow-hidden border-4 border-white/10 shadow-2xl">
+                    <Image src="https://picsum.photos/seed/premium-deal/800/600" alt="Premium Listing" fill className="object-cover" data-ai-hint="luxury products" />
+                    <div className="absolute bottom-3 left-3 right-3 bg-white/95 backdrop-blur-sm p-4 rounded-xl shadow-2xl animate-in slide-in-from-bottom-8">
+                      <div className="flex justify-between items-center mb-1">
+                        <Badge className="bg-[#225BC3] text-white border-none text-[7px] font-black uppercase">Live Auction</Badge>
+                        <span className="text-[8px] font-black text-[#FF8C00] flex items-center gap-1"><Clock className="w-2.5 h-2.5" /> 2h 14m left</span>
+                      </div>
+                      <p className="text-lg font-black text-slate-900 leading-tight">Professional Video Suite</p>
+                      <div className="flex items-center justify-between mt-2">
+                          <span className="text-xl font-black text-[#225BC3]">R 42,500</span>
+                          <Button size="sm" className="bg-[#34CBED] text-white font-black rounded-lg h-8 px-4 text-[10px]">Bid Now</Button>
+                      </div>
+                    </div>
                 </div>
              </div>
           </div>
