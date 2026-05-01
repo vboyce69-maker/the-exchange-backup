@@ -281,7 +281,7 @@ export default function ListingDetailPage() {
               <div className="bg-[#225BC3] p-4 lg:p-4 text-white">
                 <div className="flex justify-between items-start mb-2 lg:mb-2">
                    <div className="flex flex-col gap-1 lg:gap-1.5">
-                     <Badge className="bg-[#34CBED] text-white border-none px-2 lg:px-3 uppercase text-[7px] lg:text-[8px] font-black w-fit ml-2">Protected Hold</Badge>
+                     <Badge className="bg-[#34CBED] text-white border-none px-2 lg:px-3 uppercase text-[7px] lg:text-[8px] font-black w-fit ml-6">Protected Hold</Badge>
                      {listing.isBulk && (
                        <Badge className="bg-[#FF8C00] text-white border-none px-2 lg:px-3 uppercase text-[7px] lg:text-[8px] font-black w-fit flex items-center gap-1">
                          <Layers className="w-2.5 h-2.5" /> Bulk Lot ({listing.quantity})
