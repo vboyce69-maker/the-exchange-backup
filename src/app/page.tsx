@@ -117,7 +117,7 @@ export default function LandingPage() {
     <div className="min-h-screen bg-[#F8FAFC]">
       <Navigation />
       
-      {/* Founding 1000 Promo Banner with Scarcity */}
+      {/* Founding 100 Promo Banner with Scarcity */}
       <div className={cn(
         "py-1 px-4 relative overflow-hidden transition-colors duration-500",
         isProgramActive ? "bg-[#FF8C00] text-white" : "bg-slate-900 text-white"
@@ -128,12 +128,12 @@ export default function LandingPage() {
               <p className="font-black uppercase text-[8px] tracking-tight">
                 {isProgramActive ? (
                   <>
-                    <span className="opacity-80">Join the</span> Founding 1000 Sellers: 
+                    <span className="opacity-80">Join the</span> Founding 100 Sellers: 
                     <span className="ml-1.5 font-black bg-white text-[#FF8C00] px-1.5 py-0.5 rounded-md">{slotsLeft} Slots Remaining</span>
                   </>
                 ) : (
                   <>
-                    <span className="opacity-80">Founding 1000 Program:</span>
+                    <span className="opacity-80">Founding 100 Program:</span>
                     <span className="ml-1.5">Capacity Reached. Standard Fees Apply.</span>
                   </>
                 )}

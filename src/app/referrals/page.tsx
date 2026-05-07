@@ -69,7 +69,7 @@ export default function ReferralPage() {
                 <div className="inline-flex items-center gap-2 bg-[#34CBED] text-white px-4 py-1.5 rounded-full text-[9px] lg:text-[10px] font-black uppercase tracking-widest shadow-lg mx-auto lg:mx-0">
                    <Rocket className="w-3 h-3" /> Viral Growth Engine
                 </div>
-                <h1 className="text-2xl lg:text-4xl font-black tracking-tighter uppercase leading-none">Refer & <span className="text-[#34CBED]">Grow</span></h1>
+                <h1 className="text-xl lg:text-3xl font-black tracking-tighter uppercase leading-none">Refer & <span className="text-[#34CBED]">Grow</span></h1>
                 <p className="text-base lg:text-lg text-white/80 font-bold max-w-md mx-auto lg:mx-0 leading-relaxed">
                   Join the movement. Invite 3 friends to unlock your first **Free Featured Listing**.
                 </p>
@@ -86,7 +86,7 @@ export default function ReferralPage() {
                   </div>
                   <div>
                     <h3 className="text-xl lg:text-2xl font-black text-slate-900 uppercase tracking-tight">Your Unique Invite Link</h3>
-                    <p className="text-xs lg:text-sm text-slate-500 font-medium">Invited sellers get "Founding 1000" perks automatically.</p>
+                    <p className="text-xs lg:text-sm text-slate-500 font-medium">Invited sellers get "Founding 100" perks automatically.</p>
                   </div>
                 </div>
 
