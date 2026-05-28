@@ -93,7 +93,7 @@ export function Navigation() {
             <ShieldCheck className="w-4 h-4 lg:w-5 lg:h-5 text-white" />
           </div>
           <div className="flex flex-col space-y-0">
-            <span className="font-black text-sm lg:text-xl text-[#225BC3] tracking-tighter uppercase leading-none">THE <span className="text-[#34CBED]">EXCHANGE</span></span>
+            <span className="font-black text-base lg:text-2xl text-[#225BC3] tracking-tighter uppercase leading-none">THE <span className="text-[#34CBED]">EXCHANGE</span></span>
             <span className="text-[5px] lg:text-[7px] font-black text-[#225BC3]/60 tracking-widest uppercase mt-0.5">Verified Marketplace</span>
           </div>
         </Link>
