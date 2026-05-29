@@ -82,6 +82,7 @@ export default function LandingPage() {
 
   useEffect(() => {
     async function fetchUserCount() {
+      if (!db) return;
       try {
         const coll = collection(db, "userProfiles");
         const snapshot = await getCountFromServer(coll);
@@ -97,6 +98,7 @@ export default function LandingPage() {
   const isProgramActive = slotsLeft > 0;
 
   const trendingQuery = useMemoFirebase(() => {
+    if (!db) return null;
     return query(
       collection(db, "publicListings"),
       orderBy("postedDate", "desc"),
@@ -323,7 +325,7 @@ export default function LandingPage() {
             </Link>
           </div>
           
-          {isLoading ? (
+          {isLoading || !db ? (
             <div className="flex justify-center py-16">
               <Loader2 className="w-8 h-8 animate-spin text-[#225BC3]" />
             </div>

@@ -40,6 +40,7 @@ function SearchContent() {
 
   // Simplified query to avoid index requirement for category filtering
   const listingsQuery = useMemoFirebase(() => {
+    if (!db) return null;
     return query(collection(db, "publicListings"), orderBy("postedDate", "desc"));
   }, [db]);
 
@@ -159,7 +160,7 @@ function SearchContent() {
           </Alert>
         )}
 
-        {isLoading ? (
+        {isLoading || !db ? (
           <div className="flex flex-col items-center justify-center py-24">
             <Loader2 className="w-12 h-12 animate-spin text-[#225BC3] mb-4" />
             <p className="text-muted-foreground font-black uppercase text-[10px] tracking-widest text-center">

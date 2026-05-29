@@ -31,6 +31,7 @@ function AuctionsContent() {
 
   // Simplified query to avoid complex index requirements
   const auctionsQuery = useMemoFirebase(() => {
+    if (!db) return null;
     return query(collection(db, "publicListings"), orderBy("postedDate", "desc"));
   }, [db]);
 
@@ -126,7 +127,7 @@ function AuctionsContent() {
           </TabsList>
 
           <TabsContent value="all" className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-            {isLoading ? (
+            {isLoading || !db ? (
               <div className="flex flex-col items-center justify-center py-24">
                 <Loader2 className="w-12 h-12 animate-spin text-[#225BC3] mb-4" />
                 <p className="text-muted-foreground font-black uppercase text-[10px] tracking-widest">Syncing auction house...</p>
