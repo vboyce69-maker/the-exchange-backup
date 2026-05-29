@@ -18,7 +18,7 @@ The Exchange positions itself as the "Trust Layer" for South African commerce. B
 3. **CPA Compliant**: Enforcing Consumer Protection Act standards for all transactions.
 
 ## How to Sync to GitHub
-Since I am an AI and cannot execute Git commands directly, please run the following in your terminal to back up your code:
+I have prepared the environment for your repository. Please run the following commands in your terminal:
 
 1. **Initialize and Connect:**
    ```bash
@@ -29,6 +29,8 @@ Since I am an AI and cannot execute Git commands directly, please run the follow
    ```bash
    npm run git:push
    ```
+
+Note: You may need to authenticate with GitHub during the first push.
 
 ## How to Preview on Mobile
 
