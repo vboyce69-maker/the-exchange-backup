@@ -40,7 +40,6 @@ import {
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "@/hooks/use-toast";
 import Image from "next/image";
-import { verifyIdentity, VerifyIdentityOutput } from "@/ai/flows/verify-identity-flow";
 import { useUser, useFirestore } from "@/firebase";
 import { doc, setDoc, collection, getCountFromServer } from "firebase/firestore";
 import { cn } from "@/lib/utils";
@@ -133,7 +132,7 @@ export default function OnboardingPage() {
       setSelfie(canvas.toDataURL('image/jpeg'));
       // Stop track after capture
       (videoRef.current.srcObject as MediaStream).getTracks().forEach(t => t.stop());
-      toast({ title: "Selfie Captured", description: "Biometric image ready for analysis." });
+      toast({ title: "Selfie Captured", description: "Biometric image ready for storage." });
     }
   };
 
@@ -158,36 +157,7 @@ export default function OnboardingPage() {
     setIsProcessing(true);
     
     try {
-      // PERFORM AI IDENTITY VERIFICATION
-      if (sellerType === 'individual') {
-        if (!idPhoto || !selfie) {
-           toast({ variant: "destructive", title: "Media Required", description: "Please upload ID and capture a live selfie." });
-           setIsProcessing(false);
-           return;
-        }
-
-        // Show specialized toast for AI analysis
-        toast({ title: "AI Analysis in Progress", description: "Our Senior Security Agent is comparing your biometric data..." });
-
-        const result = await verifyIdentity({ 
-          idPhotoDataUri: idPhoto!, 
-          selfieDataUri: selfie!, 
-          fullName 
-        });
-
-        if (!result.isVerified) {
-          toast({ 
-            variant: "destructive", 
-            title: "Identity Verification Failed", 
-            description: result.reason || "The faces in the photos do not match our high-confidence threshold." 
-          });
-          setIsProcessing(false);
-          return;
-        }
-
-        toast({ title: "Identity Verified", description: "Facial match successful. Confidence: " + result.confidenceScore + "%" });
-      }
-
+      // AI Recognition Removed: Proceed directly to record storage
       const trustScore = calculateTrustScore({ 
         phoneVerified: true, 
         kycStatus: 'verified',
@@ -218,6 +188,8 @@ export default function OnboardingPage() {
         updateData.firstName = fullName.split(' ')[0] || "";
         updateData.lastName = fullName.split(' ').slice(1).join(' ') || "";
         updateData.idNumber = idNumber;
+        // Store captured media locally or logic for future storage upload
+        updateData.verificationPhotosStored = !!(idPhoto && selfie);
       } else {
         updateData.firstName = businessName;
         updateData.businessName = businessName;
@@ -230,7 +202,7 @@ export default function OnboardingPage() {
       setStep(4);
     } catch (error: any) {
       console.error("Onboarding error:", error);
-      toast({ variant: "destructive", title: "System Error", description: "Verification engine is busy. Try again shortly." });
+      toast({ variant: "destructive", title: "System Error", description: "Registration engine encountered a delay. Try again shortly." });
     } finally {
       setIsProcessing(false);
     }
@@ -328,7 +300,7 @@ export default function OnboardingPage() {
                 <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4">
                   <div className="text-center space-y-2">
                     <h2 className="text-xl font-black text-slate-900 uppercase">Step 2: Verification</h2>
-                    <p className="text-sm text-slate-500">Pillar: Live Biometric Assets</p>
+                    <p className="text-sm text-slate-500">Pillar: Photo Assets</p>
                   </div>
 
                   {sellerType === 'individual' ? (
@@ -380,7 +352,7 @@ export default function OnboardingPage() {
 
                       {/* Selfie Section */}
                       <div className="space-y-3">
-                         <Label className="text-[10px] font-black uppercase text-[#225BC3] tracking-widest text-center block">2. Biometric Liveness</Label>
+                         <Label className="text-[10px] font-black uppercase text-[#225BC3] tracking-widest text-center block">2. Live Selfie</Label>
                          <div className="relative aspect-square max-w-[240px] mx-auto rounded-full overflow-hidden bg-slate-900 border-4 border-white shadow-2xl ring-1 ring-slate-100 group">
                             {selfie ? (
                               <>
@@ -428,7 +400,7 @@ export default function OnboardingPage() {
                       onClick={() => setStep(3)}
                       disabled={sellerType === 'individual' && (!idPhoto || !selfie)}
                     >
-                      Financial Registration <ArrowRight className="w-4 h-4 ml-2" />
+                      Banking Registration <ArrowRight className="w-4 h-4 ml-2" />
                     </Button>
                   </div>
                 </div>
@@ -493,8 +465,8 @@ export default function OnboardingPage() {
                   
                   {isProcessing && (
                     <div className="p-4 bg-[#225BC3]/5 rounded-2xl border border-[#225BC3]/10 flex items-center justify-center gap-3 animate-pulse">
-                      <Cpu className="w-4 h-4 text-[#225BC3] animate-spin" />
-                      <span className="text-[10px] font-black uppercase text-[#225BC3]">Running AI Identity Comparison...</span>
+                      <Loader2 className="w-4 h-4 text-[#225BC3] animate-spin" />
+                      <span className="text-[10px] font-black uppercase text-[#225BC3]">Finalizing Registration...</span>
                     </div>
                   )}
                 </div>
