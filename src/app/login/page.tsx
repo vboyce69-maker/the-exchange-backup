@@ -19,7 +19,19 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Smartphone, Mail, Lock, Loader2, CheckCircle2, AlertCircle, Info, ArrowRight, ShieldCheck } from "lucide-react";
+import { 
+  Smartphone, 
+  Mail, 
+  Lock, 
+  Loader2, 
+  CheckCircle2, 
+  AlertCircle, 
+  Info, 
+  ArrowRight, 
+  ShieldCheck,
+  Eye,
+  EyeOff 
+} from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
@@ -31,6 +43,7 @@ export default function LoginPage() {
   const [otp, setOtp] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [isSignUp, setIsSignUp] = useState(false);
   
   const [step, setStep] = useState<"phone" | "otp">("phone");
@@ -210,13 +223,22 @@ export default function LoginPage() {
                     </div>
                     <div className="space-y-2">
                       <Label className="font-black text-[10px] uppercase tracking-widest text-[#225BC3]">Password</Label>
-                      <Input 
-                        type="password"
-                        placeholder="••••••••" 
-                        className="h-14 rounded-2xl bg-slate-50 border-none font-bold" 
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                      />
+                      <div className="relative">
+                        <Input 
+                          type={showPassword ? "text" : "password"}
+                          placeholder="••••••••" 
+                          className="h-14 rounded-2xl bg-slate-50 border-none font-bold pr-12" 
+                          value={password}
+                          onChange={(e) => setPassword(e.target.value)}
+                        />
+                        <button
+                          type="button"
+                          className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-[#225BC3] transition-colors"
+                          onClick={() => setShowPassword(!showPassword)}
+                        >
+                          {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                        </button>
+                      </div>
                     </div>
                     <Button className="w-full h-16 rounded-2xl bg-[#225BC3] text-white font-black text-lg shadow-xl" disabled={loading}>
                       {loading ? <Loader2 className="w-6 h-6 animate-spin" /> : (isSignUp ? "Create Account" : "Login")}
