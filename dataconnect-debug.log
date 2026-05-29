@@ -1,0 +1,35 @@
+I0529 17:45:55.086098   11769 load.go:31] Reloading schema and connectors...
+I0529 17:45:55.175369   11769 control.go:100] [projects/emulator/locations/emulator/services/studio 9480] UpdateResources(): done
+Main schema: sources: schema/schema.gql [1003B] 
+Connector "example": sources: 
+E0529 17:45:55.244401   11769 load.go:95] Errors generating SDK: [connector "example"]: invalid Data Connect Connector no query found in connector
+I0529 17:45:55.249877   11769 collector.go:107] schema extensions wrote into "/home/user/studio/dataconnect/.dataconnect/schema"
+Generated sources: main/query.gql [6271B] main/mutation.gql [16860B] prelude.gql [84995B] main/implicit.gql [3719B] main/input.gql [64528B] main/relation.gql [34225B] 
+I0529 17:45:55.250248   11769 load.go:109] Finished reloading
+I0529 17:45:55.270740   11769 dev.go:104] Listening on address (HTTP + gRPC): 127.0.0.1:9399
+I0529 17:46:07.577491   11769 migrate.go:24] Running migration SQL:
+Step 1: CREATE EXTENSION IF NOT EXISTS "uuid-ossp"
+Step 2: CREATE TABLE "public"."user" ("id" uuid NOT NULL DEFAULT uuid_generate_v4(), "average_rating" double precision NULL, "created_at" timestamptz NOT NULL, "email" text NOT NULL, "first_name" text NULL, "id_document_url" text NULL, "last_name" text NULL, "password_hash" text NOT NULL, "phone_number" text NULL, "profile_picture_url" text NULL, "username" text NOT NULL, "verification_status" text NOT NULL, PRIMARY KEY ("id"))
+Step 3: CREATE TABLE "public"."listing" ("id" uuid NOT NULL DEFAULT uuid_generate_v4(), "seller_id" uuid NULL, "category" text NOT NULL, "condition" text NULL, "created_at" timestamptz NOT NULL, "description" text NOT NULL, "image_urls" text[] NULL, "location" text NULL, "price" double precision NOT NULL, "status" text NOT NULL, "title" text NOT NULL, PRIMARY KEY ("id"), CONSTRAINT "listing_seller_id_fkey" FOREIGN KEY ("seller_id") REFERENCES "public"."user" ("id") ON DELETE SET NULL)
+Step 4: CREATE INDEX "listing_sellerId_idx" ON "public"."listing" ("seller_id")
+Step 5: CREATE TABLE "public"."offer" ("id" uuid NOT NULL DEFAULT uuid_generate_v4(), "buyer_id" uuid NULL, "listing_id" uuid NULL, "created_at" timestamptz NOT NULL, "message" text NULL, "offer_price" double precision NOT NULL, "status" text NOT NULL, PRIMARY KEY ("id"), CONSTRAINT "offer_buyer_id_fkey" FOREIGN KEY ("buyer_id") REFERENCES "public"."user" ("id") ON DELETE SET NULL, CONSTRAINT "offer_listing_id_fkey" FOREIGN KEY ("listing_id") REFERENCES "public"."listing" ("id") ON DELETE SET NULL)
+Step 6: CREATE INDEX "offer_buyerId_idx" ON "public"."offer" ("buyer_id")
+Step 7: CREATE INDEX "offer_listingId_idx" ON "public"."offer" ("listing_id")
+Step 8: CREATE TABLE "public"."transaction" ("id" uuid NOT NULL DEFAULT uuid_generate_v4(), "buyer_id" uuid NULL, "listing_id" uuid NULL, "offer_id" uuid NULL, "seller_id" uuid NULL, "created_at" timestamptz NOT NULL, "dispute_reason" text NULL, "final_price" double precision NOT NULL, "shipping_address" text NULL, "status" text NOT NULL, "tracking_number" text NULL, PRIMARY KEY ("id"), CONSTRAINT "transaction_buyer_id_fkey" FOREIGN KEY ("buyer_id") REFERENCES "public"."user" ("id") ON DELETE SET NULL, CONSTRAINT "transaction_listing_id_fkey" FOREIGN KEY ("listing_id") REFERENCES "public"."listing" ("id") ON DELETE SET NULL, CONSTRAINT "transaction_offer_id_fkey" FOREIGN KEY ("offer_id") REFERENCES "public"."offer" ("id") ON DELETE SET NULL, CONSTRAINT "transaction_seller_id_fkey" FOREIGN KEY ("seller_id") REFERENCES "public"."user" ("id") ON DELETE SET NULL)
+Step 9: CREATE INDEX "transaction_buyerId_idx" ON "public"."transaction" ("buyer_id")
+Step 10: CREATE INDEX "transaction_listingId_idx" ON "public"."transaction" ("listing_id")
+Step 11: CREATE INDEX "transaction_offerId_idx" ON "public"."transaction" ("offer_id")
+Step 12: CREATE INDEX "transaction_sellerId_idx" ON "public"."transaction" ("seller_id")
+Step 13: CREATE TABLE "public"."review" ("id" uuid NOT NULL DEFAULT uuid_generate_v4(), "reviewed_user_id" uuid NULL, "reviewer_id" uuid NULL, "transaction_id" uuid NULL, "comment" text NULL, "created_at" timestamptz NOT NULL, "rating" integer NOT NULL, PRIMARY KEY ("id"), CONSTRAINT "review_reviewed_user_id_fkey" FOREIGN KEY ("reviewed_user_id") REFERENCES "public"."user" ("id") ON DELETE SET NULL, CONSTRAINT "review_reviewer_id_fkey" FOREIGN KEY ("reviewer_id") REFERENCES "public"."user" ("id") ON DELETE SET NULL, CONSTRAINT "review_transaction_id_fkey" FOREIGN KEY ("transaction_id") REFERENCES "public"."transaction" ("id") ON DELETE SET NULL)
+Step 14: CREATE INDEX "review_reviewedUserId_idx" ON "public"."review" ("reviewed_user_id")
+Step 15: CREATE INDEX "review_reviewerId_idx" ON "public"."review" ("reviewer_id")
+Step 16: CREATE INDEX "review_transactionId_idx" ON "public"."review" ("transaction_id")
+I0529 17:46:09.822572   11769 control.go:100] [projects/emulator/locations/emulator/services/studio 7fbe] UpdateResources(): done
+Main schema: sources: schema/schema.gql [1003B] 
+Connector "example": sources: 
+I0529 17:46:09.860867   11769 configure_emulator.go:21] ConfigureEmulator successed
+Request: service_id: "studio"
+connection_string: "postgres://127.0.0.1:5432/fdcdb?sslmode=disable"
+database: "fdcdb"
+
+Response: 

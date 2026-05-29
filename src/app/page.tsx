@@ -78,9 +78,11 @@ export default function LandingPage() {
   const [selectedCity, setSelectedCity] = useState("jhb");
   const [searchQuery, setSearchQuery] = useState("");
   const [filledCount, setFilledCount] = useState(MARKET_CONFIG.SIMULATED_FILLED_SLOTS);
+  const [hasMounted, setHasMounted] = useState(false);
   const db = useFirestore();
 
   useEffect(() => {
+    setHasMounted(true);
     async function fetchUserCount() {
       if (!db) return;
       try {
@@ -325,7 +327,7 @@ export default function LandingPage() {
             </Link>
           </div>
           
-          {isLoading || !db ? (
+          {!hasMounted || isLoading || !db ? (
             <div className="flex justify-center py-16">
               <Loader2 className="w-8 h-8 animate-spin text-[#225BC3]" />
             </div>

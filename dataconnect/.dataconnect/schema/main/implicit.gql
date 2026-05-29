@@ -1,0 +1,70 @@
+extend type Listing {
+  """
+  ✨ Implicit primary key field. It's a UUID column default to a generated new value. See `@table` for how to customize it.
+  """
+  id: UUID! @default(expr: "uuidV4()") @fdc_generated(from: "Listing", purpose: IMPLICIT_KEY_FIELD)
+  """
+  ✨ Implicit foreign key field based on `Listing`.`seller`. It must match the value of `User`.`id`. See `@ref` for how to customize it.
+  """
+  sellerId: UUID @fdc_generated(from: "Listing.seller", purpose: IMPLICIT_REF_FIELD)
+}
+extend type Offer {
+  """
+  ✨ Implicit primary key field. It's a UUID column default to a generated new value. See `@table` for how to customize it.
+  """
+  id: UUID! @default(expr: "uuidV4()") @fdc_generated(from: "Offer", purpose: IMPLICIT_KEY_FIELD)
+  """
+  ✨ Implicit foreign key field based on `Offer`.`buyer`. It must match the value of `User`.`id`. See `@ref` for how to customize it.
+  """
+  buyerId: UUID @fdc_generated(from: "Offer.buyer", purpose: IMPLICIT_REF_FIELD)
+  """
+  ✨ Implicit foreign key field based on `Offer`.`listing`. It must match the value of `Listing`.`id`. See `@ref` for how to customize it.
+  """
+  listingId: UUID @fdc_generated(from: "Offer.listing", purpose: IMPLICIT_REF_FIELD)
+}
+extend type Review {
+  """
+  ✨ Implicit primary key field. It's a UUID column default to a generated new value. See `@table` for how to customize it.
+  """
+  id: UUID! @default(expr: "uuidV4()") @fdc_generated(from: "Review", purpose: IMPLICIT_KEY_FIELD)
+  """
+  ✨ Implicit foreign key field based on `Review`.`reviewedUser`. It must match the value of `User`.`id`. See `@ref` for how to customize it.
+  """
+  reviewedUserId: UUID @fdc_generated(from: "Review.reviewedUser", purpose: IMPLICIT_REF_FIELD)
+  """
+  ✨ Implicit foreign key field based on `Review`.`reviewer`. It must match the value of `User`.`id`. See `@ref` for how to customize it.
+  """
+  reviewerId: UUID @fdc_generated(from: "Review.reviewer", purpose: IMPLICIT_REF_FIELD)
+  """
+  ✨ Implicit foreign key field based on `Review`.`transaction`. It must match the value of `Transaction`.`id`. See `@ref` for how to customize it.
+  """
+  transactionId: UUID @fdc_generated(from: "Review.transaction", purpose: IMPLICIT_REF_FIELD)
+}
+extend type Transaction {
+  """
+  ✨ Implicit primary key field. It's a UUID column default to a generated new value. See `@table` for how to customize it.
+  """
+  id: UUID! @default(expr: "uuidV4()") @fdc_generated(from: "Transaction", purpose: IMPLICIT_KEY_FIELD)
+  """
+  ✨ Implicit foreign key field based on `Transaction`.`buyer`. It must match the value of `User`.`id`. See `@ref` for how to customize it.
+  """
+  buyerId: UUID @fdc_generated(from: "Transaction.buyer", purpose: IMPLICIT_REF_FIELD)
+  """
+  ✨ Implicit foreign key field based on `Transaction`.`listing`. It must match the value of `Listing`.`id`. See `@ref` for how to customize it.
+  """
+  listingId: UUID @fdc_generated(from: "Transaction.listing", purpose: IMPLICIT_REF_FIELD)
+  """
+  ✨ Implicit foreign key field based on `Transaction`.`offer`. It must match the value of `Offer`.`id`. See `@ref` for how to customize it.
+  """
+  offerId: UUID @fdc_generated(from: "Transaction.offer", purpose: IMPLICIT_REF_FIELD)
+  """
+  ✨ Implicit foreign key field based on `Transaction`.`seller`. It must match the value of `User`.`id`. See `@ref` for how to customize it.
+  """
+  sellerId: UUID @fdc_generated(from: "Transaction.seller", purpose: IMPLICIT_REF_FIELD)
+}
+extend type User {
+  """
+  ✨ Implicit primary key field. It's a UUID column default to a generated new value. See `@table` for how to customize it.
+  """
+  id: UUID! @default(expr: "uuidV4()") @fdc_generated(from: "User", purpose: IMPLICIT_KEY_FIELD)
+}
