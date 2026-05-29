@@ -1,12 +1,9 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { 
-  RecaptchaVerifier, 
-  signInWithPhoneNumber, 
-  ConfirmationResult,
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
   sendEmailVerification
@@ -20,111 +17,29 @@ import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
-  Smartphone, 
   Mail, 
   Lock, 
   Loader2, 
-  CheckCircle2, 
   AlertCircle, 
-  ArrowRight, 
   ShieldCheck,
   Eye,
   EyeOff 
 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { PhoneAuth } from "@/components/auth/PhoneAuth";
 
 export default function LoginPage() {
   const router = useRouter();
-
-  // Common State
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [agreedToTerms, setAgreedToTerms] = useState(false);
-
-  // Phone Auth State
-  const [phoneNumber, setPhoneNumber] = useState("");
-  const [otp, setOtp] = useState("");
-  const [step, setStep] = useState<"phone" | "otp">("phone");
-  const [confirmationResult, setConfirmationResult] = useState<ConfirmationResult | null>(null);
-  const recaptchaVerifierRef = useRef<RecaptchaVerifier | null>(null);
 
   // Email Auth State
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [isSignUp, setIsSignUp] = useState(false);
-
-  useEffect(() => {
-    return () => {
-      if (recaptchaVerifierRef.current) {
-        try { recaptchaVerifierRef.current.clear(); } catch (e) {}
-        recaptchaVerifierRef.current = null;
-      }
-    };
-  }, []);
-
-  const handleSendOtp = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!agreedToTerms) {
-      toast({ variant: "destructive", title: "Consent Required", description: "Please agree to the Terms of Service." });
-      return;
-    }
-    
-    // Auto-prefix for South African users if they forget the +27
-    let formattedPhone = phoneNumber.trim();
-    if (formattedPhone.startsWith('0') && formattedPhone.length === 10) {
-      formattedPhone = '+27' + formattedPhone.substring(1);
-      setPhoneNumber(formattedPhone);
-    }
-
-    if (!formattedPhone.startsWith('+')) {
-      setError("Please include your country code (e.g. +27 for RSA).");
-      return;
-    }
-
-    setLoading(true);
-    setError(null);
-
-    try {
-      if (!recaptchaVerifierRef.current) {
-        recaptchaVerifierRef.current = new RecaptchaVerifier(auth, "recaptcha-container", {
-          size: "invisible",
-          callback: () => { console.log("Recaptcha verified"); }
-        });
-      }
-
-      const result = await signInWithPhoneNumber(auth, formattedPhone, recaptchaVerifierRef.current);
-      setConfirmationResult(result);
-      setStep("otp");
-      toast({ title: "OTP Sent", description: `Verification code sent to ${formattedPhone}` });
-    } catch (err: any) {
-      console.error("Phone Auth Error:", err);
-      setError(err.message || "Failed to send OTP. Check if Phone Auth is enabled in Firebase Console.");
-      if (recaptchaVerifierRef.current) {
-        try { recaptchaVerifierRef.current.clear(); } catch (e) {}
-        recaptchaVerifierRef.current = null;
-      }
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleVerifyOtp = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!confirmationResult) return;
-    setLoading(true);
-    setError(null);
-    try {
-      await confirmationResult.confirm(otp);
-      toast({ title: "Welcome Back", description: "Authentication successful." });
-      router.push("/");
-    } catch (err: any) {
-      setError("Invalid verification code. Please try again.");
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const handleEmailAuth = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -179,54 +94,14 @@ export default function LoginPage() {
 
               <CardContent className="px-10 pb-10">
                 <TabsContent value="phone" className="mt-0 outline-none">
-                  {step === "phone" ? (
-                    <form onSubmit={handleSendOtp} className="space-y-6">
-                      <div className="space-y-2">
-                        <div className="flex justify-between items-center px-2">
-                          <Label className="font-black text-[10px] uppercase tracking-widest text-[#225BC3]">Mobile Number</Label>
-                          <span className="text-[8px] font-bold text-slate-400">RSA: +27...</span>
-                        </div>
-                        <div className="relative group">
-                          <Smartphone className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-300 group-focus-within:text-[#225BC3] transition-colors" />
-                          <Input 
-                            placeholder="082 000 0000" 
-                            className="h-14 pl-12 rounded-2xl bg-slate-50 border-none font-black text-lg focus:ring-4 focus:ring-[#225BC3]/5 transition-all" 
-                            value={phoneNumber}
-                            onChange={(e) => setPhoneNumber(e.target.value)}
-                          />
-                        </div>
-                      </div>
-                      <div id="recaptcha-container"></div>
-                      <Button className="w-full h-16 rounded-2xl bg-[#225BC3] text-white font-black text-lg shadow-xl shadow-blue-500/20 hover:scale-[1.02] active:scale-95 transition-all" disabled={loading}>
-                        {loading ? <Loader2 className="w-6 h-6 animate-spin" /> : "Verify via SMS"}
-                      </Button>
-                    </form>
-                  ) : (
-                    <form onSubmit={handleVerifyOtp} className="space-y-6">
-                      <div className="space-y-2 text-center">
-                        <Label className="font-black text-[10px] uppercase tracking-widest text-[#225BC3]">Verification Code</Label>
-                        <Input 
-                          placeholder="000000" 
-                          className="h-16 rounded-2xl bg-slate-50 border-none font-black text-center text-3xl tracking-[0.5em] focus:ring-4 focus:ring-[#34CBED]/5 transition-all" 
-                          value={otp}
-                          maxLength={6}
-                          onChange={(e) => setOtp(e.target.value)}
-                        />
-                        <p className="text-[9px] text-slate-400 font-bold uppercase mt-2">Enter the 6-digit code sent to your device</p>
-                      </div>
-                      <Button className="w-full h-16 rounded-2xl bg-[#34CBED] text-white font-black text-lg shadow-xl shadow-cyan-500/20 hover:scale-[1.02] active:scale-95 transition-all" disabled={loading}>
-                        {loading ? <Loader2 className="w-6 h-6 animate-spin" /> : "Confirm Code"}
-                      </Button>
-                      <Button 
-                        type="button" 
-                        variant="ghost" 
-                        className="w-full text-[10px] font-black uppercase text-slate-400 hover:text-[#225BC3]"
-                        onClick={() => setStep("phone")}
-                      >
-                        Change Phone Number
-                      </Button>
-                    </form>
-                  )}
+                  <PhoneAuth 
+                    agreedToTerms={agreedToTerms}
+                    onConsentChange={setAgreedToTerms}
+                    onSuccess={() => {
+                      toast({ title: "Welcome Back", description: "Authentication successful." });
+                      router.push("/");
+                    }}
+                  />
                 </TabsContent>
 
                 <TabsContent value="email" className="mt-0 outline-none">
@@ -238,7 +113,7 @@ export default function LoginPage() {
                         <Input 
                           type="email"
                           placeholder="name@example.co.za" 
-                          className="h-14 pl-12 rounded-2xl bg-slate-50 border-none font-bold focus:ring-4 focus:ring-[#225BC3]/5 transition-all" 
+                          className="h-14 pl-12 rounded-2xl bg-slate-50 border-none font-bold" 
                           value={email}
                           onChange={(e) => setEmail(e.target.value)}
                         />
@@ -251,7 +126,7 @@ export default function LoginPage() {
                         <Input 
                           type={showPassword ? "text" : "password"}
                           placeholder="••••••••" 
-                          className="h-14 pl-12 pr-12 rounded-2xl bg-slate-50 border-none font-bold focus:ring-4 focus:ring-[#225BC3]/5 transition-all" 
+                          className="h-14 pl-12 pr-12 rounded-2xl bg-slate-50 border-none font-bold" 
                           value={password}
                           onChange={(e) => setPassword(e.target.value)}
                         />

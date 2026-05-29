@@ -13,12 +13,9 @@ import {
   Star, 
   ShieldCheck, 
   MessageSquare, 
-  Shield,
   Loader2,
   Package,
-  Info,
   Quote,
-  Calendar,
   Smartphone,
   MapPin,
   ScanFace,
@@ -26,8 +23,8 @@ import {
   CheckCircle2,
   TrendingUp,
   History,
-  AlertCircle,
-  Medal
+  Zap,
+  Award
 } from "lucide-react";
 import { VerifiedBadge } from "@/components/VerifiedBadge";
 import { SellerTierBadge, SellerTier } from "@/components/SellerTierBadge";
@@ -87,10 +84,10 @@ export default function UserProfilePage() {
     disputeCount: 0,
     registrationDate: "2023-01-15T10:00:00Z",
     isIdVerified: true,
+    isFoundingMember: true,
     profileImageUrl: `https://picsum.photos/seed/${id}/200/200`
   };
 
-  // Determine Seller Tier
   const getSellerTier = (transactions: number, score: number): SellerTier => {
     if (transactions >= 50 && score >= 95) return 'pro';
     if (transactions >= 10 && score >= 90) return 'trusted';
@@ -122,6 +119,11 @@ export default function UserProfilePage() {
                       <AvatarFallback>{user.firstName?.[0] || "U"}</AvatarFallback>
                     </Avatar>
                   </div>
+                  {user.isFoundingMember && (
+                    <div className="absolute -top-3 -left-3 bg-[#FF8C00] text-white p-2 rounded-2xl shadow-xl animate-bounce">
+                        <Zap className="w-6 h-6 fill-current" />
+                    </div>
+                  )}
                   {user.isIdVerified && (
                     <div className="absolute -bottom-2 -right-2 bg-white p-1 rounded-2xl shadow-xl">
                         <ShieldCheck className="w-12 h-12 text-[#34CBED] fill-white" />
@@ -129,9 +131,17 @@ export default function UserProfilePage() {
                   )}
                 </div>
                 
-                <h1 className="text-2xl font-black text-[#225BC3] mb-2 leading-none uppercase tracking-tighter">
-                  {user.firstName} {user.lastName}
-                </h1>
+                <div className="space-y-1 mb-6">
+                  {user.isFoundingMember && (
+                    <Badge className="bg-[#FF8C00] text-white border-none font-black text-[8px] uppercase px-3 py-1 mb-2">
+                      Founding 1000 Member
+                    </Badge>
+                  )}
+                  <h1 className="text-2xl font-black text-[#225BC3] leading-none uppercase tracking-tighter">
+                    {user.firstName} {user.lastName}
+                  </h1>
+                </div>
+
                 <div className="flex flex-col items-center gap-3 mb-6">
                    <div className="flex items-center gap-2">
                      {user.isIdVerified && <VerifiedBadge />}
@@ -202,13 +212,6 @@ export default function UserProfilePage() {
                     </p>
                   </div>
                 </div>
-
-                {user.disputeCount === 0 && (
-                  <div className="flex items-center gap-2 p-3 bg-green-50 rounded-xl border border-green-100">
-                    <History className="w-4 h-4 text-green-600" />
-                    <span className="text-[9px] font-black text-green-700 uppercase">Clean Dispute History</span>
-                  </div>
-                )}
               </div>
             </Card>
           </div>
@@ -257,38 +260,7 @@ export default function UserProfilePage() {
               </TabsContent>
 
               <TabsContent value="reviews" className="mt-10 space-y-6">
-                <Card className="rounded-[2.5rem] border-none shadow-xl bg-white p-8 mb-8 border-l-8 border-[#225BC3]">
-                  <div className="flex flex-col md:flex-row items-center gap-8">
-                    <div className="text-center md:text-left space-y-1">
-                      <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Platform Rating</p>
-                      <h4 className="text-5xl font-black text-[#225BC3]">4.9 <span className="text-lg text-slate-300">/ 5</span></h4>
-                    </div>
-                    <div className="flex-1 grid grid-cols-2 sm:grid-cols-4 gap-4">
-                       <div className="space-y-1">
-                          <p className="text-[8px] font-black text-slate-400 uppercase">Speed</p>
-                          <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden"><div className="h-full bg-[#225BC3] w-[95%]" /></div>
-                       </div>
-                       <div className="space-y-1">
-                          <p className="text-[8px] font-black text-slate-400 uppercase">Condition</p>
-                          <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden"><div className="h-full bg-[#225BC3] w-[98%]" /></div>
-                       </div>
-                       <div className="space-y-1">
-                          <p className="text-[8px] font-black text-slate-400 uppercase">Service</p>
-                          <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden"><div className="h-full bg-[#225BC3] w-[92%]" /></div>
-                       </div>
-                       <div className="space-y-1">
-                          <p className="text-[8px] font-black text-slate-400 uppercase">Honesty</p>
-                          <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden"><div className="h-full bg-[#225BC3] w-[100%]" /></div>
-                       </div>
-                    </div>
-                  </div>
-                </Card>
-
-                {isReviewsLoading ? (
-                  <div className="flex justify-center py-20">
-                    <Loader2 className="w-8 h-8 animate-spin text-[#225BC3]" />
-                  </div>
-                ) : reviews && reviews.length > 0 ? (
+                {reviews && reviews.length > 0 ? (
                   reviews.map((review) => (
                     <Card key={review.id} className="rounded-[2.5rem] border-none shadow-xl bg-white p-8 group hover:ring-2 hover:ring-[#225BC3]/5 transition-all">
                       <div className="flex flex-col md:flex-row gap-6">
@@ -301,28 +273,13 @@ export default function UserProfilePage() {
                               <Badge className="bg-[#225BC3]/10 text-[#225BC3] font-black text-[8px] uppercase px-2 py-0.5 border-none">Verified Purchase</Badge>
                             </div>
                             <span className="text-[9px] font-black text-slate-400 uppercase flex items-center gap-1">
-                              <Calendar className="w-3 h-3" /> {new Date(review.createdAt).toLocaleDateString()}
+                              <History className="w-3 h-3" /> {new Date(review.createdAt).toLocaleDateString()}
                             </span>
                           </div>
                           
                           <p className="text-slate-700 font-medium leading-relaxed italic text-lg">
                             "{review.comment}"
                           </p>
-
-                          <div className="pt-4 flex items-center justify-between">
-                             <div className="flex items-center gap-3">
-                               <Avatar className="w-10 h-10 border-2 border-white shadow-md">
-                                 <AvatarFallback className="bg-[#225BC3] text-white text-[10px] font-black">{review.buyerName?.[0] || "B"}</AvatarFallback>
-                               </Avatar>
-                               <div>
-                                 <p className="text-xs font-black text-slate-900 leading-none">{review.buyerName || "Trusted Trader"}</p>
-                                 <p className="text-[8px] text-muted-foreground font-black uppercase tracking-widest mt-1">Item: {review.listingTitle || "Marketplace Deal"}</p>
-                               </div>
-                             </div>
-                             <div className="flex items-center gap-1 text-[9px] font-black text-green-600 uppercase tracking-widest">
-                               <ShieldCheck className="w-3 h-3" /> FICA Cleared
-                             </div>
-                          </div>
                         </div>
                       </div>
                     </Card>

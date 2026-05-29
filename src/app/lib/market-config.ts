@@ -5,9 +5,10 @@
  */
 
 export const MARKET_CONFIG = {
-  FOUNDING_LIMIT: 100,
+  FOUNDING_LIMIT: 1000,
   SIMULATED_FILLED_SLOTS: 0,
   STANDARD_LISTING_FEE: 20.00,
+  FOUNDING_MEMBER_FEE: 0.00,
   CURRENCY: 'ZAR',
   PROTECTED_HOLD_FEE_PERCENT: 5,
   
@@ -37,6 +38,12 @@ export const MARKET_CONFIG = {
 
 export function getListingLimit(profile: any): number {
   if (!profile) return MARKET_CONFIG.LIMITS.UNVERIFIED;
+  
+  // Founding Members (verified early) unlock unlimited listings
+  if (profile.isFoundingMember && profile.kycStatus === 'verified') {
+    return MARKET_CONFIG.LIMITS.VERIFIED_BUSINESS;
+  }
+
   if (profile.sellerType === 'business' && profile.kycStatus === 'verified') {
     return MARKET_CONFIG.LIMITS.VERIFIED_BUSINESS;
   }
@@ -51,8 +58,7 @@ export function calculateTrustScore(profile: any): number {
   
   if (!profile) return trust;
 
-  // Handle both production profile and initial onboarding state
-  if (profile.isIdVerified || profile.idVerified || profile.id) trust += MARKET_CONFIG.WEIGHTS.ID_VERIFIED;
+  if (profile.isIdVerified || profile.idVerified) trust += MARKET_CONFIG.WEIGHTS.ID_VERIFIED;
   if (profile.phoneVerified || profile.phone) trust += MARKET_CONFIG.WEIGHTS.PHONE_VERIFIED;
   
   const isBusinessVerified = 
@@ -63,7 +69,6 @@ export function calculateTrustScore(profile: any): number {
     trust += MARKET_CONFIG.WEIGHTS.BUSINESS_VERIFIED;
   }
 
-  // Adjust for risk
   if (profile.riskScore > 50) trust -= 40;
   
   return Math.max(0, Math.min(100, trust));
