@@ -8,10 +8,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Mail, Loader2, CheckCircle2, ShieldCheck, ArrowRight, Home, AlertCircle, RefreshCw } from "lucide-react";
 import { useUser, useAuth } from "@/firebase";
-import { sendEmailVerification, updateEmail } from "firebase/auth";
+import { sendEmailVerification, updateEmail, signOut } from "firebase/auth";
 import { toast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
-import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 export default function VerifyEmailPage() {
   const { user, isUserLoading } = useUser();
@@ -20,6 +20,7 @@ export default function VerifyEmailPage() {
   const [isSending, setIsSending] = useState(false);
   const [emailInput, setEmailInput] = useState("");
   const [isEditing, setIsEditing] = useState(false);
+  const [countdown, setCountdown] = useState(0);
 
   useEffect(() => {
     if (user?.email) {
@@ -27,39 +28,68 @@ export default function VerifyEmailPage() {
     }
   }, [user]);
 
+  useEffect(() => {
+    if (countdown > 0) {
+      const timer = setTimeout(() => setCountdown(countdown - 1), 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [countdown]);
+
   const handleSendVerification = async () => {
     if (!user) return;
     setIsSending(true);
     try {
       // If user is editing or has no email, update it first
+      // NOTE: This is a sensitive action and may require recent login
       if (emailInput && emailInput !== user.email) {
         await updateEmail(user, emailInput);
       }
       
       await sendEmailVerification(user);
+      
       toast({
-        title: "Verification Sent",
-        description: `Check ${emailInput || user.email} for the link.`,
+        title: "Link Transmitted",
+        description: `Verification link sent to ${emailInput}. Please check your inbox and junk folder.`,
       });
+      
+      setCountdown(60); // Prevent spamming for 1 minute
       setIsEditing(false);
     } catch (err: any) {
       console.error("Email Verification Error:", err);
+      let errorMessage = "We could not send the verification email. Please try again.";
+      
+      if (err.code === 'auth/requires-recent-login') {
+        errorMessage = "For security, this action requires a recent login. Please sign out and sign back in to continue.";
+      } else if (err.code === 'auth/invalid-email') {
+        errorMessage = "The provided email address is not valid.";
+      } else if (err.code === 'auth/email-already-in-use') {
+        errorMessage = "This email is already linked to another account.";
+      } else if (err.code === 'auth/too-many-requests') {
+        errorMessage = "System busy. Please wait a few moments before trying again.";
+      }
+
       toast({
         variant: "destructive",
-        title: "Verification Failed",
-        description: err.message || "Could not send verification email. Try logging in again.",
+        title: "Verification Error",
+        description: errorMessage,
       });
     } finally {
       setIsSending(false);
     }
   };
 
+  const handleSignOut = async () => {
+    await signOut(auth);
+    router.push('/login');
+  };
+
   if (isUserLoading) {
     return (
       <div className="min-h-screen bg-[#F8FAFC]">
         <Navigation />
-        <div className="flex justify-center py-20">
-          <Loader2 className="w-10 h-10 animate-spin text-[#225BC3]" />
+        <div className="flex flex-col items-center justify-center py-32">
+          <Loader2 className="w-10 h-10 animate-spin text-[#225BC3] mb-4" />
+          <p className="text-muted-foreground font-black uppercase text-[10px] tracking-widest">Checking Authentication...</p>
         </div>
       </div>
     );
@@ -75,38 +105,42 @@ export default function VerifyEmailPage() {
       <Navigation />
       <main className="container mx-auto px-4 py-12 flex justify-center">
         <div className="max-w-md w-full space-y-6">
+          
           <Card className="rounded-[3rem] border-none shadow-2xl bg-white overflow-hidden ring-1 ring-[#225BC3]/5">
             <CardHeader className="p-10 text-center pb-6">
               <div className="w-20 h-20 bg-blue-50 rounded-[2.5rem] flex items-center justify-center mx-auto mb-6 shadow-inner">
                 <Mail className="w-10 h-10 text-[#225BC3]" />
               </div>
-              <h1 className="text-3xl font-black text-[#225BC3] uppercase tracking-tighter">Email Pillar</h1>
-              <p className="text-slate-500 font-bold text-[10px] uppercase tracking-widest mt-2">Identity Activation & Security</p>
+              <h1 className="text-3xl font-black text-[#225BC3] uppercase tracking-tighter">Email Verification</h1>
+              <p className="text-slate-500 font-bold text-[10px] uppercase tracking-widest mt-2">Pillar 1: Identity Activation</p>
             </CardHeader>
             <CardContent className="px-10 pb-10 text-center space-y-6">
+              
               {user.emailVerified ? (
-                <div className="space-y-4">
+                <div className="space-y-4 animate-in zoom-in-95">
                   <div className="flex items-center justify-center gap-2 text-green-600 font-black uppercase text-sm">
-                    <CheckCircle2 className="w-5 h-5" /> Pillar Verified
+                    <CheckCircle2 className="w-6 h-6" /> Pillar Verified
                   </div>
+                  <p className="text-slate-500 text-sm font-medium">Your email is confirmed. You can now proceed to complete your full biometric KYC.</p>
                   <Button className="w-full h-14 rounded-2xl bg-[#225BC3] text-white font-black shadow-xl" onClick={() => router.push('/verify')}>
-                    Proceed to Identity KYC <ArrowRight className="w-4 h-4 ml-2" />
+                    Proceed to Identity Hub <ArrowRight className="w-4 h-4 ml-2" />
                   </Button>
                 </div>
               ) : (
                 <>
                   <div className="space-y-4 text-left">
-                    {!user.email && (
-                      <Alert className="bg-orange-50 border-orange-100 rounded-2xl">
+                    {!user.email && !isEditing && (
+                      <Alert className="bg-orange-50 border-orange-200 rounded-2xl border">
                         <AlertCircle className="h-4 w-4 text-orange-600" />
-                        <AlertDescription className="text-[10px] font-bold text-orange-800 uppercase">
-                          No email associated with account. Enter one below.
+                        <AlertTitle className="font-black text-[10px] uppercase tracking-widest text-orange-800">Email Required</AlertTitle>
+                        <AlertDescription className="text-xs font-bold text-orange-700 leading-tight">
+                          Phone signups must register an email to receive legal trade confirmations and secure account links.
                         </AlertDescription>
                       </Alert>
                     )}
                     
                     <div className="space-y-2">
-                      <Label className="text-[9px] font-black uppercase tracking-widest text-slate-400 ml-2">Verification Destination</Label>
+                      <Label className="text-[9px] font-black uppercase tracking-widest text-slate-400 ml-2">Verification Target</Label>
                       <div className="flex gap-2">
                         <Input 
                           type="email" 
@@ -114,39 +148,52 @@ export default function VerifyEmailPage() {
                           value={emailInput}
                           onChange={(e) => setEmailInput(e.target.value)}
                           disabled={isSending || (!isEditing && !!user.email)}
-                          className="h-14 rounded-2xl bg-slate-50 border-none font-bold"
+                          className="h-14 rounded-2xl bg-slate-50 border-none font-bold shadow-inner"
                         />
                         {!!user.email && !isEditing && (
                           <Button 
-                            variant="ghost" 
+                            variant="outline" 
                             size="icon" 
-                            className="h-14 w-14 rounded-2xl bg-slate-100" 
+                            className="h-14 w-14 rounded-2xl border-slate-100 bg-white shadow-sm" 
                             onClick={() => setIsEditing(true)}
                           >
-                            <RefreshCw className="w-4 h-4 text-slate-500" />
+                            <RefreshCw className="w-4 h-4 text-slate-400" />
                           </Button>
                         )}
                       </div>
                     </div>
                   </div>
 
-                  <p className="text-xs text-slate-500 leading-relaxed font-medium">
-                    {isEditing || !user.email 
-                      ? "Enter your primary email address to receive the secure activation link."
-                      : "We will send a verification link to the address above. Click it to confirm your identity."}
-                  </p>
+                  <div className="p-4 bg-slate-50 rounded-2xl text-left border border-slate-100">
+                    <p className="text-[10px] text-slate-600 font-medium leading-relaxed">
+                      {isEditing || !user.email 
+                        ? "Enter your primary email address. We will send a secure link to confirm ownership."
+                        : `A link will be sent to ${user.email}. If you don't see it within 2 minutes, please check your spam folder.`}
+                    </p>
+                  </div>
 
                   <div className="space-y-3">
                     <Button 
-                      className="w-full h-16 rounded-2xl bg-[#225BC3] text-white font-black text-lg shadow-xl hover:scale-[1.02] transition-transform" 
+                      className="w-full h-16 rounded-2xl bg-[#225BC3] text-white font-black text-lg shadow-xl shadow-blue-500/20 hover:scale-[1.02] active:scale-95 transition-all disabled:opacity-50" 
                       onClick={handleSendVerification}
-                      disabled={isSending || !emailInput}
+                      disabled={isSending || !emailInput || countdown > 0}
                     >
-                      {isSending ? <Loader2 className="w-6 h-6 animate-spin" /> : (isEditing || !user.email ? "Update & Send Link" : "Send Verification Link")}
+                      {isSending ? <Loader2 className="w-6 h-6 animate-spin" /> : 
+                       countdown > 0 ? `Resend in ${countdown}s` :
+                       (isEditing || !user.email ? "Set Email & Verify" : "Send Verification Link")}
                     </Button>
-                    <Button variant="ghost" className="w-full text-[10px] font-black uppercase text-slate-400" onClick={() => router.push('/')}>
-                      <Home className="w-3 h-3 mr-2" /> Return to Home
-                    </Button>
+                    
+                    <div className="flex flex-col gap-2 pt-2">
+                      <Button variant="ghost" className="w-full text-[10px] font-black uppercase text-slate-400 tracking-widest" onClick={() => router.push('/')}>
+                        <Home className="w-3 h-3 mr-2" /> Return to Home
+                      </Button>
+                      <button 
+                        onClick={handleSignOut}
+                        className="text-[9px] font-black uppercase text-red-400 hover:text-red-600 transition-colors"
+                      >
+                        Sign out and try different account
+                      </button>
+                    </div>
                   </div>
                 </>
               )}
@@ -156,9 +203,9 @@ export default function VerifyEmailPage() {
           <div className="p-6 bg-blue-50/50 rounded-[2rem] border border-blue-100 flex gap-4">
              <ShieldCheck className="w-8 h-8 text-[#225BC3] shrink-0" />
              <div>
-                <p className="text-[10px] font-black text-[#225BC3] uppercase tracking-widest">Regulatory Requirement</p>
+                <p className="text-[10px] font-black text-[#225BC3] uppercase tracking-widest">Compliance Protocol</p>
                 <p className="text-[9px] text-blue-600 font-bold leading-relaxed mt-1">
-                  Email verification is required by South African Consumer Protection regulations to ensure secure trade logs and delivery of legal payment confirmations.
+                  Per the RSA Consumer Protection Act, valid email verification is required to generate digital trade logs for every transaction made on 'The Exchange'.
                 </p>
              </div>
           </div>
