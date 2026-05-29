@@ -33,7 +33,8 @@ import {
   FileCheck,
   CreditCard,
   MapPin,
-  Banknote
+  Banknote,
+  Maximize2
 } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "@/hooks/use-toast";
@@ -69,7 +70,7 @@ export default function OnboardingPage() {
   // Media State
   const [idPhoto, setIdPhoto] = useState<string | null>(null);
   const [selfie, setSelfie] = useState<string | null>(null);
-  const [residencePhoto, setResidencePhoto] = useState<string | null>(null);
+  const [idScanActive, setIdScanActive] = useState(false);
   
   // Data State
   const [fullName, setFullName] = useState("");
@@ -85,22 +86,46 @@ export default function OnboardingPage() {
   const [popiaConsent, setPopiaConsent] = useState(false);
   
   const videoRef = useRef<HTMLVideoElement>(null);
+  const idVideoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Stop all camera streams on unmount
+  useEffect(() => {
+    return () => {
+      if (videoRef.current?.srcObject) {
+        (videoRef.current.srcObject as MediaStream).getTracks().forEach(t => t.stop());
+      }
+      if (idVideoRef.current?.srcObject) {
+        (idVideoRef.current.srcObject as MediaStream).getTracks().forEach(t => t.stop());
+      }
+    };
+  }, []);
+
+  const startSelfieCamera = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } });
+      setHasCameraPermission(true);
+      if (videoRef.current) videoRef.current.srcObject = stream;
+    } catch (error) {
+      setHasCameraPermission(false);
+      toast({ variant: 'destructive', title: 'Camera Required', description: 'Enable camera to complete facial verification.' });
+    }
+  };
+
+  const startIdCamera = async () => {
+    setIdScanActive(true);
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
+      if (idVideoRef.current) idVideoRef.current.srcObject = stream;
+    } catch (error) {
+      toast({ variant: 'destructive', title: 'Camera Error', description: 'Could not access rear camera for ID scanning.' });
+      setIdScanActive(false);
+    }
+  };
 
   useEffect(() => {
     if (step === 2 && sellerType === 'individual') {
-      const getCameraPermission = async () => {
-        try {
-          const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } });
-          setHasCameraPermission(true);
-          if (videoRef.current) videoRef.current.srcObject = stream;
-        } catch (error) {
-          setHasCameraPermission(false);
-          toast({ variant: 'destructive', title: 'Camera Required', description: 'Enable camera to complete facial verification.' });
-        }
-      };
-      getCameraPermission();
+      // We don't auto-start ID camera, it's triggered by a button now for "in-app" feel
     }
   }, [step, sellerType]);
 
@@ -111,19 +136,25 @@ export default function OnboardingPage() {
       canvas.height = videoRef.current.videoHeight;
       canvas.getContext('2d')?.drawImage(videoRef.current, 0, 0);
       setSelfie(canvas.toDataURL('image/jpeg'));
+      // Stop track after capture
+      (videoRef.current.srcObject as MediaStream).getTracks().forEach(t => t.stop());
       toast({ title: "Selfie Captured", description: "Biometric image ready for analysis." });
     }
   };
 
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>, target: 'id' | 'residence') => {
-    const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        if (target === 'id') setIdPhoto(reader.result as string);
-        else setResidencePhoto(reader.result as string);
-      };
-      reader.readAsDataURL(file);
+  const captureId = () => {
+    if (idVideoRef.current && canvasRef.current) {
+      const canvas = canvasRef.current;
+      canvas.width = idVideoRef.current.videoWidth;
+      canvas.height = idVideoRef.current.videoHeight;
+      canvas.getContext('2d')?.drawImage(idVideoRef.current, 0, 0);
+      setIdPhoto(canvas.toDataURL('image/jpeg'));
+      // Stop track after capture
+      if (idVideoRef.current.srcObject) {
+        (idVideoRef.current.srcObject as MediaStream).getTracks().forEach(t => t.stop());
+      }
+      setIdScanActive(false);
+      toast({ title: "ID Scanned", description: "Document snapshot secured in-app." });
     }
   };
 
@@ -194,7 +225,7 @@ export default function OnboardingPage() {
   return (
     <div className="min-h-screen bg-[#F8FAFC]">
       <Navigation />
-      {/* Hidden canvas for processing selfie captures */}
+      {/* Hidden canvas for processing captures */}
       <canvas ref={canvasRef} className="hidden" aria-hidden="true" />
       
       <main className="container mx-auto px-4 py-12 flex justify-center">
@@ -283,41 +314,82 @@ export default function OnboardingPage() {
                 <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4">
                   <div className="text-center space-y-2">
                     <h2 className="text-xl font-black text-slate-900 uppercase">Step 2: Verification</h2>
-                    <p className="text-sm text-slate-500">Pillar: Physical Presence</p>
+                    <p className="text-sm text-slate-500">Pillar: Live Biometric Assets</p>
                   </div>
 
                   {sellerType === 'individual' ? (
-                    <div className="space-y-6">
-                      <div className="relative aspect-video rounded-3xl overflow-hidden bg-slate-50 border-2 border-dashed border-slate-200 flex flex-col items-center justify-center cursor-pointer" onClick={() => fileInputRef.current?.click()}>
-                        {idPhoto ? <Image src={idPhoto} alt="ID" fill className="object-cover" /> : (
-                          <div className="text-center"><FileCheck className="w-10 h-10 text-slate-300 mx-auto mb-2" /><p className="text-[10px] font-black uppercase text-slate-400">Tap to upload ID</p></div>
-                        )}
-                        <input type="file" ref={fileInputRef} className="hidden" accept="image/*" capture="environment" onChange={(e) => handleFileUpload(e, 'id')} />
+                    <div className="space-y-8">
+                      {/* ID Scanner Section */}
+                      <div className="space-y-3">
+                        <Label className="text-[10px] font-black uppercase text-[#225BC3] tracking-widest text-center block">1. ID Document Scanner</Label>
+                        <div className="relative aspect-video rounded-3xl overflow-hidden bg-slate-900 border-4 border-white shadow-2xl ring-1 ring-slate-100 flex items-center justify-center group">
+                          {idPhoto ? (
+                            <Image src={idPhoto} alt="ID" fill className="object-cover" />
+                          ) : idScanActive ? (
+                            <>
+                              <video ref={idVideoRef} autoPlay muted playsInline className="w-full h-full object-cover" />
+                              <div className="absolute inset-4 border-2 border-[#34CBED]/40 rounded-xl pointer-events-none flex items-center justify-center">
+                                 <div className="w-full h-[1px] bg-[#34CBED]/60 absolute animate-pulse shadow-[0_0_10px_#34CBED]" />
+                                 <p className="text-[7px] font-black uppercase text-white/40 tracking-widest mt-auto mb-2">Align ID card within frame</p>
+                              </div>
+                              <Button 
+                                onClick={captureId}
+                                className="absolute bottom-4 bg-white text-[#225BC3] h-10 px-6 rounded-full font-black text-[9px] uppercase shadow-2xl hover:scale-105 active:scale-95"
+                              >
+                                Capture ID
+                              </Button>
+                            </>
+                          ) : (
+                            <div className="text-center space-y-4 p-8">
+                               <div className="w-16 h-16 bg-white/10 rounded-3xl flex items-center justify-center mx-auto">
+                                  <Camera className="w-8 h-8 text-white/60" />
+                               </div>
+                               <div>
+                                  <p className="text-[10px] font-black uppercase text-white tracking-widest">In-App Live Scanner</p>
+                                  <p className="text-[8px] text-white/40 font-bold mt-1">Place ID on flat surface with good lighting</p>
+                               </div>
+                               <Button onClick={startIdCamera} className="bg-[#225BC3] text-white h-12 px-8 rounded-2xl font-black uppercase text-[10px] tracking-widest">
+                                 Start Scanner
+                               </Button>
+                            </div>
+                          )}
+                          {idPhoto && (
+                            <button onClick={() => setIdPhoto(null)} className="absolute top-4 right-4 bg-black/60 text-white p-2 rounded-xl backdrop-blur-md">
+                               <RefreshCw className="w-4 h-4" />
+                            </button>
+                          )}
+                        </div>
                       </div>
 
-                      <div className="relative aspect-square max-w-[280px] mx-auto rounded-full overflow-hidden bg-black border-4 border-white shadow-2xl group">
-                        {selfie ? <Image src={selfie} alt="Selfie" fill className="object-cover" /> : (
-                          <video ref={videoRef} autoPlay muted playsInline className="w-full h-full object-cover" />
-                        )}
-                        <div className="absolute inset-0 flex items-center justify-center pointer-events-none border-4 border-white/20 rounded-full" />
-                        {!selfie && (
-                          <button 
-                            type="button"
-                            onClick={captureSelfie} 
-                            className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-[#34CBED] text-white px-6 py-2 rounded-full font-black text-[10px] uppercase shadow-xl hover:scale-105 active:scale-95 transition-all z-10"
-                          >
-                            Capture Face
-                          </button>
-                        )}
-                        {selfie && (
-                          <button 
-                            type="button"
-                            onClick={() => setSelfie(null)} 
-                            className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-white text-slate-900 px-6 py-2 rounded-full font-black text-[10px] uppercase shadow-xl hover:scale-105 active:scale-95 transition-all z-10"
-                          >
-                            Retake
-                          </button>
-                        )}
+                      {/* Selfie Section */}
+                      <div className="space-y-3">
+                         <Label className="text-[10px] font-black uppercase text-[#225BC3] tracking-widest text-center block">2. Biometric Liveness</Label>
+                         <div className="relative aspect-square max-w-[240px] mx-auto rounded-full overflow-hidden bg-slate-900 border-4 border-white shadow-2xl ring-1 ring-slate-100 group">
+                            {selfie ? (
+                              <Image src={selfie} alt="Selfie" fill className="object-cover" />
+                            ) : (
+                              <>
+                                <video ref={videoRef} autoPlay muted playsInline className="w-full h-full object-cover grayscale brightness-110" />
+                                <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                                   <div className="w-[85%] h-[85%] border-2 border-dashed border-[#34CBED]/20 rounded-full" />
+                                </div>
+                                <button 
+                                  onClick={() => {
+                                    if (!videoRef.current?.srcObject) startSelfieCamera();
+                                    else captureSelfie();
+                                  }}
+                                  className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-[#34CBED] text-white px-8 h-10 rounded-full font-black text-[9px] uppercase shadow-2xl hover:scale-105 active:scale-95"
+                                >
+                                  {!videoRef.current?.srcObject ? "Enable Camera" : "Capture Face"}
+                                </button>
+                              </>
+                            )}
+                            {selfie && (
+                              <button onClick={() => setSelfie(null)} className="absolute top-4 right-4 bg-black/60 text-white p-2 rounded-xl backdrop-blur-md">
+                                 <RefreshCw className="w-4 h-4" />
+                              </button>
+                            )}
+                         </div>
                       </div>
                     </div>
                   ) : (
@@ -329,9 +401,13 @@ export default function OnboardingPage() {
                     </div>
                   )}
 
-                  <div className="flex gap-3">
+                  <div className="flex gap-3 pt-6">
                     <Button variant="outline" className="flex-1 h-16 rounded-2xl font-black uppercase text-[10px]" onClick={() => setStep(1)}>Back</Button>
-                    <Button className="flex-[2] bg-[#225BC3] h-16 rounded-2xl font-black text-white shadow-xl" onClick={() => setStep(3)}>
+                    <Button 
+                      className="flex-[2] bg-[#225BC3] h-16 rounded-2xl font-black text-white shadow-xl" 
+                      onClick={() => setStep(3)}
+                      disabled={sellerType === 'individual' && (!idPhoto || !selfie)}
+                    >
                       Financial Registration <ArrowRight className="w-4 h-4 ml-2" />
                     </Button>
                   </div>
