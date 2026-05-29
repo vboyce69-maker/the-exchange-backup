@@ -22,10 +22,12 @@ import {
   Mail,
   Smartphone,
   MapPin,
-  CheckCircle2
+  CheckCircle2,
+  ChevronRight
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
+import { cn } from "@/lib/utils";
 
 export default function SettingsPage() {
   const { user, isUserLoading } = useUser();
@@ -190,19 +192,51 @@ export default function SettingsPage() {
                         </div>
                         <CheckCircle2 className="w-4 h-4 text-green-500" />
                      </div>
-                     <div className="flex items-center justify-between p-3 bg-slate-50 rounded-xl">
+
+                     <div 
+                        className={cn(
+                          "flex items-center justify-between p-3 bg-slate-50 rounded-xl transition-all group",
+                          !user.emailVerified && "cursor-pointer hover:bg-[#FF8C00]/5 hover:ring-1 hover:ring-[#FF8C00]/20"
+                        )}
+                        onClick={() => !user.emailVerified && router.push('/verify')}
+                      >
                         <div className="flex items-center gap-2">
-                           <Mail className="w-4 h-4 text-slate-400" />
+                           <Mail className={cn("w-4 h-4", user.emailVerified ? "text-green-500" : "text-slate-400 group-hover:text-[#FF8C00]")} />
                            <span className="text-[11px] font-bold text-slate-600">Email Verified</span>
                         </div>
-                        {user.emailVerified ? <CheckCircle2 className="w-4 h-4 text-green-500" /> : <Badge className="bg-orange-100 text-orange-600 border-none text-[8px] font-black uppercase">Pending</Badge>}
-                     </div>
-                     <div className="flex items-center justify-between p-3 bg-slate-50 rounded-xl">
                         <div className="flex items-center gap-2">
-                           <ShieldCheck className="w-4 h-4 text-slate-400" />
+                          {user.emailVerified ? (
+                            <CheckCircle2 className="w-4 h-4 text-green-500" />
+                          ) : (
+                            <>
+                              <Badge className="bg-orange-100 text-orange-600 border-none text-[8px] font-black uppercase">Pending</Badge>
+                              <ChevronRight className="w-3 h-3 text-orange-300" />
+                            </>
+                          )}
+                        </div>
+                     </div>
+
+                     <div 
+                        className={cn(
+                          "flex items-center justify-between p-3 bg-slate-50 rounded-xl transition-all group",
+                          !profile?.isIdVerified && "cursor-pointer hover:bg-[#225BC3]/5 hover:ring-1 hover:ring-[#225BC3]/20"
+                        )}
+                        onClick={() => !profile?.isIdVerified && router.push('/verify')}
+                      >
+                        <div className="flex items-center gap-2">
+                           <ShieldCheck className={cn("w-4 h-4", profile?.isIdVerified ? "text-green-500" : "text-slate-400 group-hover:text-[#225BC3]")} />
                            <span className="text-[11px] font-bold text-slate-600">ID Verification</span>
                         </div>
-                        {profile?.isIdVerified ? <CheckCircle2 className="w-4 h-4 text-green-500" /> : <Badge className="bg-slate-200 text-slate-500 border-none text-[8px] font-black uppercase">Not Started</Badge>}
+                        <div className="flex items-center gap-2">
+                          {profile?.isIdVerified ? (
+                            <CheckCircle2 className="w-4 h-4 text-green-500" />
+                          ) : (
+                            <>
+                              <Badge className="bg-slate-200 text-slate-500 border-none text-[8px] font-black uppercase">Not Started</Badge>
+                              <ChevronRight className="w-3 h-3 text-slate-300" />
+                            </>
+                          )}
+                        </div>
                      </div>
                   </div>
                </Card>
