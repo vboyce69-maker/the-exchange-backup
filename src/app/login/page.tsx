@@ -70,8 +70,15 @@ export default function LoginPage() {
       return;
     }
     
-    if (!phoneNumber.startsWith('+')) {
-      setError("Please include your country code (e.g. +27).");
+    // Auto-prefix for South African users if they forget the +27
+    let formattedPhone = phoneNumber.trim();
+    if (formattedPhone.startsWith('0') && formattedPhone.length === 10) {
+      formattedPhone = '+27' + formattedPhone.substring(1);
+      setPhoneNumber(formattedPhone);
+    }
+
+    if (!formattedPhone.startsWith('+')) {
+      setError("Please include your country code (e.g. +27 for RSA).");
       return;
     }
 
@@ -79,10 +86,9 @@ export default function LoginPage() {
     setError(null);
 
     try {
-      // Lazy initialization with DOM safety check
       const container = document.getElementById("recaptcha-container");
       if (!container) {
-        throw new Error("Security container not ready. Please try again.");
+        throw new Error("Security container not ready. Please refresh.");
       }
 
       if (!recaptchaVerifierRef.current) {
@@ -92,13 +98,13 @@ export default function LoginPage() {
         });
       }
 
-      const result = await signInWithPhoneNumber(auth, phoneNumber, recaptchaVerifierRef.current);
+      const result = await signInWithPhoneNumber(auth, formattedPhone, recaptchaVerifierRef.current);
       setConfirmationResult(result);
       setStep("otp");
-      toast({ title: "OTP Sent", description: "Verification code sent to your device." });
+      toast({ title: "OTP Sent", description: `Verification code sent to ${formattedPhone}` });
     } catch (err: any) {
       console.error("Phone Auth Error:", err);
-      setError(err.message || "Failed to send OTP. Please check the number.");
+      setError(err.message || "Failed to send OTP. Check if Phone Auth is enabled in Firebase Console.");
       if (recaptchaVerifierRef.current) {
         try { recaptchaVerifierRef.current.clear(); } catch (e) {}
         recaptchaVerifierRef.current = null;
@@ -179,9 +185,12 @@ export default function LoginPage() {
                   {step === "phone" ? (
                     <form onSubmit={handleSendOtp} className="space-y-6">
                       <div className="space-y-2">
-                        <Label className="font-black text-[10px] uppercase tracking-widest text-[#225BC3]">Mobile Number</Label>
+                        <div className="flex justify-between items-center px-2">
+                          <Label className="font-black text-[10px] uppercase tracking-widest text-[#225BC3]">Mobile Number</Label>
+                          <span className="text-[8px] font-bold text-slate-400">RSA Format: +27...</span>
+                        </div>
                         <Input 
-                          placeholder="+27 12 345 6789" 
+                          placeholder="+27 61 430 4746" 
                           className="h-14 rounded-2xl bg-slate-50 border-none font-black text-center text-lg" 
                           value={phoneNumber}
                           onChange={(e) => setPhoneNumber(e.target.value)}
@@ -205,6 +214,14 @@ export default function LoginPage() {
                       </div>
                       <Button className="w-full h-16 rounded-2xl bg-[#34CBED] text-white font-black text-lg shadow-xl" disabled={loading}>
                         {loading ? <Loader2 className="w-6 h-6 animate-spin" /> : "Confirm Code"}
+                      </Button>
+                      <Button 
+                        type="button" 
+                        variant="ghost" 
+                        className="w-full text-[10px] font-black uppercase text-slate-400"
+                        onClick={() => setStep("phone")}
+                      >
+                        Change Phone Number
                       </Button>
                     </form>
                   )}
