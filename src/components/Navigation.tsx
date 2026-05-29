@@ -183,7 +183,13 @@ export function Navigation() {
                 
                 {/* Verification Status Summary */}
                 <div className="px-3 mb-4 space-y-2">
-                   <div className="flex items-center justify-between p-3 bg-slate-50 rounded-2xl border border-slate-100">
+                   <div 
+                    className={cn(
+                      "flex items-center justify-between p-3 bg-slate-50 rounded-2xl border border-slate-100 transition-all",
+                      !profile?.isIdVerified && "cursor-pointer hover:bg-orange-50 hover:border-orange-200"
+                    )}
+                    onClick={() => !profile?.isIdVerified && router.push('/verify')}
+                   >
                       <div className="flex items-center gap-2">
                         <ScanFace className={cn("w-4 h-4", profile?.isIdVerified ? "text-green-500" : "text-slate-400")} />
                         <span className="text-[10px] font-black uppercase text-slate-700">Identity KYC</span>
@@ -194,7 +200,13 @@ export function Navigation() {
                         <Badge className="bg-orange-100 text-orange-600 text-[8px] font-black border-none uppercase">Pending</Badge>
                       )}
                    </div>
-                   <div className="flex items-center justify-between p-3 bg-slate-50 rounded-2xl border border-slate-100">
+                   <div 
+                    className={cn(
+                      "flex items-center justify-between p-3 bg-slate-50 rounded-2xl border border-slate-100 transition-all",
+                      !user.emailVerified && "cursor-pointer hover:bg-red-50 hover:border-red-200"
+                    )}
+                    onClick={() => !user.emailVerified && router.push('/verify')}
+                   >
                       <div className="flex items-center gap-2">
                         <Mail className={cn("w-4 h-4", user.emailVerified ? "text-green-500" : "text-slate-400")} />
                         <span className="text-[10px] font-black uppercase text-slate-700">Email Verified</span>
