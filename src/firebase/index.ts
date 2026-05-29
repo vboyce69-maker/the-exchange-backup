@@ -1,22 +1,28 @@
 'use client';
 
 import { initializeApp, getApps, getApp } from 'firebase/app';
-import { getAuth } from 'firebase/auth';
-import { getFirestore } from 'firebase/firestore';
-import { getStorage } from 'firebase/storage';
+import { getAuth, Auth } from 'firebase/auth';
+import { getFirestore, Firestore } from 'firebase/firestore';
+import { getStorage, FirebaseStorage } from 'firebase/storage';
 import { firebaseConfig } from './config';
 
 /**
  * Standardized Firebase Initialization for 'The Exchange'.
- * Provides direct singleton exports for ease of use in components.
+ * Implements a safer singleton pattern for client-side environments.
  */
-const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
+let app: any;
+let auth: Auth;
+let db: Firestore;
+let storage: FirebaseStorage;
 
-export const auth = getAuth(app);
-export const db = getFirestore(app);
-export const storage = getStorage(app);
+if (typeof window !== 'undefined') {
+  app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
+  auth = getAuth(app);
+  db = getFirestore(app);
+  storage = getStorage(app);
+}
 
-// Legacy support for the provider and hooks
+export { auth, db, storage };
 export const firestore = db;
 export const firebaseApp = app;
 
@@ -25,11 +31,17 @@ export const firebaseApp = app;
  * Used by the FirebaseClientProvider to bootstrap the context.
  */
 export function initializeFirebase() {
+  if (typeof window === 'undefined') {
+    // Return mock or empty objects for SSR safety
+    return { firebaseApp: null, auth: null as any, firestore: null as any, storage: null as any };
+  }
+  
+  const currentApp = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
   return {
-    firebaseApp,
-    auth,
-    firestore,
-    storage
+    firebaseApp: currentApp,
+    auth: getAuth(currentApp),
+    firestore: getFirestore(currentApp),
+    storage: getStorage(currentApp)
   };
 }
 
