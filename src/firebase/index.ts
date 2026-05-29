@@ -1,32 +1,35 @@
 'use client';
 
-import { firebaseConfig } from '@/firebase/config';
-import { initializeApp, getApps, getApp, FirebaseApp } from 'firebase/app';
+import { initializeApp, getApps, getApp } from 'firebase/app';
 import { getAuth } from 'firebase/auth';
-import { getFirestore } from 'firebase/firestore'
+import { getFirestore } from 'firebase/firestore';
 import { getStorage } from 'firebase/storage';
+import { firebaseConfig } from './config';
 
 /**
  * Standardized Firebase Initialization for 'The Exchange'.
- * Always prefers the explicit firebaseConfig for reliable client-side bootstrap.
+ * Provides direct singleton exports for ease of use in components.
+ */
+const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
+
+export const auth = getAuth(app);
+export const db = getFirestore(app);
+export const storage = getStorage(app);
+
+// Legacy support for the provider and hooks
+export const firestore = db;
+export const firebaseApp = app;
+
+/**
+ * Returns the initialized SDK instances.
+ * Used by the FirebaseClientProvider to bootstrap the context.
  */
 export function initializeFirebase() {
-  if (!getApps().length) {
-    // Explicitly initialize with config to ensure credentials are present before Firestore calls
-    const firebaseApp = initializeApp(firebaseConfig);
-    return getSdks(firebaseApp);
-  }
-
-  const app = getApp();
-  return getSdks(app);
-}
-
-export function getSdks(firebaseApp: FirebaseApp) {
   return {
     firebaseApp,
-    auth: getAuth(firebaseApp),
-    firestore: getFirestore(firebaseApp),
-    storage: getStorage(firebaseApp)
+    auth,
+    firestore,
+    storage
   };
 }
 
@@ -38,3 +41,5 @@ export * from './non-blocking-updates';
 export * from './non-blocking-login';
 export * from './errors';
 export * from './error-emitter';
+
+export default app;
