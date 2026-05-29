@@ -1,4 +1,3 @@
-
 "use client";
 
 import Link from "next/link";
@@ -205,7 +204,7 @@ export function Navigation() {
                       "flex items-center justify-between p-3 bg-slate-50 rounded-2xl border border-slate-100 transition-all",
                       !user.emailVerified && "cursor-pointer hover:bg-red-50 hover:border-red-200"
                     )}
-                    onClick={() => !user.emailVerified && router.push('/verify')}
+                    onClick={() => !user.emailVerified && router.push('/verify-email')}
                    >
                       <div className="flex items-center gap-2">
                         <Mail className={cn("w-4 h-4", user.emailVerified ? "text-green-500" : "text-slate-400")} />

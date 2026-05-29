@@ -198,7 +198,7 @@ export default function SettingsPage() {
                           "flex items-center justify-between p-3 bg-slate-50 rounded-xl transition-all group",
                           !user.emailVerified && "cursor-pointer hover:bg-[#FF8C00]/5 hover:ring-1 hover:ring-[#FF8C00]/20"
                         )}
-                        onClick={() => !user.emailVerified && router.push('/verify')}
+                        onClick={() => !user.emailVerified && router.push('/verify-email')}
                       >
                         <div className="flex items-center gap-2">
                            <Mail className={cn("w-4 h-4", user.emailVerified ? "text-green-500" : "text-slate-400 group-hover:text-[#FF8C00]")} />
