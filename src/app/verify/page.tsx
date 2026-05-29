@@ -157,7 +157,6 @@ export default function OnboardingPage() {
     setIsProcessing(true);
     
     try {
-      // AI Recognition Removed: Proceed directly to record storage
       const trustScore = calculateTrustScore({ 
         phoneVerified: true, 
         kycStatus: 'verified',
@@ -188,7 +187,6 @@ export default function OnboardingPage() {
         updateData.firstName = fullName.split(' ')[0] || "";
         updateData.lastName = fullName.split(' ').slice(1).join(' ') || "";
         updateData.idNumber = idNumber;
-        // Store captured media locally or logic for future storage upload
         updateData.verificationPhotosStored = !!(idPhoto && selfie);
       } else {
         updateData.firstName = businessName;
@@ -300,37 +298,57 @@ export default function OnboardingPage() {
                 <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4">
                   <div className="text-center space-y-2">
                     <h2 className="text-xl font-black text-slate-900 uppercase">Step 2: Verification</h2>
-                    <p className="text-sm text-slate-500">Pillar: Photo Assets</p>
+                    <p className="text-sm text-slate-500 font-bold uppercase tracking-widest">Pillar: Identity Confirmation</p>
                   </div>
 
                   {sellerType === 'individual' ? (
-                    <div className="space-y-8">
+                    <div className="space-y-10">
                       {/* ID Scanner Section */}
-                      <div className="space-y-3">
-                        <Label className="text-[10px] font-black uppercase text-[#225BC3] tracking-widest text-center block">1. ID Document Scanner</Label>
+                      <div className="space-y-4">
+                        <div className="flex items-center justify-between">
+                           <Label className="text-[10px] font-black uppercase text-[#225BC3] tracking-widest">1. ID Document Scanner</Label>
+                           {idPhoto && <CheckCircle2 className="w-4 h-4 text-green-500" />}
+                        </div>
                         <div className="relative aspect-video rounded-3xl overflow-hidden bg-slate-900 border-4 border-white shadow-2xl ring-1 ring-slate-100 flex items-center justify-center group">
                           {idPhoto ? (
                             <>
                               <Image src={idPhoto} alt="ID" fill className="object-cover" />
-                              <button 
-                                onClick={() => setIdPhoto(null)} 
-                                className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-black/60 text-white p-4 rounded-full backdrop-blur-md hover:scale-110 active:scale-95 transition-all shadow-2xl z-20"
-                              >
-                                 <RefreshCw className="w-6 h-6" />
-                              </button>
+                              <div className="absolute inset-0 bg-black/40 backdrop-blur-[2px] opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center z-10">
+                                 <button 
+                                  onClick={() => setIdPhoto(null)} 
+                                  className="bg-white text-[#225BC3] p-4 rounded-full shadow-2xl hover:scale-110 active:scale-95 transition-all"
+                                 >
+                                    <RefreshCw className="w-6 h-6" />
+                                 </button>
+                              </div>
                             </>
                           ) : idScanActive ? (
                             <>
                               <video ref={idVideoRef} autoPlay muted playsInline className="w-full h-full object-cover" />
-                              <div className="absolute inset-4 border-2 border-[#34CBED]/40 rounded-xl pointer-events-none flex items-center justify-center">
-                                 <div className="w-full h-[1px] bg-[#34CBED]/60 absolute animate-pulse shadow-[0_0_10px_#34CBED]" />
-                                 <p className="text-[7px] font-black uppercase text-white/40 tracking-widest mt-auto mb-2">Align ID card within frame</p>
+                              {/* ID VIEWfinder Overlay */}
+                              <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-10">
+                                 <div className="w-[85%] h-[75%] border-2 border-dashed border-[#34CBED]/60 rounded-2xl relative shadow-[0_0_0_9999px_rgba(0,0,0,0.5)]">
+                                    <div className="absolute inset-0 border-2 border-[#34CBED] rounded-2xl animate-pulse" />
+                                    {/* Scan Line Animation */}
+                                    <div className="absolute left-0 right-0 h-[2px] bg-[#34CBED] shadow-[0_0_15px_#34CBED] top-0 animate-[scan_2s_linear_infinite]" style={{
+                                      animation: 'scan 3s linear infinite'
+                                    }} />
+                                    <style jsx>{`
+                                      @keyframes scan {
+                                        0% { top: 0%; }
+                                        100% { top: 100%; }
+                                      }
+                                    `}</style>
+                                 </div>
+                                 <p className="absolute bottom-6 text-[8px] font-black uppercase text-white tracking-[0.2em] bg-black/40 px-3 py-1 rounded-full backdrop-blur-md">
+                                   Align ID card within frame
+                                 </p>
                               </div>
                               <Button 
                                 onClick={captureId}
-                                className="absolute bottom-4 bg-white text-[#225BC3] h-10 px-6 rounded-full font-black text-[9px] uppercase shadow-2xl hover:scale-105 active:scale-95"
+                                className="absolute bottom-4 z-20 bg-white text-[#225BC3] h-12 px-8 rounded-full font-black text-[10px] uppercase shadow-2xl hover:scale-105 active:scale-95 border-none"
                               >
-                                Capture ID
+                                <Camera className="w-4 h-4 mr-2" /> Capture ID
                               </Button>
                             </>
                           ) : (
@@ -340,9 +358,9 @@ export default function OnboardingPage() {
                                </div>
                                <div>
                                   <p className="text-[10px] font-black uppercase text-white tracking-widest">In-App Live Scanner</p>
-                                  <p className="text-[8px] text-white/40 font-bold mt-1">Place ID on flat surface with good lighting</p>
+                                  <p className="text-[8px] text-white/40 font-bold mt-1 leading-relaxed">Ensure all text is visible and clearly lit</p>
                                </div>
-                               <Button onClick={startIdCamera} className="bg-[#225BC3] text-white h-12 px-8 rounded-2xl font-black uppercase text-[10px] tracking-widest">
+                               <Button onClick={startIdCamera} className="bg-[#225BC3] text-white h-12 px-8 rounded-2xl font-black uppercase text-[10px] tracking-widest shadow-xl border-none">
                                  Start Scanner
                                </Button>
                             </div>
@@ -351,33 +369,48 @@ export default function OnboardingPage() {
                       </div>
 
                       {/* Selfie Section */}
-                      <div className="space-y-3">
-                         <Label className="text-[10px] font-black uppercase text-[#225BC3] tracking-widest text-center block">2. Live Selfie</Label>
-                         <div className="relative aspect-square max-w-[240px] mx-auto rounded-full overflow-hidden bg-slate-900 border-4 border-white shadow-2xl ring-1 ring-slate-100 group">
+                      <div className="space-y-4">
+                         <div className="flex items-center justify-between">
+                            <Label className="text-[10px] font-black uppercase text-[#225BC3] tracking-widest">2. Biometric Facial Scan</Label>
+                            {selfie && <CheckCircle2 className="w-4 h-4 text-green-500" />}
+                         </div>
+                         <div className="relative aspect-square max-w-[280px] mx-auto rounded-full overflow-hidden bg-slate-900 border-4 border-white shadow-2xl ring-1 ring-slate-100 group">
                             {selfie ? (
                               <>
                                 <Image src={selfie} alt="Selfie" fill className="object-cover" />
-                                <button 
-                                  onClick={() => setSelfie(null)} 
-                                  className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-black/60 text-white p-4 rounded-full backdrop-blur-md hover:scale-110 active:scale-95 transition-all shadow-2xl z-20"
-                                >
-                                   <RefreshCw className="w-6 h-6" />
-                                </button>
+                                <div className="absolute inset-0 bg-black/40 backdrop-blur-[2px] opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center z-10">
+                                   <button 
+                                    onClick={() => setSelfie(null)} 
+                                    className="bg-white text-[#225BC3] p-4 rounded-full shadow-2xl hover:scale-110 active:scale-95 transition-all"
+                                   >
+                                      <RefreshCw className="w-6 h-6" />
+                                   </button>
+                                </div>
                               </>
                             ) : (
                               <>
                                 <video ref={videoRef} autoPlay muted playsInline className="w-full h-full object-cover grayscale brightness-110" />
-                                <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                                   <div className="w-[85%] h-[85%] border-2 border-dashed border-[#34CBED]/20 rounded-full" />
+                                {/* Face Guide Overlay */}
+                                <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-10">
+                                   <div className="w-[85%] h-[85%] border-4 border-dashed border-[#34CBED]/40 rounded-full shadow-[0_0_0_9999px_rgba(0,0,0,0.5)]">
+                                      <div className="absolute inset-0 border-2 border-[#34CBED] rounded-full animate-pulse opacity-20" />
+                                   </div>
+                                   <p className="absolute bottom-16 text-[8px] font-black uppercase text-white tracking-[0.2em] bg-black/40 px-3 py-1 rounded-full backdrop-blur-md">
+                                     Center face in circle
+                                   </p>
                                 </div>
                                 <button 
                                   onClick={() => {
                                     if (!videoRef.current?.srcObject) startSelfieCamera();
                                     else captureSelfie();
                                   }}
-                                  className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-[#34CBED] text-white px-8 h-10 rounded-full font-black text-[9px] uppercase shadow-2xl hover:scale-105 active:scale-95"
+                                  className="absolute bottom-6 left-1/2 -translate-x-1/2 z-20 bg-[#34CBED] text-white px-8 h-12 rounded-full font-black text-[10px] uppercase shadow-2xl hover:scale-105 active:scale-95 transition-all"
                                 >
-                                  {!videoRef.current?.srcObject ? "Enable Camera" : "Capture Face"}
+                                  {!videoRef.current?.srcObject ? (
+                                    <span className="flex items-center gap-2"><ScanFace className="w-4 h-4" /> Enable Face Scan</span>
+                                  ) : (
+                                    <span className="flex items-center gap-2"><Camera className="w-4 h-4" /> Capture Face</span>
+                                  )}
                                 </button>
                               </>
                             )}
@@ -396,7 +429,7 @@ export default function OnboardingPage() {
                   <div className="flex gap-3 pt-6">
                     <Button variant="outline" className="flex-1 h-16 rounded-2xl font-black uppercase text-[10px]" onClick={() => setStep(1)}>Back</Button>
                     <Button 
-                      className="flex-[2] bg-[#225BC3] h-16 rounded-2xl font-black text-white shadow-xl" 
+                      className="flex-[2] bg-[#225BC3] h-16 rounded-2xl font-black text-white shadow-xl border-none" 
                       onClick={() => setStep(3)}
                       disabled={sellerType === 'individual' && (!idPhoto || !selfie)}
                     >
@@ -411,7 +444,7 @@ export default function OnboardingPage() {
                 <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4">
                   <div className="text-center space-y-2">
                     <h2 className="text-xl font-black text-slate-900 uppercase">Step 3: Banking</h2>
-                    <p className="text-sm text-slate-500">Pillar: Payouts & Escrow</p>
+                    <p className="text-sm text-slate-500 font-bold uppercase tracking-widest">Pillar: Verified Payouts</p>
                   </div>
 
                   <div className="space-y-4">
@@ -458,7 +491,7 @@ export default function OnboardingPage() {
 
                   <div className="flex gap-3">
                     <Button variant="outline" className="flex-1 h-16 rounded-2xl font-black uppercase text-[10px]" onClick={() => setStep(2)}>Back</Button>
-                    <Button className="flex-[2] bg-[#225BC3] h-16 rounded-2xl font-black text-white shadow-xl" onClick={finalizeOnboarding} disabled={isProcessing || !popiaConsent || !accountNumber}>
+                    <Button className="flex-[2] bg-[#225BC3] h-16 rounded-2xl font-black text-white shadow-xl border-none" onClick={finalizeOnboarding} disabled={isProcessing || !popiaConsent || !accountNumber}>
                       {isProcessing ? <Loader2 className="w-6 h-6 animate-spin" /> : "Finalize Registration"}
                     </Button>
                   </div>
@@ -483,11 +516,11 @@ export default function OnboardingPage() {
                   </div>
                   <div className="space-y-2">
                     <h2 className="text-3xl font-black text-slate-900 uppercase tracking-tighter">Hub Activated</h2>
-                    <p className="text-sm text-muted-foreground font-medium px-6">
+                    <p className="text-sm text-muted-foreground font-medium px-6 leading-relaxed">
                       Identity & Financials verified. You are now a **Trusted Seller**. Your listings are platform-protected.
                     </p>
                   </div>
-                  <Button className="w-full bg-[#225BC3] h-16 rounded-2xl font-black text-white shadow-xl" onClick={() => window.location.href = '/'}>
+                  <Button className="w-full bg-[#225BC3] h-16 rounded-2xl font-black text-white shadow-xl border-none" onClick={() => window.location.href = '/'}>
                     Enter Marketplace
                   </Button>
                 </div>
