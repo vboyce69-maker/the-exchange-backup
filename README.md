@@ -1,7 +1,9 @@
-
 # The Exchange | Premium Verified Marketplace
 
 This is a high-trust, local peer-to-peer and professional marketplace built with Next.js, Firebase, and Genkit.
+
+## Repository
+**Main Backup:** [https://github.com/vboyce69-maker/the-exchange-backup.git](https://github.com/vboyce69-maker/the-exchange-backup.git)
 
 ## Infrastructure
 The application is built on **Firebase**, leveraging Google Cloud's high-performance infrastructure. This choice was made to ensure:
@@ -14,6 +16,19 @@ The Exchange positions itself as the "Trust Layer" for South African commerce. B
 1. **Scam-Proof**: Through Biometric KYC and Protected Payments.
 2. **Business-Ready**: Supporting Pty Ltd sellers with high-volume "Bulk Lot" trades.
 3. **CPA Compliant**: Enforcing Consumer Protection Act standards for all transactions.
+
+## How to Sync to GitHub
+Since I am an AI and cannot execute Git commands directly, please run the following in your terminal to back up your code:
+
+1. **Initialize and Connect:**
+   ```bash
+   npm run git:setup
+   ```
+
+2. **Push Changes:**
+   ```bash
+   npm run git:push
+   ```
 
 ## How to Preview on Mobile
 

@@ -9,7 +9,9 @@
     "build": "NODE_ENV=production next build",
     "start": "next start",
     "lint": "next lint",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "git:setup": "git init && git remote add origin https://github.com/vboyce69-maker/the-exchange-backup.git",
+    "git:push": "git add . && git commit -m 'Backup from Studio' && git push -u origin main"
   },
   "dependencies": {
     "@genkit-ai/google-genai": "^1.28.0",
