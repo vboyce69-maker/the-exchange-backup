@@ -111,6 +111,7 @@ export default function OnboardingPage() {
       canvas.height = videoRef.current.videoHeight;
       canvas.getContext('2d')?.drawImage(videoRef.current, 0, 0);
       setSelfie(canvas.toDataURL('image/jpeg'));
+      toast({ title: "Selfie Captured", description: "Biometric image ready for analysis." });
     }
   };
 
@@ -158,9 +159,14 @@ export default function OnboardingPage() {
       };
 
       if (sellerType === 'individual') {
+        if (!idPhoto || !selfie) {
+           toast({ variant: "destructive", title: "Media Required", description: "Please upload ID and capture a live selfie." });
+           setIsProcessing(false);
+           return;
+        }
         const result = await verifyIdentity({ idPhotoDataUri: idPhoto!, selfieDataUri: selfie!, fullName });
         if (!result.isVerified) {
-          toast({ variant: "destructive", title: "Face Mismatch", description: result.reason });
+          toast({ variant: "destructive", title: "Verification Failed", description: result.reason });
           setIsProcessing(false);
           return;
         }
@@ -175,7 +181,6 @@ export default function OnboardingPage() {
         updateData.physicalAddress = address;
       }
 
-      // Use setDoc with merge to ensure the document is created if it doesn't exist
       await setDoc(profileRef, updateData, { merge: true });
       setStep(4);
     } catch (error: any) {
@@ -189,6 +194,9 @@ export default function OnboardingPage() {
   return (
     <div className="min-h-screen bg-[#F8FAFC]">
       <Navigation />
+      {/* Hidden canvas for processing selfie captures */}
+      <canvas ref={canvasRef} className="hidden" aria-hidden="true" />
+      
       <main className="container mx-auto px-4 py-12 flex justify-center">
         <div className="max-w-xl w-full">
           
@@ -292,8 +300,24 @@ export default function OnboardingPage() {
                           <video ref={videoRef} autoPlay muted playsInline className="w-full h-full object-cover" />
                         )}
                         <div className="absolute inset-0 flex items-center justify-center pointer-events-none border-4 border-white/20 rounded-full" />
-                        {!selfie && <button onClick={captureSelfie} className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-[#34CBED] text-white px-6 py-2 rounded-full font-black text-[10px] uppercase shadow-xl">Capture Face</button>}
-                        {selfie && <button onClick={() => setSelfie(null)} className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-white text-slate-900 px-6 py-2 rounded-full font-black text-[10px] uppercase shadow-xl">Retake</button>}
+                        {!selfie && (
+                          <button 
+                            type="button"
+                            onClick={captureSelfie} 
+                            className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-[#34CBED] text-white px-6 py-2 rounded-full font-black text-[10px] uppercase shadow-xl hover:scale-105 active:scale-95 transition-all z-10"
+                          >
+                            Capture Face
+                          </button>
+                        )}
+                        {selfie && (
+                          <button 
+                            type="button"
+                            onClick={() => setSelfie(null)} 
+                            className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-white text-slate-900 px-6 py-2 rounded-full font-black text-[10px] uppercase shadow-xl hover:scale-105 active:scale-95 transition-all z-10"
+                          >
+                            Retake
+                          </button>
+                        )}
                       </div>
                     </div>
                   ) : (
