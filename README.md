@@ -17,25 +17,30 @@ The Exchange positions itself as the "Trust Layer" for South African commerce. B
 2. **Business-Ready**: Supporting Pty Ltd sellers with high-volume "Bulk Lot" trades.
 3. **CPA Compliant**: Enforcing Consumer Protection Act standards for all transactions.
 
-## How to Sync to GitHub
-I have prepared the environment for your repository. Please run the following commands in your terminal:
+## How to Sync & Deploy
+Since terminal commands cannot be executed directly by the AI, please use these scripts in your local terminal:
 
-1. **Initialize and Connect:**
-   ```bash
-   npm run git:setup
-   ```
+### 1. GitHub Backup
+```bash
+npm run git:setup  # Initialize and connect to your repo
+npm run git:push   # Push current code to GitHub
+```
 
-2. **Push Changes:**
-   ```bash
-   npm run git:push
-   ```
+### 2. Firebase Setup & Deployment
+```bash
+npm run firebase:login  # Log in to your Firebase account
+npm run firebase:init   # Connect this code to your Firebase project
+npm run firebase:deploy # Deploy rules, indexes, and hosting
+```
 
-Note: You may need to authenticate with GitHub during the first push.
+## Troubleshooting: Email Verification
+If verification emails are not arriving:
+1. **Authorized Domains**: Add your app domain to the "Authorized domains" list in the Firebase Console (Authentication > Settings).
+2. **Spam Folder**: Check your spam/junk folder as automated links are often filtered.
+3. **Phone Users**: If you signed up via phone, ensure you've added an email to your profile in the **Account Hub**.
 
 ## How to Preview on Mobile
-
 The Exchange is a **Mobile-Responsive Web App**. You can view the full mobile experience on your physical device:
-
 1. **Get the URL**: Copy the preview URL from the address bar of the internal browser in this workspace.
 2. **Open on Phone**: Open your mobile browser (Safari/Chrome) and paste the URL.
-3. **Add to Home Screen**: For the best experience, use the "Add to Home Screen" feature in your mobile browser to view it without browser chrome.
+3. **Add to Home Screen**: For the best experience, use the "Add to Home Screen" feature in your mobile browser.
