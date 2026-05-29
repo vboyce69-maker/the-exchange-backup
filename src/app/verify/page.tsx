@@ -338,7 +338,15 @@ export default function OnboardingPage() {
                         <Label className="text-[10px] font-black uppercase text-[#225BC3] tracking-widest text-center block">1. ID Document Scanner</Label>
                         <div className="relative aspect-video rounded-3xl overflow-hidden bg-slate-900 border-4 border-white shadow-2xl ring-1 ring-slate-100 flex items-center justify-center group">
                           {idPhoto ? (
-                            <Image src={idPhoto} alt="ID" fill className="object-cover" />
+                            <>
+                              <Image src={idPhoto} alt="ID" fill className="object-cover" />
+                              <button 
+                                onClick={() => setIdPhoto(null)} 
+                                className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-black/60 text-white p-4 rounded-full backdrop-blur-md hover:scale-110 active:scale-95 transition-all shadow-2xl z-20"
+                              >
+                                 <RefreshCw className="w-6 h-6" />
+                              </button>
+                            </>
                           ) : idScanActive ? (
                             <>
                               <video ref={idVideoRef} autoPlay muted playsInline className="w-full h-full object-cover" />
@@ -367,11 +375,6 @@ export default function OnboardingPage() {
                                </Button>
                             </div>
                           )}
-                          {idPhoto && (
-                            <button onClick={() => setIdPhoto(null)} className="absolute top-4 right-4 bg-black/60 text-white p-2 rounded-xl backdrop-blur-md">
-                               <RefreshCw className="w-4 h-4" />
-                            </button>
-                          )}
                         </div>
                       </div>
 
@@ -380,7 +383,15 @@ export default function OnboardingPage() {
                          <Label className="text-[10px] font-black uppercase text-[#225BC3] tracking-widest text-center block">2. Biometric Liveness</Label>
                          <div className="relative aspect-square max-w-[240px] mx-auto rounded-full overflow-hidden bg-slate-900 border-4 border-white shadow-2xl ring-1 ring-slate-100 group">
                             {selfie ? (
-                              <Image src={selfie} alt="Selfie" fill className="object-cover" />
+                              <>
+                                <Image src={selfie} alt="Selfie" fill className="object-cover" />
+                                <button 
+                                  onClick={() => setSelfie(null)} 
+                                  className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-black/60 text-white p-4 rounded-full backdrop-blur-md hover:scale-110 active:scale-95 transition-all shadow-2xl z-20"
+                                >
+                                   <RefreshCw className="w-6 h-6" />
+                                </button>
+                              </>
                             ) : (
                               <>
                                 <video ref={videoRef} autoPlay muted playsInline className="w-full h-full object-cover grayscale brightness-110" />
@@ -397,11 +408,6 @@ export default function OnboardingPage() {
                                   {!videoRef.current?.srcObject ? "Enable Camera" : "Capture Face"}
                                 </button>
                               </>
-                            )}
-                            {selfie && (
-                              <button onClick={() => setSelfie(null)} className="absolute top-4 right-4 bg-black/60 text-white p-2 rounded-xl backdrop-blur-md">
-                                 <RefreshCw className="w-4 h-4" />
-                              </button>
                             )}
                          </div>
                       </div>
