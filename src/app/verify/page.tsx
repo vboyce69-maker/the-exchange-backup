@@ -313,12 +313,12 @@ export default function OnboardingPage() {
                           {idPhoto ? (
                             <>
                               <Image src={idPhoto} alt="ID" fill className="object-cover" />
-                              <div className="absolute inset-0 bg-black/40 backdrop-blur-[2px] opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center z-10">
+                              <div className="absolute inset-0 bg-black/40 backdrop-blur-[2px] flex items-center justify-center z-10">
                                  <button 
                                   onClick={() => setIdPhoto(null)} 
                                   className="bg-white text-[#225BC3] p-4 rounded-full shadow-2xl hover:scale-110 active:scale-95 transition-all"
                                  >
-                                    <RefreshCw className="w-6 h-6" />
+                                    <RefreshCw className="w-8 h-8" />
                                  </button>
                               </div>
                             </>
@@ -344,12 +344,6 @@ export default function OnboardingPage() {
                                    Align ID card within frame
                                  </p>
                               </div>
-                              <Button 
-                                onClick={captureId}
-                                className="absolute bottom-4 z-20 bg-white text-[#225BC3] h-12 px-8 rounded-full font-black text-[10px] uppercase shadow-2xl hover:scale-105 active:scale-95 border-none"
-                              >
-                                <Camera className="w-4 h-4 mr-2" /> Capture ID
-                              </Button>
                             </>
                           ) : (
                             <div className="text-center space-y-4 p-8">
@@ -366,6 +360,17 @@ export default function OnboardingPage() {
                             </div>
                           )}
                         </div>
+                        {/* Repositioned Capture ID Button */}
+                        {idScanActive && !idPhoto && (
+                          <div className="flex justify-center pt-2">
+                            <Button 
+                              onClick={captureId}
+                              className="w-full bg-[#225BC3] text-white h-14 rounded-2xl font-black text-[10px] uppercase shadow-xl hover:scale-[1.02] active:scale-95 transition-all border-none"
+                            >
+                              <Camera className="w-5 h-5 mr-2" /> Capture Document
+                            </Button>
+                          </div>
+                        )}
                       </div>
 
                       {/* Selfie Section */}
@@ -378,12 +383,12 @@ export default function OnboardingPage() {
                             {selfie ? (
                               <>
                                 <Image src={selfie} alt="Selfie" fill className="object-cover" />
-                                <div className="absolute inset-0 bg-black/40 backdrop-blur-[2px] opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center z-10">
+                                <div className="absolute inset-0 bg-black/40 backdrop-blur-[2px] flex items-center justify-center z-10">
                                    <button 
                                     onClick={() => setSelfie(null)} 
                                     className="bg-white text-[#225BC3] p-4 rounded-full shadow-2xl hover:scale-110 active:scale-95 transition-all"
                                    >
-                                      <RefreshCw className="w-6 h-6" />
+                                      <RefreshCw className="w-8 h-8" />
                                    </button>
                                 </div>
                               </>
@@ -399,22 +404,27 @@ export default function OnboardingPage() {
                                      Center face in circle
                                    </p>
                                 </div>
-                                <button 
-                                  onClick={() => {
-                                    if (!videoRef.current?.srcObject) startSelfieCamera();
-                                    else captureSelfie();
-                                  }}
-                                  className="absolute bottom-6 left-1/2 -translate-x-1/2 z-20 bg-[#34CBED] text-white px-8 h-12 rounded-full font-black text-[10px] uppercase shadow-2xl hover:scale-105 active:scale-95 transition-all"
-                                >
-                                  {!videoRef.current?.srcObject ? (
-                                    <span className="flex items-center gap-2"><ScanFace className="w-4 h-4" /> Enable Face Scan</span>
-                                  ) : (
-                                    <span className="flex items-center gap-2"><Camera className="w-4 h-4" /> Capture Face</span>
-                                  )}
-                                </button>
                               </>
                             )}
                          </div>
+                         {/* Repositioned Face Scan Button */}
+                         {!selfie && (
+                           <div className="flex justify-center pt-2">
+                             <Button 
+                               onClick={() => {
+                                 if (!videoRef.current?.srcObject) startSelfieCamera();
+                                 else captureSelfie();
+                               }}
+                               className="w-full bg-[#34CBED] text-white h-14 rounded-2xl font-black text-[10px] uppercase shadow-xl hover:scale-[1.02] active:scale-95 transition-all border-none"
+                             >
+                               {!videoRef.current?.srcObject ? (
+                                 <span className="flex items-center gap-2"><ScanFace className="w-5 h-5" /> Enable Face Scan</span>
+                               ) : (
+                                 <span className="flex items-center gap-2"><Camera className="w-5 h-5" /> Capture Face</span>
+                               )}
+                             </Button>
+                           </div>
+                         )}
                       </div>
                     </div>
                   ) : (
