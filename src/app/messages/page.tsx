@@ -14,15 +14,12 @@ import {
   Lock,
   Loader2,
   Globe,
-  AlertTriangle,
-  Cpu,
   Zap,
   Navigation as NavIcon,
-  MapPin,
-  Car,
   X,
   Star,
-  CheckCircle2
+  CheckCircle2,
+  Banknote
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { VerifiedBadge } from "@/components/VerifiedBadge";
@@ -57,16 +54,16 @@ export default function MessagesPage() {
   const [inputValue, setInputValue] = useState("");
   const [scamAudit, setScamAudit] = useState<any>(null);
   const [isMeetupActive, setIsMeetupActive] = useState(false);
+  const [bothArrived, setBothArrived] = useState(false);
+  const [isReleasing, setIsReconnecting] = useState(false);
 
   const handleSend = async () => {
     if (!inputValue.trim() || isValidating) return;
 
-    // Layered Security Architecture Trigger
     const result = await checkContent(inputValue);
 
     if (!result) return;
 
-    // Log high-risk events to moderation queue
     if (result.decision === 'block' || result.decision === 'hold') {
       addDocumentNonBlocking(collection(db, "moderationQueue"), {
         userId: user?.uid || "anonymous",
@@ -75,7 +72,6 @@ export default function MessagesPage() {
         riskScore: result.riskScore,
         decision: result.decision,
         reason: result.reason,
-        aiUsed: result.aiAnalysisPerformed,
         timestamp: new Date().toISOString(),
         status: 'pending_review'
       });
@@ -83,7 +79,6 @@ export default function MessagesPage() {
 
     if (result.decision === 'block') {
       setScamAudit(result);
-      // DO NOT send message if blocked
       return;
     }
 
@@ -100,12 +95,16 @@ export default function MessagesPage() {
     setInputValue("");
   };
 
-  const startMeetup = () => {
-    setIsMeetupActive(true);
-    toast({
-      title: "Meetup Tracker Active",
-      description: "Sharing live proximity to Rosebank SAPS Safe Zone.",
-    });
+  const handleReleaseFunds = () => {
+    setIsReconnecting(true);
+    setTimeout(() => {
+      setIsReconnecting(false);
+      toast({
+        title: "Transaction Complete",
+        description: "Funds released to seller. Thank you for using The Exchange.",
+      });
+      router.push('/');
+    }, 2000);
   };
 
   return (
@@ -120,97 +119,49 @@ export default function MessagesPage() {
           </div>
           
           <div className="flex-1 overflow-y-auto">
-            <div className="p-5 bg-blue-50/50 border-l-4 border-[#225BC3] flex gap-3 cursor-pointer">
+            <div className="p-5 bg-blue-50/50 border-l-4 border-[#225BC3] flex gap-3">
               <Avatar className="h-12 w-12 border-2 border-white shadow-sm"><AvatarImage src="https://picsum.photos/seed/user1/200/200" /></Avatar>
               <div className="flex-1 min-w-0">
                 <span className="font-bold text-sm">Alex Rivera</span>
-                <p className="text-[10px] text-muted-foreground truncate uppercase font-black">Protected Hold Active</p>
-              </div>
-            </div>
-
-            {/* Trust Summary Section */}
-            <div className="p-6 border-t space-y-6">
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <h3 className="font-black text-[10px] uppercase tracking-widest text-[#225BC3]">Trust Profile</h3>
-                  <Badge className="bg-green-100 text-green-700 border-none font-black text-[8px] uppercase px-2">High Reliability</Badge>
-                </div>
-                
-                <div className="flex items-center gap-4 p-4 bg-slate-50 rounded-2xl border border-slate-100 cursor-pointer hover:bg-slate-100 transition-colors" onClick={() => router.push('/profile/seller_id')}>
-                  <div className="relative w-12 h-12 flex items-center justify-center shrink-0">
-                    <svg className="w-full h-full transform -rotate-90">
-                      <circle cx="24" cy="24" r="20" stroke="currentColor" strokeWidth="4" fill="transparent" className="text-slate-200" />
-                      <circle cx="24" cy="24" r="20" stroke="currentColor" strokeWidth="4" fill="transparent" strokeDasharray={126} strokeDashoffset={126 * (1 - 0.94)} className="text-[#225BC3]" />
-                    </svg>
-                    <span className="absolute text-[10px] font-black text-[#225BC3]">94%</span>
-                  </div>
-                  <div>
-                    <p className="text-xs font-black text-slate-900 leading-none">Reliability Score</p>
-                    <p className="text-[9px] text-slate-500 font-bold mt-1">Based on 56 successful meetups</p>
-                  </div>
-                </div>
-              </div>
-
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <h3 className="font-black text-[10px] uppercase tracking-widest text-[#225BC3]">Verified Reviews</h3>
-                  <button 
-                    className="text-[9px] font-black uppercase tracking-widest text-slate-400 hover:text-[#225BC3] transition-colors"
-                    onClick={() => router.push('/profile/seller_id')}
-                  >
-                    View All
-                  </button>
-                </div>
-                <div className="space-y-3">
-                  {[
-                    { user: "Sarah M.", text: "Excellent trader, arrived on time at the safe zone." },
-                    { user: "David K.", text: "Item was exactly as described. Very professional." }
-                  ].map((review, i) => (
-                    <div key={i} className="p-3 bg-white border border-slate-100 rounded-xl space-y-1.5 shadow-sm">
-                      <div className="flex items-center justify-between">
-                        <span className="text-[9px] font-black text-slate-900 flex items-center gap-1">
-                          <CheckCircle2 className="w-2.5 h-2.5 text-blue-500" /> {review.user}
-                        </span>
-                        <div className="flex gap-0.5">
-                          {[...Array(5)].map((_, j) => (
-                            <Star key={j} className="w-2 h-2 text-[#FF8C00] fill-current" />
-                          ))}
-                        </div>
-                      </div>
-                      <p className="text-[10px] text-slate-500 leading-tight italic font-medium">"{review.text}"</p>
-                    </div>
-                  ))}
-                </div>
+                <p className="text-[10px] text-muted-foreground truncate uppercase font-black text-[#FF8C00]">Protected Hold Active</p>
               </div>
             </div>
           </div>
+
+          {bothArrived && (
+            <div className="p-6 border-t bg-slate-50 animate-in fade-in slide-in-from-bottom-4">
+              <p className="text-[9px] font-black uppercase text-slate-400 mb-4 tracking-widest">Final Step</p>
+              <Button 
+                className="w-full bg-green-600 text-white font-black h-12 rounded-xl shadow-lg gap-2"
+                onClick={handleReleaseFunds}
+                disabled={isReleasing}
+              >
+                {isReleasing ? <Loader2 className="w-4 h-4 animate-spin" /> : <Banknote className="w-4 h-4" />}
+                Release Funds
+              </Button>
+              <p className="text-[8px] text-center text-slate-500 font-medium mt-3 italic">Only release once you have inspected the item.</p>
+            </div>
+          )}
         </aside>
 
         <div className="flex-1 flex flex-col bg-white border rounded-[2.5rem] shadow-xl overflow-hidden h-[calc(100vh-10rem)]">
-          <div className="p-5 border-b flex items-center justify-between bg-white z-10 shadow-sm">
+          <div className="p-5 border-b flex items-center justify-between bg-white z-10">
             <div className="flex items-center gap-3">
               <Avatar className="border-2 border-[#225BC3]/10"><AvatarImage src="https://picsum.photos/seed/user1/200/200" /></Avatar>
               <h3 className="font-black text-[#225BC3] uppercase tracking-tight">Alex Rivera <VerifiedBadge /></h3>
             </div>
             <div className="flex items-center gap-3">
-              {!isMeetupActive ? (
-                <Button
-                  size="sm"
-                  className="bg-[#FF8C00] text-white font-black rounded-full h-9 px-4 text-[9px] uppercase tracking-widest gap-2 shadow-lg hover:scale-105 transition-transform"
-                  onClick={startMeetup}
-                >
-                  <NavIcon className="w-3.5 h-3.5" /> Start Tracker
-                </Button>
-              ) : (
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  className="text-slate-400 font-black rounded-full h-9 px-4 text-[9px] uppercase tracking-widest gap-2 hover:bg-slate-50"
-                  onClick={() => setIsMeetupActive(false)}
-                >
-                  <X className="w-3.5 h-3.5" /> Close Tracker
-                </Button>
-              )}
+              <Button
+                size="sm"
+                className={cn(
+                  "font-black rounded-full h-9 px-4 text-[9px] uppercase tracking-widest gap-2 shadow-lg transition-all",
+                  isMeetupActive ? "bg-slate-100 text-slate-400" : "bg-[#FF8C00] text-white"
+                )}
+                onClick={() => setIsMeetupActive(!isMeetupActive)}
+              >
+                {isMeetupActive ? <X className="w-3.5 h-3.5" /> : <NavIcon className="w-3.5 h-3.5" />}
+                {isMeetupActive ? "Close Tracker" : "Start Tracker"}
+              </Button>
               <Badge className="bg-[#225BC3] text-white border-none px-4 py-1.5 flex items-center gap-2 rounded-full uppercase text-[9px] font-black tracking-widest">
                 <Lock className="w-3 h-3 text-[#34CBED]" /> Secure Trade
               </Badge>
@@ -224,39 +175,12 @@ export default function MessagesPage() {
                   buyerName="You"
                   sellerName="Alex Rivera"
                   safeZoneName="Rosebank SAPS Safe Zone"
-                  onArrival={(role) => console.log(`${role} arrived`)}
+                  onArrival={(role) => {
+                    if (role === 'buyer') toast({ title: "Welcome to Safe Zone", description: "You have arrived at the Rosebank SAPS point." });
+                    setBothArrived(true);
+                  }}
                 />
               </div>
-            )}
-
-            {scamAudit && scamAudit.decision !== 'allow' && (
-              <Alert variant="destructive" className={cn(
-                "rounded-3xl animate-in slide-in-from-top-4",
-                scamAudit.decision === 'block' ? "bg-red-50 border-red-200" : "bg-orange-50 border-orange-200"
-              )}>
-                <div className="flex items-start gap-4">
-                  <div className={cn(
-                    "p-3 rounded-2xl shrink-0",
-                    scamAudit.decision === 'block' ? "bg-red-100 text-red-600" : "bg-orange-100 text-orange-600"
-                  )}>
-                    <ShieldAlert className="h-6 w-6" />
-                  </div>
-                  <div className="space-y-1">
-                    <AlertTitle className="font-black uppercase text-[10px] tracking-widest flex items-center gap-2">
-                      {scamAudit.aiAnalysisPerformed && <Cpu className="w-3 h-3 text-blue-500" />}
-                      {scamAudit.decision === 'block' ? "Policy Violation Block" : "Verification Required"}
-                    </AlertTitle>
-                    <AlertDescription className="text-xs font-medium leading-relaxed">
-                      {scamAudit.reason}
-                    </AlertDescription>
-                    {scamAudit.aiAnalysisPerformed && (
-                      <p className="text-[8px] font-black uppercase text-blue-600 tracking-tighter mt-2">
-                        Deep Intent Analysis Performed by Falcon AI
-                      </p>
-                    )}
-                  </div>
-                </div>
-              </Alert>
             )}
 
             {messages.map((m) => (
@@ -268,38 +192,24 @@ export default function MessagesPage() {
                   {m.text}
                 </div>
                 <div className="flex items-center gap-2">
-                   {m.riskScore && m.riskScore >= 30 && (
-                     <Badge variant="ghost" className="h-5 px-2 bg-slate-100 border-none text-slate-400 gap-1 rounded-full text-[8px] font-black">
-                       {m.aiAnalyzed ? <Cpu className="w-2 h-2 text-blue-500" /> : <Zap className="w-2 h-2" />}
-                       Audit: {m.riskScore}
-                     </Badge>
-                   )}
                    <span className="text-[10px] text-muted-foreground font-bold">{m.timestamp}</span>
                 </div>
               </div>
             ))}
           </div>
 
-          <div className="p-6 border-t bg-white space-y-4">
+          <div className="p-6 border-t bg-white">
             <div className="flex gap-3">
               <Input
-                placeholder={scamAudit?.decision === 'block' ? "Message blocked by security policy" : "Type a message..."}
-                disabled={scamAudit?.decision === 'block'}
+                placeholder="Type a message..."
                 className="rounded-full bg-slate-50 border-none h-14 px-6 font-medium"
                 value={inputValue}
-                onChange={(e) => {
-                  setInputValue(e.target.value);
-                  if (scamAudit) setScamAudit(null);
-                }}
+                onChange={(e) => setInputValue(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && handleSend()}
               />
-              <Button size="icon" className="rounded-full bg-[#225BC3] shrink-0 h-14 w-14" onClick={handleSend} disabled={isValidating || scamAudit?.decision === 'block'}>
+              <Button size="icon" className="rounded-full bg-[#225BC3] shrink-0 h-14 w-14 shadow-lg shadow-blue-500/20" onClick={handleSend} disabled={isValidating}>
                 {isValidating ? <Loader2 className="w-5 h-5 animate-spin" /> : <Send className="w-5 h-5" />}
               </Button>
-            </div>
-            <div className="flex items-center justify-center gap-2 opacity-40">
-               <ShieldCheck className="w-3 h-3 text-[#34CBED]" />
-               <span className="text-[8px] font-black uppercase tracking-widest">In-App Protection: External Contacts Blocked</span>
             </div>
           </div>
         </div>
