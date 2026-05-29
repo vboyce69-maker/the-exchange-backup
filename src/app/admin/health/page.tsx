@@ -32,12 +32,14 @@ export default function SystemHealthPage() {
   const [analyzingId, setAnalyzingId] = useState<string | null>(null);
 
   const errorsQuery = useMemoFirebase(() => {
+    if (!db) return null;
     return query(collection(db, 'systemErrors'), orderBy('timestamp', 'desc'), limit(10));
   }, [db]);
 
   const { data: errors, isLoading } = useCollection(errorsQuery);
 
   const handleAnalyzeError = async (error: any) => {
+    if (!db) return;
     setAnalyzingId(error.id);
     try {
       const resolution = await resolveSystemError({
@@ -65,6 +67,7 @@ export default function SystemHealthPage() {
   };
 
   const handleResolve = async (id: string) => {
+    if (!db) return;
     const errorRef = doc(db, 'systemErrors', id);
     await updateDoc(errorRef, { status: 'resolved', resolved: true });
     toast({ title: "Status Updated", description: "Error marked as resolved." });
@@ -136,7 +139,7 @@ export default function SystemHealthPage() {
             </div>
 
             <div className="space-y-4">
-              {isLoading ? (
+              {isLoading || !db ? (
                 <div className="py-20 text-center"><RefreshCw className="w-10 h-10 animate-spin text-slate-200 mx-auto" /></div>
               ) : errors && errors.length > 0 ? (
                 errors.map((error) => (
