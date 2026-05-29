@@ -34,7 +34,8 @@ import {
   CreditCard,
   MapPin,
   Banknote,
-  Maximize2
+  Maximize2,
+  Cpu
 } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "@/hooks/use-toast";
@@ -123,12 +124,6 @@ export default function OnboardingPage() {
     }
   };
 
-  useEffect(() => {
-    if (step === 2 && sellerType === 'individual') {
-      // We don't auto-start ID camera, it's triggered by a button now for "in-app" feel
-    }
-  }, [step, sellerType]);
-
   const captureSelfie = () => {
     if (videoRef.current && canvasRef.current) {
       const canvas = canvasRef.current;
@@ -163,6 +158,36 @@ export default function OnboardingPage() {
     setIsProcessing(true);
     
     try {
+      // PERFORM AI IDENTITY VERIFICATION
+      if (sellerType === 'individual') {
+        if (!idPhoto || !selfie) {
+           toast({ variant: "destructive", title: "Media Required", description: "Please upload ID and capture a live selfie." });
+           setIsProcessing(false);
+           return;
+        }
+
+        // Show specialized toast for AI analysis
+        toast({ title: "AI Analysis in Progress", description: "Our Senior Security Agent is comparing your biometric data..." });
+
+        const result = await verifyIdentity({ 
+          idPhotoDataUri: idPhoto!, 
+          selfieDataUri: selfie!, 
+          fullName 
+        });
+
+        if (!result.isVerified) {
+          toast({ 
+            variant: "destructive", 
+            title: "Identity Verification Failed", 
+            description: result.reason || "The faces in the photos do not match our high-confidence threshold." 
+          });
+          setIsProcessing(false);
+          return;
+        }
+
+        toast({ title: "Identity Verified", description: "Facial match successful. Confidence: " + result.confidenceScore + "%" });
+      }
+
       const trustScore = calculateTrustScore({ 
         phoneVerified: true, 
         kycStatus: 'verified',
@@ -190,17 +215,6 @@ export default function OnboardingPage() {
       };
 
       if (sellerType === 'individual') {
-        if (!idPhoto || !selfie) {
-           toast({ variant: "destructive", title: "Media Required", description: "Please upload ID and capture a live selfie." });
-           setIsProcessing(false);
-           return;
-        }
-        const result = await verifyIdentity({ idPhotoDataUri: idPhoto!, selfieDataUri: selfie!, fullName });
-        if (!result.isVerified) {
-          toast({ variant: "destructive", title: "Verification Failed", description: result.reason });
-          setIsProcessing(false);
-          return;
-        }
         updateData.firstName = fullName.split(' ')[0] || "";
         updateData.lastName = fullName.split(' ').slice(1).join(' ') || "";
         updateData.idNumber = idNumber;
@@ -470,6 +484,13 @@ export default function OnboardingPage() {
                       {isProcessing ? <Loader2 className="w-6 h-6 animate-spin" /> : "Finalize Registration"}
                     </Button>
                   </div>
+                  
+                  {isProcessing && (
+                    <div className="p-4 bg-[#225BC3]/5 rounded-2xl border border-[#225BC3]/10 flex items-center justify-center gap-3 animate-pulse">
+                      <Cpu className="w-4 h-4 text-[#225BC3] animate-spin" />
+                      <span className="text-[10px] font-black uppercase text-[#225BC3]">Running AI Identity Comparison...</span>
+                    </div>
+                  )}
                 </div>
               )}
 
