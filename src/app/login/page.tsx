@@ -135,11 +135,12 @@ export default function LoginPage() {
       if (isSignUp) {
         const userCred = await createUserWithEmailAndPassword(auth, email, password);
         await sendEmailVerification(userCred.user);
-        toast({ title: "Account Created", description: "Please check your email for a verification link." });
+        toast({ title: "Account Created", description: "Verification link sent to your email." });
+        router.push("/verify-email");
       } else {
         await signInWithEmailAndPassword(auth, email, password);
+        router.push("/");
       }
-      router.push("/");
     } catch (err: any) {
       setError(err.message);
     } finally {
