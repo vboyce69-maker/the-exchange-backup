@@ -3,6 +3,7 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
     
+    // Standard Helpers
     function isAuthenticated() {
       return request.auth != null;
     }
@@ -11,18 +12,7 @@ service cloud.firestore {
       return isAuthenticated() && request.auth.uid == userId;
     }
 
-    // Profiles: Public read, owner write
-    match /userProfiles/{userId} {
-      allow read: if true;
-      allow write: if isOwner(userId);
-      
-      match /reviews/{reviewId} {
-        allow read: if true;
-        allow create: if isAuthenticated();
-      }
-    }
-
-    // Listings: Public read, owner modify or verified bidding
+    // Listings - anyone can read, authenticated users can write (create/bid)
     match /publicListings/{listingId} {
       allow read: if true;
       allow create: if isAuthenticated();
@@ -38,7 +28,28 @@ service cloud.firestore {
       allow delete: if isOwner(resource.data.sellerId);
     }
 
-    // Messaging: Participants only
+    // Users/Profiles - anyone can read, owner can write
+    match /userProfiles/{userId} {
+      allow read: if true;
+      allow write: if isOwner(userId);
+      
+      match /reviews/{reviewId} {
+        allow read: if true;
+        allow create: if isAuthenticated();
+      }
+    }
+
+    // Settings - owner only
+    match /settings/{userId} {
+      allow read, write: if isOwner(userId);
+    }
+
+    // Referrals - authenticated users only
+    match /referrals/{userId} {
+      allow read, write: if isOwner(userId);
+    }
+
+    // Messaging - Participants only
     match /chatThreads/{threadId} {
       allow read, write: if isAuthenticated() && request.auth.uid in resource.data.participants;
       allow create: if isAuthenticated();
@@ -49,18 +60,13 @@ service cloud.firestore {
       }
     }
 
-    // Disputes: Reporters can create, participants can read
+    // Disputes - Reporter or Admin only
     match /disputes/{disputeId} {
       allow create: if isAuthenticated();
       allow read: if isAuthenticated() && (request.auth.uid == resource.data.reporterId || request.auth.token.role == 'admin');
     }
 
-    // Referrals: Owner only
-    match /referrals/{userId} {
-      allow read, write: if isOwner(userId);
-    }
-
-    // Moderation: Admin only
+    // Moderation - Admin only
     match /moderationQueue/{recordId} {
       allow create: if isAuthenticated();
       allow read: if isAuthenticated() && request.auth.token.role == 'admin';
