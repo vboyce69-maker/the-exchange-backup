@@ -46,6 +46,7 @@ export default function UserProfilePage() {
   const { user: authUser } = useUser();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isUploading, setIsUploading] = useState(false);
+  const [activeTab, setActiveTab] = useState("active");
 
   const profileRef = useMemoFirebase(() => {
     if (!id || id === 'me') return null;
@@ -200,7 +201,7 @@ export default function UserProfilePage() {
                 <div className="space-y-1 mb-6">
                   {user.isFoundingMember && (
                     <Badge className="bg-[#FF8C00] text-white border-none font-black text-[8px] uppercase px-3 py-1 mb-2">
-                      Founding 1000 Member
+                      Founding 100 Member
                     </Badge>
                   )}
                   <h1 className="text-2xl font-black text-[#225BC3] leading-none uppercase tracking-tighter">
@@ -235,11 +236,11 @@ export default function UserProfilePage() {
                    <div className="grid grid-cols-1 gap-2">
                       <div className="flex items-center justify-between">
                          <span className="text-[9px] font-bold text-slate-600 uppercase">Biometric Liveness</span>
-                         <div className={cn("w-2 h-2 rounded-full", user.isIdVerified ? "bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.4)]" : "bg-slate-200")} />
+                         <div className={cn("w-2 h-2 rounded-full", user.isIdVerified ? "bg-green-50 shadow-[0_0_8px_rgba(34,197,94,0.4)]" : "bg-slate-200")} />
                       </div>
                       <div className="flex items-center justify-between">
                          <span className="text-[9px] font-bold text-slate-600 uppercase">FICA Data Validation</span>
-                         <div className={cn("w-2 h-2 rounded-full", user.isIdVerified ? "bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.4)]" : "bg-slate-200")} />
+                         <div className={cn("w-2 h-2 rounded-full", user.isIdVerified ? "bg-green-50 shadow-[0_0_8px_rgba(34,197,94,0.4)]" : "bg-slate-200")} />
                       </div>
                       <div className="flex items-center justify-between">
                          <span className="text-[9px] font-bold text-slate-600 uppercase">OTP Auth Security</span>
@@ -275,9 +276,18 @@ export default function UserProfilePage() {
             <Card className="rounded-[2.5rem] border-none shadow-xl bg-white p-8 space-y-8">
               <div className="space-y-6">
                 <div className="flex justify-between items-center">
-                  <h3 className="font-black text-xs text-[#225BC3] uppercase tracking-widest flex items-center gap-2">
-                    <TrendingUp className="w-4 h-4" /> Performance
-                  </h3>
+                  <div className="flex items-center gap-4">
+                    <h3 className="font-black text-xs text-[#225BC3] uppercase tracking-widest flex items-center gap-2">
+                      <TrendingUp className="w-4 h-4" /> Performance
+                    </h3>
+                    <div className="h-4 w-px bg-slate-100" />
+                    <button 
+                      onClick={() => setActiveTab('reviews')}
+                      className="font-black text-xs text-slate-400 uppercase tracking-widest flex items-center gap-2 hover:text-[#FF8C00] transition-colors"
+                    >
+                      <Star className="w-4 h-4" /> Reviews
+                    </button>
+                  </div>
                   <Badge className="bg-green-100 text-green-700 border-none font-black text-[9px] uppercase">Highly Reliable</Badge>
                 </div>
 
@@ -312,10 +322,12 @@ export default function UserProfilePage() {
 
           {/* Main Content */}
           <div className="lg:col-span-2">
-            <Tabs defaultValue="active" className="w-full">
+            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
               <TabsList className="bg-white rounded-3xl p-1.5 h-16 w-full lg:w-fit shadow-xl">
                 <TabsTrigger value="active" className="rounded-2xl px-10 h-full data-[state=active]:bg-[#225BC3] data-[state=active]:text-white font-black uppercase text-xs">Inventory</TabsTrigger>
-                <TabsTrigger value="reviews" className="rounded-2xl px-10 h-full data-[state=active]:bg-[#225BC3] data-[state=active]:text-white font-black uppercase text-xs">Trust Record ({reviews?.length || 0})</TabsTrigger>
+                <TabsTrigger value="reviews" className="rounded-2xl px-10 h-full data-[state=active]:bg-[#225BC3] data-[state=active]:text-white font-black uppercase text-xs flex items-center gap-2">
+                   <Star className="w-4 h-4 fill-current" /> Trust Record ({reviews?.length || 0})
+                </TabsTrigger>
               </TabsList>
               
               <TabsContent value="active" className="mt-10">
