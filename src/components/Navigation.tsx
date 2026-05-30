@@ -131,8 +131,8 @@ export function Navigation() {
             </div>
           </form>
 
-          <div className="flex items-center gap-4">
-            <Link href="/notifications" className="relative group">
+          <div className="flex items-center gap-6">
+            <Link href="/notifications" className="relative group flex items-center gap-2">
               <div className={cn("h-11 w-11 rounded-2xl flex items-center justify-center transition-all bg-slate-50 group-hover:bg-blue-50", (unreadNotifications?.length || 0) > 0 && "animate-pulse")}>
                 <Bell className={cn("w-5 h-5", (unreadNotifications?.length || 0) > 0 ? "text-[#FF8C00]" : "text-slate-400 group-hover:text-primary")} />
                 {(unreadNotifications?.length || 0) > 0 && (
@@ -141,6 +141,7 @@ export function Navigation() {
                   </span>
                 )}
               </div>
+              <span className="hidden lg:block text-[10px] font-black uppercase tracking-widest text-slate-400 group-hover:text-primary transition-colors">Notifications</span>
             </Link>
 
             <Link href="/messages" className="hidden sm:block">
