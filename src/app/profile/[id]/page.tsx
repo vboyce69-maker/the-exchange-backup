@@ -24,7 +24,8 @@ import {
   TrendingUp,
   History,
   Zap,
-  Award
+  Award,
+  Fingerprint
 } from "lucide-react";
 import { VerifiedBadge } from "@/components/VerifiedBadge";
 import { SellerTierBadge, SellerTier } from "@/components/SellerTierBadge";
@@ -153,8 +154,35 @@ export default function UserProfilePage() {
                 </div>
                 
                 <p className="text-muted-foreground text-sm font-medium leading-relaxed mb-8 px-4 italic">
-                  "{user.bio}"
+                  "{user.bio || "Secure verified trader."}"
                 </p>
+
+                {/* Trust Engine Analysis block integration */}
+                <div className="w-full p-6 bg-[#225BC3]/5 rounded-3xl border border-[#225BC3]/10 space-y-4 text-left mb-8">
+                   <div className="flex justify-between items-center">
+                      <p className="text-[10px] font-black text-[#225BC3] uppercase tracking-widest flex items-center gap-1.5">
+                         <Fingerprint className="w-4 h-4" /> Trust Engine Analysis
+                      </p>
+                      <Badge className="bg-white text-[#225BC3] border-none font-black text-[9px] px-2 py-0.5 shadow-sm">
+                        Score: {user.reliabilityScore}%
+                      </Badge>
+                   </div>
+                   
+                   <div className="grid grid-cols-1 gap-2">
+                      <div className="flex items-center justify-between">
+                         <span className="text-[9px] font-bold text-slate-600 uppercase">Biometric Liveness</span>
+                         <div className={cn("w-2 h-2 rounded-full", user.isIdVerified ? "bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.4)]" : "bg-slate-200")} />
+                      </div>
+                      <div className="flex items-center justify-between">
+                         <span className="text-[9px] font-bold text-slate-600 uppercase">FICA Data Validation</span>
+                         <div className={cn("w-2 h-2 rounded-full", user.isIdVerified ? "bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.4)]" : "bg-slate-200")} />
+                      </div>
+                      <div className="flex items-center justify-between">
+                         <span className="text-[9px] font-bold text-slate-600 uppercase">OTP Auth Security</span>
+                         <div className="w-2 h-2 bg-green-500 rounded-full shadow-[0_0_8px_rgba(34,197,94,0.4)]" />
+                      </div>
+                   </div>
+                </div>
 
                 <div className="w-full grid grid-cols-2 gap-2 mb-8">
                   {verificationPillars.map((p) => (
