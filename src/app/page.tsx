@@ -112,15 +112,15 @@ export default function LandingPage() {
             {/* Hero Floating Element Container */}
             <div className="hidden lg:block space-y-6">
               <div className="bg-white p-8 rounded-[3rem] shadow-[0_40px_80px_rgba(0,0,0,0.06)] border border-slate-50 relative z-20 animate-fade-up">
-                 <div className="flex items-center gap-4 mb-6">
-                    <div className="w-14 h-14 bg-slate-100 rounded-full overflow-hidden border-2 border-white shadow-md">
+                 <Link href="/profile/verified-pro-1" className="flex items-center gap-4 mb-6 group/seller hover:opacity-80 transition-opacity">
+                    <div className="w-14 h-14 bg-slate-100 rounded-full overflow-hidden border-2 border-white shadow-md group-hover/seller:ring-2 group-hover/seller:ring-primary transition-all">
                        <img src="https://picsum.photos/seed/user-hero/200/200" className="w-full h-full object-cover" />
                     </div>
                     <div>
-                       <p className="font-black text-base text-slate-900 uppercase tracking-tight">David Mbeki</p>
+                       <p className="font-black text-base text-slate-900 uppercase tracking-tight group-hover/seller:text-primary transition-colors">David Mbeki</p>
                        <Badge className="bg-green-100 text-green-700 uppercase text-[8px] font-black border-none px-2 py-0.5">Verified Pro</Badge>
                     </div>
-                 </div>
+                 </Link>
                  <div className="relative aspect-[16/10] rounded-3xl overflow-hidden mb-8 shadow-2xl border-4 border-white">
                     <img src="https://picsum.photos/seed/macbook/800/600" className="w-full h-full object-cover" />
                  </div>
