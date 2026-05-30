@@ -116,7 +116,7 @@ function ReportContent() {
         <div className="max-w-2xl w-full space-y-8">
           
           <div className="text-center space-y-3">
-             <div className="w-20 h-20 bg-red-50 rounded-[2.5rem] flex items-center justify-center mx-auto shadow-inner">
+             <div className="w-20 h-20 bg-red-50 rounded-[2.5rem] flex items-center justify-center mx-auto shadow-inner border border-red-100">
                 <ShieldAlert className="w-10 h-10 text-red-600" />
              </div>
              <h1 className="text-4xl font-black text-[#225BC3] uppercase tracking-tighter">Security Center</h1>
