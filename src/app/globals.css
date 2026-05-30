@@ -4,7 +4,8 @@
 
 @layer base {
   :root {
-    --background: 222 47% 11%; /* Dark for depth */
+    /* Updated to a more sophisticated "Fintech" palette */
+    --background: 222 47% 11%; 
     --foreground: 210 40% 98%;
     --card: 0 0% 100%;
     --card-foreground: 222 47% 11%;
@@ -23,7 +24,7 @@
     --border: 217.2 32.6% 17.5%;
     --input: 217.2 32.6% 17.5%;
     --ring: 221 83% 53%;
-    --radius: 1.5rem;
+    --radius: 2rem;
   }
 }
 
@@ -53,12 +54,12 @@
   }
 
   .premium-card:hover {
-    @apply shadow-2xl;
+    @apply shadow-[0_30px_60px_rgba(0,0,0,0.12)];
     transform: translateY(-3px);
   }
 
   .glass-navbar {
-    @apply bg-white/60 backdrop-blur-2xl border-b border-white/20 sticky top-0 z-50;
+    @apply bg-white/60 backdrop-blur-2xl border border-white/20 sticky top-0 z-50;
   }
 
   .light-orb {

@@ -91,7 +91,7 @@ export default function LandingPage() {
 
   return (
     <div className="depth-bg min-h-screen">
-      {/* Background Decor Layer 1 */}
+      {/* Layer 1: Ambient Background */}
       <div className="light-orb bg-primary w-[500px] h-[500px] -top-40 -left-20" />
       <div className="light-orb bg-secondary w-[400px] h-[400px] top-1/2 -right-20" />
       <div className="light-orb bg-accent w-[300px] h-[300px] bottom-0 left-1/3" />
@@ -100,8 +100,8 @@ export default function LandingPage() {
 
       <main className="container mx-auto px-4 py-8 lg:py-16 relative z-10">
         
-        {/* Layer 2: Main Glass Chassis */}
-        <div className="glass-chassis rounded-[3rem] lg:rounded-[5rem] p-8 lg:p-20 space-y-24 overflow-hidden">
+        {/* Layer 2: Main Glass Chassis Wrapper */}
+        <div className="glass-chassis rounded-[3rem] lg:rounded-[5rem] p-8 lg:p-20 space-y-24 overflow-hidden border border-white/40 shadow-[0_50px_100px_rgba(0,0,0,0.3)]">
           
           {/* Founding Member Pulse */}
           <div className="flex justify-center -mt-10 lg:-mt-12 mb-10">
@@ -110,7 +110,7 @@ export default function LandingPage() {
             </Badge>
           </div>
 
-          {/* Hero Content Layer 3 */}
+          {/* Section 1: Hero Layout */}
           <section className="grid lg:grid-cols-2 gap-16 items-center">
             <div className="space-y-8 animate-fade-up">
               <div className="inline-flex items-center gap-3 bg-white/40 backdrop-blur-md px-5 py-2 rounded-2xl border border-white/20 shadow-sm">
@@ -130,12 +130,12 @@ export default function LandingPage() {
               <div className="flex flex-wrap gap-4 pt-4">
                 <Link href="/search">
                   <Button size="lg" className="h-16 px-10 rounded-2xl bg-primary text-white font-black text-lg shadow-xl shadow-primary/20 hover:scale-[1.02] transition-all">
-                    Explore Market
+                    Explore Marketplace
                   </Button>
                 </Link>
                 <Link href="/verify">
                   <Button size="lg" variant="outline" className="h-16 px-10 rounded-2xl border-white/40 bg-white/40 backdrop-blur-md font-black text-slate-900 shadow-xl hover:bg-white/60 transition-all">
-                    Get Verified
+                    Get Verified Badge
                   </Button>
                 </Link>
               </div>
@@ -166,7 +166,7 @@ export default function LandingPage() {
               <div className="bg-white/80 backdrop-blur-3xl p-8 rounded-[3rem] shadow-[0_40px_80px_rgba(0,0,0,0.15)] border border-white relative z-20 animate-fade-up">
                  <div className="flex items-center justify-between mb-6">
                     <div className="flex items-center gap-4">
-                       <div className="w-14 h-14 bg-primary/10 rounded-2xl overflow-hidden shadow-inner">
+                       <div className="w-14 h-14 bg-primary/10 rounded-2xl overflow-hidden shadow-inner border-2 border-white">
                           <img src="https://picsum.photos/seed/user99/200/200" className="w-full h-full object-cover" />
                        </div>
                        <div>
@@ -174,7 +174,10 @@ export default function LandingPage() {
                           <Badge className="bg-green-100 text-green-700 uppercase text-[8px] font-black border-none px-2 py-0.5">Verified Pro</Badge>
                        </div>
                     </div>
-                    <StarRating value={4.9} />
+                    <div className="flex items-center gap-1 bg-accent/10 px-3 py-1.5 rounded-xl border border-accent/20">
+                      <Zap className="w-3.5 h-3.5 text-accent fill-current" />
+                      <span className="text-xs font-black text-slate-900">4.9</span>
+                    </div>
                  </div>
                  <div className="relative aspect-[16/10] rounded-3xl overflow-hidden mb-6 shadow-2xl border-4 border-white">
                     <img src="https://picsum.photos/seed/camera-hero/800/600" className="w-full h-full object-cover" />
@@ -205,7 +208,7 @@ export default function LandingPage() {
             </div>
           </section>
 
-          {/* Categories Layer 3 */}
+          {/* Section 2: Premium Categories */}
           <section className="space-y-12">
             <div className="flex flex-col items-center text-center space-y-3">
               <Badge variant="outline" className="border-primary/20 text-primary font-black uppercase tracking-[0.3em] text-[9px] px-4 py-1">Discover Hierarchy</Badge>
@@ -228,7 +231,7 @@ export default function LandingPage() {
             </div>
           </section>
 
-          {/* Search Glass Block */}
+          {/* Section 3: Floating Search Block */}
           <section className="bg-slate-900/5 backdrop-blur-3xl p-10 lg:p-14 rounded-[4rem] border border-white/40 flex flex-col lg:flex-row items-center gap-8 shadow-inner">
             <div className="flex-1 w-full space-y-3">
                <div className="flex items-center gap-2 text-primary ml-2">
@@ -249,7 +252,7 @@ export default function LandingPage() {
             <div className="flex-1 w-full space-y-3">
                <div className="flex items-center gap-2 text-primary ml-2">
                   <Search className="w-4 h-4" />
-                  <span className="text-[10px] font-black uppercase tracking-widest">Deep Search</span>
+                  <span className="text-[10px] font-black uppercase tracking-widest">Smart Search</span>
                </div>
                <div className="relative group">
                   <input 
@@ -262,7 +265,7 @@ export default function LandingPage() {
             </div>
           </section>
 
-          {/* Trending Deals */}
+          {/* Section 4: Market Flow (Trending Listings) */}
           <section className="space-y-12">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-5">
@@ -276,7 +279,7 @@ export default function LandingPage() {
               </div>
               <Link href="/search">
                 <Button variant="ghost" className="h-12 rounded-2xl font-black text-primary gap-2 group uppercase text-[10px] tracking-widest hover:bg-primary/5">
-                  View Full Registry <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                  Browse All Featured <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                 </Button>
               </Link>
             </div>
@@ -314,7 +317,7 @@ export default function LandingPage() {
             )}
           </section>
 
-          {/* Safety Glass CTA */}
+          {/* Section 5: Safety Protocol CTA */}
           <section>
             <div className="bg-slate-900 rounded-[4rem] p-12 lg:p-24 text-white relative overflow-hidden shadow-[0_50px_100px_rgba(0,0,0,0.4)]">
                <div className="absolute -right-40 -bottom-40 w-[600px] h-[600px] bg-primary/20 rounded-full blur-[120px]" />
@@ -331,12 +334,12 @@ export default function LandingPage() {
                   <div className="flex flex-wrap gap-6 justify-center lg:justify-start pt-6">
                      <Link href="/verify">
                        <Button className="h-20 px-14 rounded-3xl bg-primary text-white font-black text-xl shadow-[0_20px_40px_rgba(37,99,235,0.4)] hover:scale-105 active:scale-95 transition-all uppercase tracking-tighter">
-                         Get Your Badge
+                         Get Verified Badge
                        </Button>
                      </Link>
                      <Link href="/legal">
                        <Button variant="ghost" className="h-20 px-12 rounded-3xl text-white/80 hover:text-white hover:bg-white/5 font-black uppercase tracking-widest text-xs border border-white/10 backdrop-blur-md">
-                         Safety Protocols
+                         Safety Center
                        </Button>
                      </Link>
                   </div>
@@ -345,7 +348,7 @@ export default function LandingPage() {
           </section>
         </div>
         
-        {/* Spatial Footer */}
+        {/* Layer 4: Spatial Footer */}
         <div className="py-20 text-center space-y-6 opacity-30 group hover:opacity-100 transition-opacity duration-700">
            <div className="flex items-center justify-center gap-10">
               <img src="https://picsum.photos/seed/saps/100/100" className="h-10 grayscale invert brightness-200" />
@@ -355,15 +358,6 @@ export default function LandingPage() {
            <p className="text-[10px] font-black uppercase tracking-[0.4em] text-white">The Exchange Marketplace &copy; 2026</p>
         </div>
       </main>
-    </div>
-  );
-}
-
-function StarRating({ value }: { value: number }) {
-  return (
-    <div className="flex items-center gap-1 bg-accent/10 px-3 py-1.5 rounded-xl border border-accent/20">
-      <Zap className="w-3.5 h-3.5 text-accent fill-current" />
-      <span className="text-xs font-black text-slate-900">{value}</span>
     </div>
   );
 }
