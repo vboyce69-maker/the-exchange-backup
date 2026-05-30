@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect, useRef } from "react";
@@ -62,12 +63,16 @@ function CreateListingContent() {
   const [location, setLocation] = useState("");
   const [userListingCount, setUserListingCount] = useState(0);
 
-  const profileRef = useMemoFirebase(() => user ? doc(db, "userProfiles", user.uid) : null, [db, user]);
+  const profileRef = useMemoFirebase(() => {
+    if (!user || !db) return null;
+    return doc(db, "userProfiles", user.uid);
+  }, [db, user]);
+
   const { data: profile } = useDoc(profileRef as any);
 
   useEffect(() => {
     async function checkLimits() {
-      if (!user) return;
+      if (!user || !db) return;
       const q = query(collection(db, "publicListings"), where("sellerId", "==", user.uid));
       const snap = await getDocs(q);
       setUserListingCount(snap.size);
@@ -80,7 +85,7 @@ function CreateListingContent() {
 
   const handleListingCapture = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file && user) {
+    if (file && user && storage) {
       setUploadingImage(true);
       try {
         const storageRef = ref(storage, `listings/${user.uid}/${Date.now()}`);
@@ -98,7 +103,7 @@ function CreateListingContent() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!user || isLimitReached) return;
+    if (!user || !db || isLimitReached) return;
     if (images.length === 0) {
       toast({ variant: "destructive", title: "Photos Required", description: "Use the in-app camera to take a photo." });
       return;
