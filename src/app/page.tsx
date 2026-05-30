@@ -32,8 +32,7 @@ import {
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { useCollection, useFirestore, useMemoFirebase } from "@/firebase";
-import { collection, query, orderBy, limit, getCountFromServer } from "firebase/firestore";
-import { MARKET_CONFIG } from "@/app/lib/market-config";
+import { collection, query, orderBy, limit } from "firebase/firestore";
 
 const CATEGORIES = [
   { name: "Vehicles", icon: Car, bg: "from-blue-500 to-blue-600" },
@@ -69,22 +68,18 @@ export default function LandingPage() {
   const { data: listings, isLoading } = useCollection(trendingQuery);
 
   return (
-    <div className="depth-bg min-h-screen">
-      {/* Bottom Panel Orbs */}
-      <div className="light-orb bg-primary w-[600px] h-[600px] -top-60 -left-40" />
-      <div className="light-orb bg-secondary w-[400px] h-[400px] top-1/2 -right-40" />
-      
+    <div className="min-h-screen bg-[#F8FAFC]">
       <Navigation />
 
-      <main className="container mx-auto px-4 py-8 lg:py-12 relative z-10">
+      <main className="container mx-auto px-4 py-8 lg:py-12">
         
-        {/* Top Panel Glass Chassis */}
-        <div className="glass-chassis rounded-[3.5rem] lg:rounded-[4.5rem] p-8 lg:p-20 space-y-24 overflow-hidden border border-white/20">
+        {/* Main Content Area */}
+        <div className="space-y-24">
           
-          {/* Screenshot-Style Hero Section */}
-          <section className="grid lg:grid-cols-2 gap-16 items-center">
+          {/* Hero Section */}
+          <section className="grid lg:grid-cols-2 gap-16 items-center pt-8">
             <div className="space-y-10 animate-fade-up">
-              <div className="inline-flex items-center gap-3 bg-white/60 backdrop-blur-md px-6 py-2.5 rounded-full border border-slate-100 shadow-sm">
+              <div className="inline-flex items-center gap-3 bg-white px-6 py-2.5 rounded-full border border-slate-100 shadow-sm">
                 <ShieldCheck className="w-4 h-4 text-primary" />
                 <span className="text-[10px] font-black uppercase tracking-widest text-primary">South Africa's High-Trust Market</span>
               </div>
@@ -107,16 +102,16 @@ export default function LandingPage() {
                   </Button>
                 </Link>
                 <Link href="/verify">
-                  <Button size="lg" variant="outline" className="h-[72px] px-10 rounded-[1.5rem] border-slate-100 bg-white font-black text-slate-600 shadow-lg hover:bg-slate-50 transition-all text-xl">
+                  <Button size="lg" variant="outline" className="h-[72px] px-10 rounded-[1.5rem] border-slate-200 bg-white font-black text-slate-600 shadow-lg hover:bg-slate-50 transition-all text-xl">
                     Seller Verification
                   </Button>
                 </Link>
               </div>
             </div>
 
-            {/* Hero Floating Element (Screenshot-style product lot) */}
+            {/* Hero Floating Element */}
             <div className="hidden lg:block relative">
-              <div className="bg-white p-8 rounded-[3rem] shadow-[0_40px_80px_rgba(0,0,0,0.1)] border border-slate-50 relative z-20 animate-fade-up">
+              <div className="bg-white p-8 rounded-[3rem] shadow-[0_40px_80px_rgba(0,0,0,0.06)] border border-slate-50 relative z-20 animate-fade-up">
                  <div className="flex items-center gap-4 mb-6">
                     <div className="w-14 h-14 bg-slate-100 rounded-full overflow-hidden border-2 border-white shadow-md">
                        <img src="https://picsum.photos/seed/user-hero/200/200" className="w-full h-full object-cover" />
@@ -145,7 +140,7 @@ export default function LandingPage() {
             </div>
           </section>
 
-          {/* Screenshot-Style Categories */}
+          {/* Categories Section */}
           <section className="space-y-12">
             <div className="flex flex-col items-center text-center space-y-3">
               <Badge variant="outline" className="border-slate-200 text-slate-400 font-black uppercase tracking-[0.3em] text-[9px] px-4 py-1">Discovery Core</Badge>
@@ -156,7 +151,7 @@ export default function LandingPage() {
                 const Icon = cat.icon;
                 return (
                   <Link key={cat.name} href={`/search?category=${cat.name.toLowerCase()}`} className="group text-center space-y-5">
-                    <div className="w-[88px] h-[88px] mx-auto bg-white rounded-[2rem] shadow-xl border border-slate-50 flex items-center justify-center group-hover:scale-110 group-hover:shadow-2xl transition-all duration-500">
+                    <div className="w-[88px] h-[88px] mx-auto bg-white rounded-[2rem] shadow-xl border border-slate-100 flex items-center justify-center group-hover:scale-110 group-hover:shadow-2xl transition-all duration-500">
                       <div className={cn("w-14 h-14 rounded-2xl flex items-center justify-center shadow-lg bg-gradient-to-br", cat.bg)}>
                         <Icon className="w-7 h-7 text-white" />
                       </div>
@@ -168,7 +163,7 @@ export default function LandingPage() {
             </div>
           </section>
 
-          {/* Trending Deals Architecture */}
+          {/* Trending Deals */}
           <section className="space-y-12">
             <div className="flex items-center justify-between">
               <div className="space-y-1">
@@ -207,8 +202,8 @@ export default function LandingPage() {
                 ))}
               </div>
             ) : (
-              <div className="text-center py-32 bg-slate-50/50 rounded-[4rem] border-2 border-dashed border-slate-200">
-                 <Package className="w-16 h-16 text-slate-200 mx-auto mb-6" />
+              <div className="text-center py-32 bg-white rounded-[3rem] border-2 border-dashed border-slate-200">
+                 <Package className="w-16 h-16 text-slate-100 mx-auto mb-6" />
                  <p className="font-black text-slate-400 uppercase tracking-[0.3em] text-xs">Registry Empty</p>
               </div>
             )}
@@ -217,7 +212,7 @@ export default function LandingPage() {
           {/* Footer Trust Shield */}
           <section>
             <div className="bg-slate-900 rounded-[4rem] p-12 lg:p-24 text-white relative overflow-hidden">
-               <div className="absolute -right-40 -bottom-40 w-[600px] h-[600px] bg-primary/20 rounded-full blur-[120px]" />
+               <div className="absolute -right-40 -bottom-40 w-[600px] h-[600px] bg-primary/10 rounded-full blur-[120px]" />
                
                <div className="max-w-2xl relative z-10 space-y-10">
                   <div className="w-20 h-20 bg-white/10 backdrop-blur-md rounded-[2rem] flex items-center justify-center border border-white/20 shadow-2xl">
@@ -245,7 +240,7 @@ export default function LandingPage() {
         </div>
         
         <div className="py-20 text-center opacity-30 group hover:opacity-100 transition-opacity duration-700">
-           <p className="text-[10px] font-black uppercase tracking-[0.4em] text-white">The Exchange Marketplace &copy; 2026</p>
+           <p className="text-[10px] font-black uppercase tracking-[0.4em] text-slate-500">The Exchange Marketplace &copy; 2026</p>
         </div>
       </main>
     </div>
