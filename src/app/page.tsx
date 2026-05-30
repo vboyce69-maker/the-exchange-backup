@@ -165,16 +165,18 @@ export default function LandingPage() {
                     </div>
                  </Link>
 
-                 <div className="relative aspect-[16/10] rounded-3xl overflow-hidden mb-8 shadow-2xl border-4 border-white">
-                    <img src="https://picsum.photos/seed/macbook/800/600" className="w-full h-full object-cover" />
-                 </div>
-                 <div className="flex justify-between items-end">
-                    <div>
-                       <p className="font-black text-2xl text-slate-900 tracking-tight">MacBook Pro M3</p>
-                       <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-1">High-End Lot</p>
+                 <Link href="/listings/hero-macbook-pro-1" className="block group/product">
+                    <div className="relative aspect-[16/10] rounded-3xl overflow-hidden mb-8 shadow-2xl border-4 border-white group-hover/product:scale-[1.02] transition-transform duration-500">
+                        <img src="https://picsum.photos/seed/macbook/800/600" className="w-full h-full object-cover" />
                     </div>
-                    <p className="font-black text-4xl text-primary leading-none">R 32,500</p>
-                 </div>
+                    <div className="flex justify-between items-end">
+                        <div>
+                           <p className="font-black text-2xl text-slate-900 tracking-tight group-hover/product:text-primary transition-colors">MacBook Pro M3</p>
+                           <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-1">High-End Lot</p>
+                        </div>
+                        <p className="font-black text-4xl text-primary leading-none">R 32,500</p>
+                    </div>
+                 </Link>
               </div>
 
               {/* Redesigned Prominent Trending Auction Banner */}
