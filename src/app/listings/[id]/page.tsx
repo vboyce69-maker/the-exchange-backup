@@ -32,7 +32,8 @@ import {
   Banknote,
   Smartphone,
   Camera,
-  Flag
+  Flag,
+  HandCoins
 } from "lucide-react";
 import Image from "next/image";
 import { VerifiedBadge } from "@/components/VerifiedBadge";
@@ -52,7 +53,7 @@ import {
   CarouselPrevious,
 } from "@/components/ui/carousel";
 import { useDoc, useFirestore, useMemoFirebase, useUser, useStorage } from "@/firebase";
-import { doc, collection, query, where, getDocs, addDoc, serverTimestamp } from "firebase/firestore";
+import { doc, collection, query, where, getDocs, addDoc, serverTimestamp, updateDoc } from "firebase/firestore";
 import { updateDocumentNonBlocking, addDocumentNonBlocking } from "@/firebase/non-blocking-updates";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 
@@ -70,6 +71,7 @@ export default function ListingDetailPage() {
   const { user } = useUser();
 
   const [isPaymentOpen, setIsPaymentOpen] = useState(false);
+  const [isOfferOpen, setIsOfferOpen] = useState(false);
   const [isDisputeOpen, setIsDisputeOpen] = useState(false);
   const [disputeReason, setDisputeReason] = useState("");
   const [disputeEvidence, setDisputeEvidence] = useState<File | null>(null);
@@ -78,13 +80,10 @@ export default function ListingDetailPage() {
   const [paymentMethod, setPaymentMethod] = useState("card");
   const [isPaying, setIsPaying] = useState(false);
   const [bidAmount, setBidAmount] = useState("");
+  const [offerAmount, setOfferAmount] = useState("");
   const [isBidding, setIsBidding] = useState(false);
-  const [isAccepting, setIsAccepting] = useState(false);
+  const [isSendingOffer, setIsSendingOffer] = useState(false);
   const [now, setNow] = useState<Date | null>(null);
-
-  const [cardDetails, setCardDetails] = useState({ number: "", expiry: "", cvv: "" });
-  const [capitecPhone, setCapitecPhone] = useState("");
-  const [eftDetails, setEftDetails] = useState({ bank: "", account: "" });
 
   const listingRef = useMemoFirebase(() => {
     return id ? doc(db, "publicListings", id as string) : null;
@@ -139,6 +138,62 @@ export default function ListingDetailPage() {
     }
     
     router.push(`/messages?thread=${threadId}`);
+  };
+
+  const handleMakeOffer = async () => {
+    if (!user || !db || !listing || !offerAmount) return;
+    
+    const amount = parseFloat(offerAmount);
+    if (isNaN(amount) || amount <= 0) {
+      toast({ variant: "destructive", title: "Invalid Amount", description: "Please enter a valid offer price." });
+      return;
+    }
+
+    setIsSendingOffer(true);
+    try {
+      const q = query(
+        collection(db, "chatThreads"), 
+        where("listingId", "==", id),
+        where("participants", "array-contains", user.uid)
+      );
+      const snap = await getDocs(q);
+      
+      let threadId;
+      if (snap.empty) {
+        const newThread = await addDoc(collection(db, "chatThreads"), {
+          listingId: id,
+          listingTitle: listing.title,
+          participants: [user.uid, listing.sellerId],
+          updatedAt: serverTimestamp(),
+          lastMessage: `New offer received: R ${amount.toLocaleString()}`
+        });
+        threadId = newThread.id;
+      } else {
+        threadId = snap.docs[0].id;
+      }
+
+      await addDoc(collection(db, "chatThreads", threadId, "messages"), {
+        senderId: user.uid,
+        text: `Hi, I'd like to make an offer of R ${amount.toLocaleString()} for this item.`,
+        timestamp: serverTimestamp(),
+        isOffer: true,
+        offerAmount: amount
+      });
+
+      await updateDoc(doc(db, "chatThreads", threadId), {
+        lastMessage: `Offer: R ${amount.toLocaleString()}`,
+        updatedAt: serverTimestamp()
+      });
+
+      toast({ title: "Offer Sent", description: "The seller has been notified of your offer." });
+      setIsOfferOpen(false);
+      setOfferAmount("");
+      router.push(`/messages?thread=${threadId}`);
+    } catch (err) {
+      toast({ variant: "destructive", title: "Error", description: "Failed to send offer." });
+    } finally {
+      setIsSendingOffer(false);
+    }
   };
 
   const handlePayment = () => {
@@ -338,13 +393,20 @@ export default function ListingDetailPage() {
                       </div>
                     )
                   ) : (
-                    <Button className="w-full bg-[#FF8C00] text-white font-black h-16 rounded-2xl shadow-xl text-lg" onClick={() => setIsPaymentOpen(true)}>
-                      Secure Purchase
-                    </Button>
+                    <div className="space-y-3">
+                      <Button className="w-full bg-[#FF8C00] text-white font-black h-16 rounded-2xl shadow-xl text-lg" onClick={() => setIsPaymentOpen(true)}>
+                        Secure Purchase
+                      </Button>
+                      {!isSeller && (
+                        <Button variant="outline" className="w-full h-14 rounded-2xl font-black border-[#225BC3]/20 text-[#225BC3] gap-2" onClick={() => setIsOfferOpen(true)}>
+                          <HandCoins className="w-5 h-5" /> Make an Offer
+                        </Button>
+                      )}
+                    </div>
                   )}
                   {!isSeller && (
-                    <Button variant="outline" className="w-full h-14 rounded-2xl font-black border-[#225BC3]/20 text-[#225BC3]" onClick={handleStartChat}>
-                       <MessageSquare className="w-5 h-5 mr-2" /> Message Seller
+                    <Button variant="ghost" className="w-full h-14 rounded-2xl font-black text-slate-400 hover:text-[#225BC3]" onClick={handleStartChat}>
+                       <MessageSquare className="w-5 h-5 mr-2" /> Chat with Seller
                     </Button>
                   )}
                 </div>
@@ -392,6 +454,38 @@ export default function ListingDetailPage() {
                {isPaying ? <Loader2 className="w-5 h-5 animate-spin" /> : `Commit R ${listing.price?.toLocaleString()}`}
             </Button>
           </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Offer Dialog */}
+      <Dialog open={isOfferOpen} onOpenChange={setIsOfferOpen}>
+        <DialogContent className="rounded-[2.5rem] p-8 max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-2xl font-black text-[#225BC3] uppercase tracking-tighter">Submit Price Offer</DialogTitle>
+            <DialogDescription className="text-sm font-medium">Propose a fair price for this item. Sellers are more likely to accept offers close to the listed price.</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-6 py-4">
+            <div className="space-y-2">
+              <Label className="text-[10px] font-black uppercase text-slate-400">Your Proposed Price (R)</Label>
+              <Input 
+                type="number" 
+                placeholder={listing.price.toString()} 
+                className="h-16 rounded-2xl bg-slate-50 border-none font-black text-3xl px-6" 
+                value={offerAmount} 
+                onChange={(e) => setOfferAmount(e.target.value)} 
+              />
+            </div>
+            <div className="p-4 bg-blue-50 rounded-2xl flex gap-3">
+              <Info className="w-5 h-5 text-[#225BC3] shrink-0" />
+              <p className="text-[10px] text-blue-700 font-bold leading-relaxed">Making an offer initiates a trade discussion. If the seller accepts, you can proceed to Secure Payment.</p>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => setIsOfferOpen(false)} className="rounded-xl font-black">Cancel</Button>
+            <Button className="bg-[#225BC3] rounded-2xl font-black text-white px-10 h-14 shadow-xl" onClick={handleMakeOffer} disabled={isSendingOffer || !offerAmount}>
+              {isSendingOffer ? <Loader2 className="w-4 h-4 animate-spin" /> : "Send Offer"}
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
 
