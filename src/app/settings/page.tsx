@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { Navigation } from "@/components/Navigation";
+import { AuthGuard } from "@/components/auth/AuthGuard";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -30,6 +31,14 @@ import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 
 export default function SettingsPage() {
+  return (
+    <AuthGuard>
+      <SettingsContent />
+    </AuthGuard>
+  );
+}
+
+function SettingsContent() {
   const { user, isUserLoading } = useUser();
   const router = useRouter();
   const db = useFirestore();
@@ -116,19 +125,7 @@ export default function SettingsPage() {
     }
   };
 
-  if (isUserLoading || isProfileLoading) {
-    return (
-      <div className="min-h-screen bg-[#F8FAFC]">
-        <Navigation />
-        <div className="flex justify-center py-20"><Loader2 className="w-10 h-10 animate-spin text-[#225BC3]" /></div>
-      </div>
-    );
-  }
-
-  if (!user) {
-    router.push("/login");
-    return null;
-  }
+  if (!user) return null;
 
   return (
     <div className="min-h-screen bg-[#F8FAFC]">

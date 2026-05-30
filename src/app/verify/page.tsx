@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import { Navigation } from "@/components/Navigation";
+import { AuthGuard } from "@/components/auth/AuthGuard";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -45,41 +46,33 @@ import { doc, setDoc, collection, getCountFromServer } from "firebase/firestore"
 import { cn } from "@/lib/utils";
 import { MARKET_CONFIG, calculateTrustScore } from "@/app/lib/market-config";
 
-const SA_BANKS = [
-  { id: "capitec", name: "Capitec Bank" },
-  { id: "fnb", name: "First National Bank (FNB)" },
-  { id: "std", name: "Standard Bank" },
-  { id: "abs", name: "ABSA" },
-  { id: "ned", name: "Nedbank" },
-  { id: "tyme", name: "TymeBank" },
-  { id: "afri", name: "African Bank" },
-  { id: "disc", name: "Discovery Bank" },
-  { id: "bidv", name: "Bidvest Bank" },
-  { id: "sasf", name: "SASFIN" },
-];
-
 export default function OnboardingPage() {
+  return (
+    <AuthGuard>
+      <OnboardingContent />
+    </AuthGuard>
+  );
+}
+
+function OnboardingContent() {
   const { user: authUser } = useUser();
   const db = useFirestore();
   
   const [sellerType, setSellerType] = useState<'individual' | 'business' | null>(null);
-  const [step, setStep] = useState(0); // 0: Type Selection, 1: Identity, 2: Verification, 3: Banking, 4: Success
+  const [step, setStep] = useState(0); 
   const [isProcessing, setIsProcessing] = useState(false);
   const [hasCameraPermission, setHasCameraPermission] = useState<boolean | null>(null);
   
-  // Media State
   const [idPhoto, setIdPhoto] = useState<string | null>(null);
   const [selfie, setSelfie] = useState<string | null>(null);
   const [idScanActive, setIdScanActive] = useState(false);
   
-  // Data State
   const [fullName, setFullName] = useState("");
   const [idNumber, setIdNumber] = useState("");
   const [businessName, setBusinessName] = useState("");
   const [registrationNumber, setRegistrationNumber] = useState("");
   const [address, setAddress] = useState("");
   
-  // Banking State
   const [bankName, setBankName] = useState("");
   const [accountNumber, setAccountNumber] = useState("");
   const [accountType, setAccountNumberType] = useState("");
@@ -89,7 +82,6 @@ export default function OnboardingPage() {
   const idVideoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
-  // Stop all camera streams on unmount
   useEffect(() => {
     return () => {
       if (videoRef.current?.srcObject) {
@@ -130,7 +122,6 @@ export default function OnboardingPage() {
       canvas.height = videoRef.current.videoHeight;
       canvas.getContext('2d')?.drawImage(videoRef.current, 0, 0);
       setSelfie(canvas.toDataURL('image/jpeg'));
-      // Stop track after capture
       (videoRef.current.srcObject as MediaStream).getTracks().forEach(t => t.stop());
       toast({ title: "Selfie Captured", description: "Biometric image ready for storage." });
     }
@@ -143,7 +134,6 @@ export default function OnboardingPage() {
       canvas.height = idVideoRef.current.videoHeight;
       canvas.getContext('2d')?.drawImage(idVideoRef.current, 0, 0);
       setIdPhoto(canvas.toDataURL('image/jpeg'));
-      // Stop track after capture
       if (idVideoRef.current.srcObject) {
         (idVideoRef.current.srcObject as MediaStream).getTracks().forEach(t => t.stop());
       }
@@ -209,7 +199,6 @@ export default function OnboardingPage() {
   return (
     <div className="min-h-screen bg-[#F8FAFC]">
       <Navigation />
-      {/* Hidden canvas for processing captures */}
       <canvas ref={canvasRef} className="hidden" aria-hidden="true" />
       
       <main className="container mx-auto px-4 py-12 flex justify-center">
@@ -226,7 +215,6 @@ export default function OnboardingPage() {
           <Card className="rounded-[3rem] shadow-2xl border-none bg-white overflow-hidden ring-1 ring-slate-100">
             <CardContent className="p-10">
               
-              {/* STEP 0: TYPE SELECTION */}
               {step === 0 && (
                 <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4">
                   <div className="text-center space-y-2">
@@ -254,7 +242,6 @@ export default function OnboardingPage() {
                 </div>
               )}
 
-              {/* STEP 1: IDENTITY DETAILS */}
               {step === 1 && (
                 <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4">
                   <div className="space-y-1">
@@ -286,14 +273,13 @@ export default function OnboardingPage() {
                   </div>
                   <div className="flex gap-3">
                     <Button variant="outline" className="flex-1 h-16 rounded-2xl font-black uppercase text-[10px]" onClick={() => setStep(0)}>Back</Button>
-                    <Button className="flex-[2] bg-[#225BC3] h-16 rounded-2xl font-black text-white shadow-xl" onClick={() => setStep(2)}>
+                    <Button className="flex-[2] bg-[#225BC3] h-16 rounded-2xl font-black text-white shadow-xl border-none" onClick={() => setStep(2)}>
                       Next Pillar <ArrowRight className="w-4 h-4 ml-2" />
                     </Button>
                   </div>
                 </div>
               )}
 
-              {/* STEP 2: VERIFICATION (MEDIA / ADDRESS) */}
               {step === 2 && (
                 <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4">
                   <div className="text-center space-y-2">
@@ -303,7 +289,6 @@ export default function OnboardingPage() {
 
                   {sellerType === 'individual' ? (
                     <div className="space-y-10">
-                      {/* ID Scanner Section */}
                       <div className="space-y-4">
                         <div className="flex items-center justify-between">
                            <Label className="text-[10px] font-black uppercase text-[#225BC3] tracking-widest">1. ID Document Scanner</Label>
@@ -325,11 +310,9 @@ export default function OnboardingPage() {
                           ) : idScanActive ? (
                             <>
                               <video ref={idVideoRef} autoPlay muted playsInline className="w-full h-full object-cover" />
-                              {/* ID VIEWfinder Overlay */}
                               <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-10">
                                  <div className="w-[85%] h-[75%] border-2 border-dashed border-[#34CBED]/60 rounded-2xl relative shadow-[0_0_0_9999px_rgba(0,0,0,0.5)]">
                                     <div className="absolute inset-0 border-2 border-[#34CBED] rounded-2xl animate-pulse" />
-                                    {/* Scan Line Animation */}
                                     <div className="absolute left-0 right-0 h-[2px] bg-[#34CBED] shadow-[0_0_15px_#34CBED] top-0 animate-[scan_2s_linear_infinite]" style={{
                                       animation: 'scan 3s linear infinite'
                                     }} />
@@ -360,7 +343,6 @@ export default function OnboardingPage() {
                             </div>
                           )}
                         </div>
-                        {/* Repositioned Capture ID Button */}
                         {idScanActive && !idPhoto && (
                           <div className="flex justify-center pt-2">
                             <Button 
@@ -373,7 +355,6 @@ export default function OnboardingPage() {
                         )}
                       </div>
 
-                      {/* Selfie Section */}
                       <div className="space-y-4">
                          <div className="flex items-center justify-between">
                             <Label className="text-[10px] font-black uppercase text-[#225BC3] tracking-widest">2. Biometric Facial Scan</Label>
@@ -395,7 +376,6 @@ export default function OnboardingPage() {
                             ) : (
                               <>
                                 <video ref={videoRef} autoPlay muted playsInline className="w-full h-full object-cover grayscale brightness-110" />
-                                {/* Face Guide Overlay */}
                                 <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-10">
                                    <div className="w-[85%] h-[85%] border-4 border-dashed border-[#34CBED]/40 rounded-full shadow-[0_0_0_9999px_rgba(0,0,0,0.5)]">
                                       <div className="absolute inset-0 border-2 border-[#34CBED] rounded-full animate-pulse opacity-20" />
@@ -407,7 +387,6 @@ export default function OnboardingPage() {
                               </>
                             )}
                          </div>
-                         {/* Repositioned Face Scan Button */}
                          {!selfie && (
                            <div className="flex justify-center pt-2">
                              <Button 
@@ -449,7 +428,6 @@ export default function OnboardingPage() {
                 </div>
               )}
 
-              {/* STEP 3: BANKING DETAILS */}
               {step === 3 && (
                 <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4">
                   <div className="text-center space-y-2">
@@ -505,17 +483,9 @@ export default function OnboardingPage() {
                       {isProcessing ? <Loader2 className="w-6 h-6 animate-spin" /> : "Finalize Registration"}
                     </Button>
                   </div>
-                  
-                  {isProcessing && (
-                    <div className="p-4 bg-[#225BC3]/5 rounded-2xl border border-[#225BC3]/10 flex items-center justify-center gap-3 animate-pulse">
-                      <Loader2 className="w-4 h-4 text-[#225BC3] animate-spin" />
-                      <span className="text-[10px] font-black uppercase text-[#225BC3]">Finalizing Registration...</span>
-                    </div>
-                  )}
                 </div>
               )}
 
-              {/* STEP 4: SUCCESS */}
               {step === 4 && (
                 <div className="text-center space-y-8 animate-in zoom-in-95 duration-500">
                   <div className="relative w-32 h-32 mx-auto">
@@ -538,14 +508,21 @@ export default function OnboardingPage() {
 
             </CardContent>
           </Card>
-          
-          <div className="mt-8 text-center opacity-40">
-             <p className="text-[8px] font-black uppercase tracking-widest flex items-center justify-center gap-2">
-                <Lock className="w-3 h-3" /> PCI-DSS & POPIA Compliant
-             </p>
-          </div>
         </div>
       </main>
     </div>
   );
 }
+
+const SA_BANKS = [
+  { id: "capitec", name: "Capitec Bank" },
+  { id: "fnb", name: "First National Bank (FNB)" },
+  { id: "std", name: "Standard Bank" },
+  { id: "abs", name: "ABSA" },
+  { id: "ned", name: "Nedbank" },
+  { id: "tyme", name: "TymeBank" },
+  { id: "afri", name: "African Bank" },
+  { id: "disc", name: "Discovery Bank" },
+  { id: "bidv", name: "Bidvest Bank" },
+  { id: "sasf", name: "SASFIN" },
+];

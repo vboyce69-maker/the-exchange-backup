@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { Navigation } from "@/components/Navigation";
+import { AuthGuard } from "@/components/auth/AuthGuard";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -34,6 +35,14 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { useScamDetection } from "@/hooks/use-scam-detection";
 
 export default function CreateListingPage() {
+  return (
+    <AuthGuard>
+      <CreateListingContent />
+    </AuthGuard>
+  );
+}
+
+function CreateListingContent() {
   const router = useRouter();
   const { user } = useUser();
   const db = useFirestore();
@@ -97,12 +106,11 @@ export default function CreateListingPage() {
 
     setLoading(true);
 
-    // INTERNAL VALIDATION PIPELINE
     const validationResult = await checkContent(`${title} ${description}`, 'listing');
     
     if (validationResult?.decision === 'block') {
       setLoading(false);
-      return; // Error message handled by hook
+      return;
     }
 
     const listingData = {

@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Navigation } from "@/components/Navigation";
+import { AuthGuard } from "@/components/auth/AuthGuard";
 import { useScamDetection } from "@/hooks/use-scam-detection";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -31,6 +32,14 @@ import { addDocumentNonBlocking } from "@/firebase/non-blocking-updates";
 import { toast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
 
+export default function MessagesPage() {
+  return (
+    <AuthGuard>
+      <MessagesContent />
+    </AuthGuard>
+  );
+}
+
 interface Message {
   id: string;
   senderId: string;
@@ -40,7 +49,7 @@ interface Message {
   aiAnalyzed?: boolean;
 }
 
-export default function MessagesPage() {
+function MessagesContent() {
   const { user } = useUser();
   const db = useFirestore();
   const router = useRouter();
