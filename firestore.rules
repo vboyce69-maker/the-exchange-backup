@@ -1,28 +1,67 @@
+
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
     
+    // ===============================================================
+    // Helper Functions
+    // ===============================================================
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    // ===============================================================
+    // Domain Validators
+    // ===============================================================
+    function isValidUser(data) {
+      return data.phoneNumber is string &&
+             data.isVerified is bool &&
+             data.createdAt is timestamp &&
+             data.role in ['buyer', 'seller', 'admin'] &&
+             (!('displayName' in data) || data.displayName is string) &&
+             (!('businessInfo' in data) || (
+               data.businessInfo is map &&
+               data.businessInfo.registrationNumber is string &&
+               data.businessInfo.address is string &&
+               (!('vatNumber' in data.businessInfo) || data.businessInfo.vatNumber is string)
+             ));
+    }
+
+    // ===============================================================
+    // Collection Rules
+    // ===============================================================
+    
     // Core user account security: Only the owner can access their private account data
     match /users/{userId} {
-      allow read, write: if request.auth != null && request.auth.uid == userId;
+      allow read: if isOwner(userId);
+      allow create: if isOwner(userId) && 
+                      isValidUser(request.resource.data) && 
+                      request.resource.data.role != 'admin'; // Prevent self-elevation
+      allow update: if isOwner(userId) && 
+                      isValidUser(request.resource.data) && 
+                      request.resource.data.role == resource.data.role; // Role remains immutable
     }
 
     // User Profiles: Publicly readable for trust/verification, but only editable by the owner
     match /userProfiles/{userId} {
       allow read: if true;
-      allow write: if request.auth != null && request.auth.uid == userId;
+      allow write: if isOwner(userId);
     }
 
     // Public Listings: Anyone can browse items, but only the verified seller can modify them
     match /publicListings/{listingId} {
       allow read: if true;
-      allow create: if request.auth != null;
-      allow update, delete: if request.auth != null && request.auth.uid == resource.data.sellerId;
+      allow create: if isAuthenticated();
+      allow update, delete: if isAuthenticated() && request.auth.uid == resource.data.sellerId;
     }
 
     // Moderation Queue: Users can submit reports, but data is restricted to system administrators
     match /moderationQueue/{recordId} {
-      allow create: if request.auth != null;
+      allow create: if isAuthenticated();
       allow read, update, delete: if false; 
     }
 
