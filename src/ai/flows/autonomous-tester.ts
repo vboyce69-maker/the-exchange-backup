@@ -25,7 +25,7 @@ const SecurityReportSchema = z.object({
 
 const SuiteReportSchema = z.object({
   suite: z.string(),
-  category: z.enum(['FUNCTIONAL', 'STRESS', 'SECURITY', 'PERFORMANCE', 'NETWORK', 'DATA_INTEGRITY']),
+  category: z.enum(['FUNCTIONAL', 'STRESS', 'SECURITY', 'PERFORMANCE', 'NETWORK', 'DATA_INTEGRITY', 'AUTHENTICATION']),
   total_tests: z.number(),
   passed: z.number(),
   failed: z.number(),
@@ -76,9 +76,9 @@ MISSION PARAMETERS:
 
 AUDIT REQUIREMENTS:
 1. STRESS TESTING: Simulate high-scale usage spikes. Identify API degradation and DB bottlenecks.
-2. CRASH & BREAK: Analyze impact of app kills during payments, image uploads, or KYC.
-3. SECURITY ABUSE: Test for location spoofing, off-platform redirection evasion, and auth bypass.
-4. DATA INTEGRITY: Detect duplicate transactions and lost chat syncs.
+2. AUTHENTICATION AUDIT: Specifically audit SMS/OTP delivery logic for South African targets (e.g. +27 numbers).
+3. CRASH & BREAK: Analyze impact of app kills during payments, image uploads, or KYC.
+4. SECURITY ABUSE: Test for location spoofing, off-platform redirection evasion, and auth bypass.
 
 TEST SUITES DEFINITION:
 {{{suitesJson}}}
