@@ -144,10 +144,11 @@ export function Navigation() {
               <span className="hidden lg:block text-[10px] font-black uppercase tracking-widest text-slate-400 group-hover:text-primary transition-colors">Notifications</span>
             </Link>
 
-            <Link href="/messages" className="hidden sm:block">
-               <div className="h-11 w-11 rounded-2xl flex items-center justify-center bg-slate-50 hover:bg-blue-50 transition-all text-slate-400 hover:text-primary">
+            <Link href="/messages" className="hidden sm:flex items-center gap-2 group">
+               <div className="h-11 w-11 rounded-2xl flex items-center justify-center bg-slate-50 group-hover:bg-blue-50 transition-all text-slate-400 group-hover:text-primary">
                   <Inbox className="w-5 h-5" />
                </div>
+               <span className="hidden lg:block text-[10px] font-black uppercase tracking-widest text-slate-400 group-hover:text-primary transition-colors">Messages</span>
             </Link>
 
             <DropdownMenu>
