@@ -1,4 +1,3 @@
-
 "use client";
 
 import Link from "next/link";
@@ -46,7 +45,7 @@ export function Navigation() {
   const auth = useAuth();
   const db = useFirestore();
   const [searchVal, setSearchVal] = useState("");
-  const [slotsLeft, setSlotsLeft] = useState(1000);
+  const [slotsLeft, setSlotsLeft] = useState(MARKET_CONFIG.FOUNDING_LIMIT);
 
   const profileRef = useMemoFirebase(() => {
     return user ? doc(db, "userProfiles", user.uid) : null;
@@ -255,7 +254,7 @@ export function Navigation() {
       {/* Announcement Architecture */}
       <div className="bg-primary text-white h-10 flex items-center justify-center">
         <p className="text-[10px] font-black uppercase tracking-[0.2em]">
-          Limited: Join the Founding 1000 Sellers — <span className="text-secondary">{slotsLeft} Slots Left</span>
+          Limited: Join the Founding 100 Sellers — <span className="text-secondary">{slotsLeft} Slots Left</span>
         </p>
       </div>
     </div>

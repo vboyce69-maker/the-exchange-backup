@@ -44,3 +44,6 @@ The Exchange is a **Mobile-Responsive Web App**. You can view the full mobile ex
 1. **Get the URL**: Copy the preview URL from the address bar of the internal browser in this workspace.
 2. **Open on Phone**: Open your mobile browser (Safari/Chrome) and paste the URL.
 3. **Add to Home Screen**: For the best experience, use the "Add to Home Screen" feature in your mobile browser.
+
+## Founding 100 Program
+The first 100 verified sellers receive R0 listing fees and a lifetime "Founding Member" badge.
