@@ -5,6 +5,7 @@ import { useMemo, useState, useEffect, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { Navigation } from "@/components/Navigation";
 import { ListingCard } from "@/components/ListingCard";
+import { ListingMap } from "@/components/ListingMap";
 import { 
   Search, 
   Loader2, 
@@ -14,7 +15,9 @@ import {
   MapPin, 
   Zap, 
   ShoppingBag,
-  AlertCircle
+  AlertCircle,
+  LayoutGrid,
+  Map as MapIcon
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { useCollection, useFirestore, useMemoFirebase } from "@/firebase";
@@ -28,6 +31,7 @@ import {
   DropdownMenuTrigger 
 } from "@/components/ui/dropdown-menu";
 import { Slider } from "@/components/ui/slider";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 function SearchContent() {
   const db = useFirestore();
@@ -38,6 +42,7 @@ function SearchContent() {
   const searchQuery = searchParams.get('q');
   const [priceRange, setPriceRange] = useState([0, 100000]);
   const [activeCondition, setActiveCondition] = useState<string | null>(null);
+  const [viewType, setViewType] = useState<string>("grid");
 
   // Simplified query: order by postedDate desc primarily
   const listingsQuery = useMemoFirebase(() => {
@@ -168,44 +173,67 @@ function SearchContent() {
           </Alert>
         )}
 
-        {isLoading || !db ? (
-          <div className="flex flex-col items-center justify-center py-24">
-            <Loader2 className="w-12 h-12 animate-spin text-[#225BC3] mb-4" />
-            <p className="text-muted-foreground font-black uppercase text-[10px] tracking-widest text-center">
-              Fetching items for you...
-            </p>
-          </div>
-        ) : listings && listings.length > 0 ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-            {listings.map((listing) => (
-              <ListingCard 
-                key={listing.id} 
-                id={listing.id}
-                title={listing.title}
-                price={listing.price}
-                location={listing.location || "Local"}
-                imageUrl={listing.imageUrls?.[0]}
-                sellerName="Verified Seller"
-                sellerRating={4.9}
-                isVerified={true}
-                isAuction={listing.isAuction}
-                isBulk={listing.isBulk}
-                isBoosted={listing.isBoosted}
-                quantity={listing.quantity}
-                auctionEndDate={listing.auctionEndDate}
-              />
-            ))}
-          </div>
-        ) : (
-          <div className="text-center py-32 bg-white rounded-[4rem] shadow-sm border-2 border-dashed border-slate-100">
-             <Search className="w-16 h-16 text-slate-100 mx-auto mb-6" />
-             <h3 className="font-black text-[#225BC3] text-xl uppercase tracking-widest mb-2">No matching items</h3>
-             <p className="text-muted-foreground text-sm font-medium">Try broadening your filters or search terms.</p>
-             <Button onClick={clearFilters} className="mt-8 rounded-2xl bg-[#225BC3] font-black h-12 px-8">
-               Browse Everything
-             </Button>
-          </div>
-        )}
+        <Tabs value={viewType} onValueChange={setViewType} className="space-y-8">
+           <div className="flex justify-center md:justify-start">
+             <TabsList className="bg-white rounded-2xl h-14 p-1.5 shadow-xl border border-slate-50">
+               <TabsTrigger value="grid" className="rounded-xl h-full px-8 font-black uppercase text-[10px] tracking-widest gap-2 data-[state=active]:bg-primary data-[state=active]:text-white">
+                 <LayoutGrid className="w-4 h-4" /> Grid View
+               </TabsTrigger>
+               <TabsTrigger value="map" className="rounded-xl h-full px-8 font-black uppercase text-[10px] tracking-widest gap-2 data-[state=active]:bg-primary data-[state=active]:text-white">
+                 <MapIcon className="w-4 h-4" /> Map View
+               </TabsTrigger>
+             </TabsList>
+           </div>
+
+           <TabsContent value="grid" className="mt-0">
+             {isLoading || !db ? (
+               <div className="flex flex-col items-center justify-center py-24">
+                 <Loader2 className="w-12 h-12 animate-spin text-[#225BC3] mb-4" />
+                 <p className="text-muted-foreground font-black uppercase text-[10px] tracking-widest text-center">
+                   Fetching items for you...
+                 </p>
+               </div>
+             ) : listings && listings.length > 0 ? (
+               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                 {listings.map((listing) => (
+                   <ListingCard 
+                     key={listing.id} 
+                     id={listing.id}
+                     title={listing.title}
+                     price={listing.price}
+                     location={listing.location || "Local"}
+                     imageUrl={listing.imageUrls?.[0]}
+                     sellerName="Verified Seller"
+                     sellerRating={4.9}
+                     isVerified={true}
+                     isAuction={listing.isAuction}
+                     isBulk={listing.isBulk}
+                     isBoosted={listing.isBoosted}
+                     quantity={listing.quantity}
+                     auctionEndDate={listing.auctionEndDate}
+                   />
+                 ))}
+               </div>
+             ) : (
+               <div className="text-center py-32 bg-white rounded-[4rem] shadow-sm border-2 border-dashed border-slate-100">
+                  <Search className="w-16 h-16 text-slate-100 mx-auto mb-6" />
+                  <h3 className="font-black text-[#225BC3] text-xl uppercase tracking-widest mb-2">No matching items</h3>
+                  <p className="text-muted-foreground text-sm font-medium">Try broadening your filters or search terms.</p>
+                  <Button onClick={clearFilters} className="mt-8 rounded-2xl bg-[#225BC3] font-black h-12 px-8">
+                    Browse Everything
+                  </Button>
+               </div>
+             )}
+           </TabsContent>
+
+           <TabsContent value="map" className="mt-0 outline-none">
+             {!isLoading && listings && (
+               <div className="animate-in fade-in zoom-in-95 duration-500">
+                 <ListingMap listings={listings} />
+               </div>
+             )}
+           </TabsContent>
+        </Tabs>
       </main>
     </div>
   );
