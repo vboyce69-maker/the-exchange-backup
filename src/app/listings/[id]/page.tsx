@@ -33,7 +33,8 @@ import {
   Smartphone,
   Camera,
   Flag,
-  HandCoins
+  HandCoins,
+  Zap
 } from "lucide-react";
 import Image from "next/image";
 import { VerifiedBadge } from "@/components/VerifiedBadge";
@@ -83,6 +84,7 @@ export default function ListingDetailPage() {
   const [offerAmount, setOfferAmount] = useState("");
   const [isBidding, setIsBidding] = useState(false);
   const [isSendingOffer, setIsSendingOffer] = useState(false);
+  const [isBoosting, setIsBoosting] = useState(false);
   const [now, setNow] = useState<Date | null>(null);
 
   const listingRef = useMemoFirebase(() => {
@@ -265,6 +267,23 @@ export default function ListingDetailPage() {
     }, 800);
   };
 
+  const handleBoostListing = async () => {
+    if (!db || !id) return;
+    setIsBoosting(true);
+    updateDocumentNonBlocking(doc(db, "publicListings", id as string), {
+      isBoosted: true,
+      boostedAt: new Date().toISOString()
+    });
+    
+    setTimeout(() => {
+      setIsBoosting(false);
+      toast({
+        title: "Listing Boosted!",
+        description: "Your item is now prioritized at the top of search results.",
+      });
+    }, 1000);
+  };
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-white">
@@ -290,6 +309,19 @@ export default function ListingDetailPage() {
           {!isSeller && (
             <Button variant="ghost" className="text-red-400 font-black uppercase text-[10px] tracking-widest gap-2" onClick={() => setIsDisputeOpen(true)}>
               <Flag className="w-3.5 h-3.5" /> Report Listing
+            </Button>
+          )}
+          {isSeller && (
+            <Button 
+              className={cn(
+                "font-black uppercase text-[10px] tracking-widest gap-2 h-10 rounded-xl shadow-lg",
+                listing.isBoosted ? "bg-accent text-white opacity-50 cursor-default" : "bg-primary text-white hover:scale-105 transition-all"
+              )}
+              onClick={handleBoostListing}
+              disabled={isBoosting || listing.isBoosted}
+            >
+              {isBoosting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Zap className="w-4 h-4 fill-current" />}
+              {listing.isBoosted ? "Currently Boosted" : "Boost Listing"}
             </Button>
           )}
         </div>
@@ -369,7 +401,15 @@ export default function ListingDetailPage() {
                     </span>
                     <span className="text-2xl lg:text-3xl font-black text-[#225BC3]">R {(listing.highestBid || listing.price || 0).toLocaleString()}</span>
                   </div>
-                  <VerifiedBadge />
+                  <div className="flex flex-col items-end gap-2">
+                    <VerifiedBadge />
+                    {listing.isBoosted && (
+                      <Badge className="bg-accent text-white border-none font-black text-[8px] uppercase px-3 py-1 rounded-xl">
+                        <Zap className="w-2.5 h-2.5 mr-1 fill-current" />
+                        Featured
+                      </Badge>
+                    )}
+                  </div>
                 </div>
 
                 <div className="space-y-4">

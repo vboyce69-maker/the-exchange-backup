@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useMemo, useState, useEffect, Suspense } from "react";
@@ -38,7 +39,7 @@ function SearchContent() {
   const [priceRange, setPriceRange] = useState([0, 100000]);
   const [activeCondition, setActiveCondition] = useState<string | null>(null);
 
-  // Simplified query to avoid index requirement for category filtering
+  // Simplified query: order by postedDate desc primarily
   const listingsQuery = useMemoFirebase(() => {
     if (!db) return null;
     return query(collection(db, "publicListings"), orderBy("postedDate", "desc"));
@@ -46,11 +47,11 @@ function SearchContent() {
 
   const { data: rawListings, isLoading, error } = useCollection(listingsQuery);
 
-  // Client-side advanced filtering
+  // Client-side advanced filtering + BOOSTED SORTING
   const listings = useMemo(() => {
     if (!rawListings) return [];
     
-    return rawListings.filter(item => {
+    let filtered = rawListings.filter(item => {
       const matchesCategory = categoryFilter ? item.categoryId === categoryFilter.toLowerCase() : true;
       
       const matchesSearch = searchQuery 
@@ -62,6 +63,13 @@ function SearchContent() {
       const matchesCondition = activeCondition ? item.condition === activeCondition : true;
       
       return matchesCategory && matchesSearch && matchesPrice && matchesCondition;
+    });
+
+    // PRIORITY: Boosted items first, then by date
+    return filtered.sort((a, b) => {
+      if (a.isBoosted && !b.isBoosted) return -1;
+      if (!a.isBoosted && b.isBoosted) return 1;
+      return new Date(b.postedDate).getTime() - new Date(a.postedDate).getTime();
     });
   }, [rawListings, categoryFilter, searchQuery, priceRange, activeCondition]);
 
@@ -182,6 +190,7 @@ function SearchContent() {
                 isVerified={true}
                 isAuction={listing.isAuction}
                 isBulk={listing.isBulk}
+                isBoosted={listing.isBoosted}
                 quantity={listing.quantity}
                 auctionEndDate={listing.auctionEndDate}
               />
