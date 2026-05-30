@@ -85,6 +85,7 @@ export default function ListingDetailPage() {
   const [isBidding, setIsBidding] = useState(false);
   const [isSendingOffer, setIsSendingOffer] = useState(false);
   const [isBoosting, setIsBoosting] = useState(false);
+  const [isStartingChat, setIsStartingChat] = useState(false);
   const [now, setNow] = useState<Date | null>(null);
 
   const listingRef = useMemoFirebase(() => {
@@ -115,31 +116,54 @@ export default function ListingDetailPage() {
   }, [listing, now]);
 
   const handleStartChat = async () => {
-    if (!user || !db || !listing) return;
-    
-    // Check for existing thread
-    const q = query(
-      collection(db, "chatThreads"), 
-      where("listingId", "==", id),
-      where("participants", "array-contains", user.uid)
-    );
-    const snap = await getDocs(q);
-    
-    let threadId;
-    if (snap.empty) {
-      const newThread = await addDoc(collection(db, "chatThreads"), {
-        listingId: id,
-        listingTitle: listing.title,
-        participants: [user.uid, listing.sellerId],
-        updatedAt: serverTimestamp(),
-        lastMessage: "Conversation initiated."
+    if (!db || !listing) return;
+
+    if (!user) {
+      toast({
+        title: "Sign In Required",
+        description: "Please sign in to message this seller and initiate a trade.",
+        variant: "destructive"
       });
-      threadId = newThread.id;
-    } else {
-      threadId = snap.docs[0].id;
+      router.push(`/login?redirect=/listings/${id}`);
+      return;
     }
+
+    setIsStartingChat(true);
     
-    router.push(`/messages?thread=${threadId}`);
+    try {
+      // Check for existing thread
+      const q = query(
+        collection(db, "chatThreads"), 
+        where("listingId", "==", id),
+        where("participants", "array-contains", user.uid)
+      );
+      const snap = await getDocs(q);
+      
+      let threadId;
+      if (snap.empty) {
+        const newThread = await addDoc(collection(db, "chatThreads"), {
+          listingId: id,
+          listingTitle: listing.title,
+          participants: [user.uid, listing.sellerId],
+          updatedAt: serverTimestamp(),
+          lastMessage: "Conversation initiated."
+        });
+        threadId = newThread.id;
+      } else {
+        threadId = snap.docs[0].id;
+      }
+      
+      router.push(`/messages?thread=${threadId}`);
+    } catch (err) {
+      console.error("Chat Initiation Error:", err);
+      toast({
+        variant: "destructive",
+        title: "Communication Fault",
+        description: "We couldn't connect to the secure messaging service. Please try again."
+      });
+    } finally {
+      setIsStartingChat(false);
+    }
   };
 
   const handleMakeOffer = async () => {
@@ -445,8 +469,14 @@ export default function ListingDetailPage() {
                     </div>
                   )}
                   {!isSeller && (
-                    <Button variant="ghost" className="w-full h-14 rounded-2xl font-black text-slate-400 hover:text-[#225BC3]" onClick={handleStartChat}>
-                       <MessageSquare className="w-5 h-5 mr-2" /> Chat with Seller
+                    <Button 
+                      variant="ghost" 
+                      className="w-full h-14 rounded-2xl font-black text-slate-400 hover:text-[#225BC3] transition-all" 
+                      onClick={handleStartChat}
+                      disabled={isStartingChat}
+                    >
+                       {isStartingChat ? <Loader2 className="w-5 h-5 animate-spin mr-2" /> : <MessageSquare className="w-5 h-5 mr-2" />} 
+                       Chat with Seller
                     </Button>
                   )}
                 </div>
@@ -457,7 +487,7 @@ export default function ListingDetailPage() {
                <div className="flex items-center justify-between">
                   <div className="flex items-center gap-4">
                      <div className="w-16 h-16 rounded-2xl overflow-hidden shadow-lg border-2 border-slate-50">
-                        <Image src={`https://picsum.photos/seed/user${listing.sellerId}/200/200`} alt="seller" width={64} height={64} />
+                        <img src={`https://picsum.photos/seed/user${listing.sellerId}/200/200`} alt="seller" width={64} height={64} className="w-full h-full object-cover" />
                      </div>
                      <div>
                         <h3 className="font-black text-lg text-slate-900 leading-none">Verified Seller</h3>
