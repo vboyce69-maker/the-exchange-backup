@@ -33,8 +33,8 @@
 - **Bid Increments:** Managed via Firestore non-blocking updates.
 - **Winner Selection:** Highest bidder at expiry initiates the `pending_meetup` state.
 
-### 3.3. Founding 1000 Program
-- **Scarcity Logic:** First 1000 verified sellers receive:
+### 3.3. Founding 100 Program
+- **Scarcity Logic:** First 100 verified sellers receive:
     - R0 Listing Fees.
     - Permanent "Founding Member" profile badge.
     - Complimentary "Featured" boost on all listings.

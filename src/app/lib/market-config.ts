@@ -1,11 +1,11 @@
 /**
  * @fileOverview Centralized Marketplace Configuration.
- * Defines the parameters for the Founding 1000 program, fees, and trust limits.
+ * Defines the parameters for the Founding 100 program, fees, and trust limits.
  * Aligned with Seller Onboarding API Spec (v1).
  */
 
 export const MARKET_CONFIG = {
-  FOUNDING_LIMIT: 1000,
+  FOUNDING_LIMIT: 100,
   SIMULATED_FILLED_SLOTS: 0,
   STANDARD_LISTING_FEE: 20.00,
   FOUNDING_MEMBER_FEE: 0.00,
