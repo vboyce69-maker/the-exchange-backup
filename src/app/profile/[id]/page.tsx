@@ -290,7 +290,6 @@ export default function UserProfilePage() {
                       <Star className="w-4 h-4" /> Reviews
                     </button>
                   </div>
-                  <Badge className="bg-green-100 text-green-700 border-none font-black text-[9px] uppercase">Highly Reliable</Badge>
                 </div>
 
                 <div className="flex flex-col items-center">
@@ -300,6 +299,7 @@ export default function UserProfilePage() {
                         <circle cx="56" cy="56" r="50" stroke="currentColor" strokeWidth="8" fill="transparent" strokeDasharray={314} strokeDashoffset={314 * (1 - (user.reliabilityScore || 50) / 100)} strokeLinecap="round" className="text-[#225BC3]" />
                       </svg>
                       <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
+                        <Badge className="bg-green-100 text-green-700 border-none font-black text-[7px] uppercase mb-1.5 scale-90">Highly Reliable</Badge>
                         <span className="text-3xl font-black text-[#225BC3] leading-none">{(user.reliabilityScore || 50)}%</span>
                         <span className="text-[7px] font-black uppercase text-slate-400 tracking-widest mt-1">Trust Score</span>
                       </div>
