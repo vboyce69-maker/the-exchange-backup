@@ -27,12 +27,15 @@ import {
   Palette,
   Lock,
   ChevronRight,
-  Fingerprint
+  Fingerprint,
+  Star,
+  History
 } from "lucide-react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { useCollection, useFirestore, useMemoFirebase } from "@/firebase";
 import { collection, query, orderBy, limit } from "firebase/firestore";
+import { VerifiedBadge } from "@/components/VerifiedBadge";
 
 const CATEGORIES = [
   { name: "Vehicles", icon: Car, bg: "from-blue-500 to-blue-600" },
@@ -112,15 +115,56 @@ export default function LandingPage() {
             {/* Hero Floating Element Container */}
             <div className="hidden lg:block space-y-6">
               <div className="bg-white p-8 rounded-[3rem] shadow-[0_40px_80px_rgba(0,0,0,0.06)] border border-slate-50 relative z-20 animate-fade-up">
-                 <Link href="/profile/verified-pro-1" className="flex items-center gap-4 mb-6 group/seller hover:opacity-80 transition-opacity">
-                    <div className="w-14 h-14 bg-slate-100 rounded-full overflow-hidden border-2 border-white shadow-md group-hover/seller:ring-2 group-hover/seller:ring-primary transition-all">
-                       <img src="https://picsum.photos/seed/user-hero/200/200" className="w-full h-full object-cover" />
+                 <Link href="/profile/verified-pro-1" className="block mb-6 group/seller hover:opacity-100 transition-opacity">
+                    <div className="flex items-center gap-4 mb-5">
+                        <div className="w-16 h-16 bg-slate-100 rounded-[1.2rem] overflow-hidden border-2 border-white shadow-md group-hover/seller:ring-2 group-hover/seller:ring-primary transition-all">
+                           <img src="https://picsum.photos/seed/user-david/200/200" className="w-full h-full object-cover" />
+                        </div>
+                        <div>
+                           <div className="flex items-center gap-2">
+                             <p className="font-black text-lg text-slate-900 uppercase tracking-tight group-hover/seller:text-primary transition-colors">David Mbeki</p>
+                             <VerifiedBadge />
+                           </div>
+                           <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-1">Founding Member #042</p>
+                        </div>
                     </div>
-                    <div>
-                       <p className="font-black text-base text-slate-900 uppercase tracking-tight group-hover/seller:text-primary transition-colors">David Mbeki</p>
-                       <Badge className="bg-green-100 text-green-700 uppercase text-[8px] font-black border-none px-2 py-0.5">Verified Pro</Badge>
+                    
+                    <div className="grid grid-cols-2 gap-3 mb-5">
+                       <div className="p-3 bg-slate-50 rounded-2xl border border-slate-100 space-y-1">
+                          <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-1">
+                             <Star className="w-2.5 h-2.5 text-[#FF8C00] fill-current" /> Seller Rating
+                          </p>
+                          <p className="text-sm font-black text-slate-900">4.9 / 5.0</p>
+                       </div>
+                       <div className="p-3 bg-slate-50 rounded-2xl border border-slate-100 space-y-1">
+                          <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-1">
+                             <TrendingUp className="w-2.5 h-2.5 text-primary" /> Reliability
+                          </p>
+                          <p className="text-sm font-black text-slate-900">98% Score</p>
+                       </div>
+                    </div>
+
+                    <div className="p-4 bg-primary/5 rounded-2xl border border-primary/10 space-y-2">
+                       <p className="text-[8px] font-black text-primary uppercase tracking-widest flex items-center gap-1.5">
+                          <Fingerprint className="w-3 h-3" /> Trust Engine Analysis
+                       </p>
+                       <div className="flex flex-wrap gap-x-4 gap-y-2">
+                          <div className="flex items-center gap-1.5">
+                             <div className="w-1.5 h-1.5 bg-green-500 rounded-full" />
+                             <span className="text-[8px] font-bold text-slate-600 uppercase">Biometric Match</span>
+                          </div>
+                          <div className="flex items-center gap-1.5">
+                             <div className="w-1.5 h-1.5 bg-green-500 rounded-full" />
+                             <span className="text-[8px] font-bold text-slate-600 uppercase">FICA Validated</span>
+                          </div>
+                          <div className="flex items-center gap-1.5">
+                             <div className="w-1.5 h-1.5 bg-green-500 rounded-full" />
+                             <span className="text-[8px] font-bold text-slate-600 uppercase">OTP Secure</span>
+                          </div>
+                       </div>
                     </div>
                  </Link>
+
                  <div className="relative aspect-[16/10] rounded-3xl overflow-hidden mb-8 shadow-2xl border-4 border-white">
                     <img src="https://picsum.photos/seed/macbook/800/600" className="w-full h-full object-cover" />
                  </div>
