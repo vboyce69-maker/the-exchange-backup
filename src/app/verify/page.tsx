@@ -310,12 +310,19 @@ function OnboardingContent() {
                           value={idNumber} 
                           onChange={(e) => setIdNumber(e.target.value.replace(/\D/g, ''))} 
                         />
+                        {idNumber.length > 0 && idNumber.length < 13 && (
+                          <p className="text-[9px] font-black text-red-500 uppercase tracking-widest animate-pulse">Exactly 13 digits required</p>
+                        )}
                       </div>
                     )}
                   </div>
                   <div className="flex gap-3">
                     <Button variant="outline" className="flex-1 h-16 rounded-2xl font-black uppercase text-[10px]" onClick={() => setStep(0)}>Back</Button>
-                    <Button className="flex-[2] bg-[#225BC3] h-16 rounded-2xl font-black text-white" onClick={() => setStep(2)}>
+                    <Button 
+                      className="flex-[2] bg-[#225BC3] h-16 rounded-2xl font-black text-white disabled:opacity-50" 
+                      onClick={() => setStep(2)}
+                      disabled={sellerType === 'individual' ? (!validateRSAID(idNumber) || !fullName) : (!businessName || !registrationNumber || !fullName)}
+                    >
                       Next Pillar <ArrowRight className="w-4 h-4 ml-2" />
                     </Button>
                   </div>
