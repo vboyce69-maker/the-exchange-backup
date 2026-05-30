@@ -75,7 +75,23 @@ export function PhoneAuth({ onSuccess, agreedToTerms }: PhoneAuthProps) {
       toast({ title: "OTP Sent", description: `Verification code sent to ${formattedPhone}` });
     } catch (err: any) {
       console.error("Phone Auth Error:", err);
-      toast({ variant: "destructive", title: "Auth Error", description: err.message });
+      
+      let errorMessage = err.message || "An unexpected error occurred.";
+      
+      if (err.code === 'auth/unauthorized-domain') {
+        errorMessage = "Domain Unauthorized: Please add the current preview URL to 'Authorized Domains' in the Firebase Console.";
+      } else if (err.code === 'auth/operation-not-allowed') {
+        errorMessage = "Phone Authentication is not enabled in the Firebase Console (Authentication > Sign-in method).";
+      } else if (err.code === 'auth/too-many-requests') {
+        errorMessage = "We have sent too many codes to this number. Please try again later.";
+      }
+
+      toast({ 
+        variant: "destructive", 
+        title: "Configuration Notice", 
+        description: errorMessage 
+      });
+
       if (recaptchaVerifierRef.current) {
         try { recaptchaVerifierRef.current.clear(); } catch (e) {}
         recaptchaVerifierRef.current = null;
