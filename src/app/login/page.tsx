@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState } from "react";
@@ -10,7 +11,7 @@ import {
   User
 } from "firebase/auth";
 import { auth, db } from "@/firebase";
-import { doc, getDoc, setDoc } from "firebase/firestore";
+import { doc, getDoc, setDoc, updateDoc } from "firebase/firestore";
 import { Navigation } from "@/components/Navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -48,15 +49,16 @@ export default function LoginPage() {
   const redirectPath = searchParams.get('redirect') || '/';
 
   const ensureUserProfile = async (user: User) => {
+    if (!db) return;
     const profileRef = doc(db, "userProfiles", user.uid);
     const profileSnap = await getDoc(profileRef);
 
     if (!profileSnap.exists()) {
-      // Initialize base profile for new user
+      // PERSISTENCE: Initialize permanent profile record
       await setDoc(profileRef, {
         id: user.uid,
-        firstName: "",
-        lastName: "",
+        firstName: user.displayName?.split(' ')[0] || "",
+        lastName: user.displayName?.split(' ').slice(1).join(' ') || "",
         username: email.split('@')[0] || `user_${user.uid.substring(0, 5)}`,
         bio: "New member of The Exchange community.",
         registrationDate: new Date().toISOString(),
@@ -65,9 +67,15 @@ export default function LoginPage() {
         reliabilityScore: MARKET_CONFIG.BASE_TRUST_SCORE,
         transactionsCompleted: 0,
         disputeCount: 0,
-        isFoundingMember: true, // Auto-assign for early adopters
-        profileImageUrl: `https://picsum.photos/seed/${user.uid}/200/200`
+        isFoundingMember: true, // Assign to early adopters
+        profileImageUrl: user.photoURL || `https://picsum.photos/seed/${user.uid}/200/200`,
+        lastLogin: new Date().toISOString()
       });
+    } else {
+      // PERSISTENCE: Simply update last login to keep data fresh without overwriting
+      await updateDoc(profileRef, {
+        lastLogin: new Date().toISOString()
+      }).catch(() => {});
     }
   };
 
@@ -102,7 +110,7 @@ export default function LoginPage() {
     if (auth.currentUser) {
       await ensureUserProfile(auth.currentUser);
     }
-    toast({ title: "Welcome Back", description: "Authentication successful." });
+    toast({ title: "Welcome Back", description: "Identity sync complete." });
     router.push(redirectPath);
   };
 
@@ -123,7 +131,7 @@ export default function LoginPage() {
           <Card className="rounded-[3rem] border-none shadow-2xl bg-white overflow-hidden ring-1 ring-[#225BC3]/5">
             <CardHeader className="p-10 text-center pb-6">
                <h1 className="text-3xl font-black text-[#225BC3] uppercase tracking-tighter leading-none">THE <span className="text-[#34CBED]">EXCHANGE</span></h1>
-               <p className="text-slate-500 font-bold text-[10px] uppercase tracking-widest mt-3 opacity-60">Join South Africa's Trusted Marketplace</p>
+               <p className="text-slate-500 font-bold text-[10px] uppercase tracking-widest mt-3 opacity-60">Persistent Marketplace Identity</p>
             </CardHeader>
 
             <Tabs defaultValue="phone" className="w-full">
@@ -198,7 +206,7 @@ export default function LoginPage() {
                     className="mt-0.5 border-slate-300 data-[state=checked]:bg-[#225BC3] data-[state=checked]:border-[#225BC3]"
                   />
                   <label htmlFor="terms" className="text-[9px] font-bold text-slate-500 leading-relaxed uppercase">
-                    I agree to the <Link href="/legal" className="text-[#225BC3] underline">Terms of Service</Link> and understand my data will be handled per the <Link href="/legal" className="text-[#225BC3] underline">Privacy Policy</Link> (POPIA Compliant).
+                    I agree to the <Link href="/legal" className="text-[#225BC3] underline">Terms of Service</Link> and understand my data is persisted for platform integrity (POPIA Compliant).
                   </label>
                 </div>
               </CardContent>

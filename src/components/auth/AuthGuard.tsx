@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useEffect, ReactNode } from 'react';
@@ -11,7 +12,8 @@ interface AuthGuardProps {
 
 /**
  * Higher-Order Component to protect routes requiring authentication.
- * Enhanced: Redirects unverified users to verify-email, EXCEPT for the report page.
+ * Enhanced: Redirects unverified users to verify-email, EXCEPT for specific safety routes.
+ * Persistent: Once user.emailVerified is true, the pillar check is permanently passed.
  */
 export function AuthGuard({ children }: AuthGuardProps) {
   const { user, isUserLoading } = useUser();
@@ -24,10 +26,15 @@ export function AuthGuard({ children }: AuthGuardProps) {
         const searchParams = new URLSearchParams();
         searchParams.set('redirect', pathname);
         router.push(`/login?${searchParams.toString()}`);
-      } else if (!user.emailVerified && pathname !== '/verify-email' && pathname !== '/report') {
+      } else {
         // Redirection Pillar: Forces email activation before marketplace access
-        // Bypass added for /report to allow unverified users to flag security issues
-        router.push('/verify-email');
+        // Bypass for /verify-email to avoid loops, and /report for safety accessibility
+        const isVerified = user.emailVerified;
+        const isExcludedPath = pathname === '/verify-email' || pathname === '/report';
+        
+        if (!isVerified && !isExcludedPath) {
+          router.push('/verify-email');
+        }
       }
     }
   }, [user, isUserLoading, router, pathname]);
@@ -36,7 +43,7 @@ export function AuthGuard({ children }: AuthGuardProps) {
     return (
       <div className="min-h-[60vh] flex flex-col items-center justify-center space-y-4">
         <Loader2 className="w-10 h-10 animate-spin text-[#225BC3]" />
-        <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Verifying Session...</p>
+        <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Syncing Identity Pillar...</p>
       </div>
     );
   }
@@ -48,6 +55,7 @@ export function AuthGuard({ children }: AuthGuardProps) {
           <Lock className="w-8 h-8" />
         </div>
         <h2 className="text-2xl font-black text-[#225BC3] uppercase">Access Restricted</h2>
+        <p className="text-sm text-slate-400 font-medium">Please sign in to continue to 'The Exchange'.</p>
       </div>
     );
   }
