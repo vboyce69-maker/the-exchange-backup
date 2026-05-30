@@ -1,3 +1,4 @@
+
 "use client";
 
 import Link from "next/link";
@@ -18,7 +19,10 @@ import {
   Search,
   Settings,
   Gift,
-  LayoutDashboard
+  LayoutDashboard,
+  Fingerprint,
+  TrendingUp,
+  LayoutGrid
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
@@ -79,6 +83,65 @@ export function Navigation() {
     }
   };
 
+  const menuItems = [
+    { 
+      title: "Browse Marketplace", 
+      desc: "Fixed Price & Lots", 
+      href: "/search", 
+      icon: ShoppingBag, 
+      color: "text-blue-600", 
+      bg: "bg-blue-50" 
+    },
+    { 
+      title: "Live Auctions", 
+      desc: "Bidding & Bulk Lots", 
+      href: "/auctions", 
+      icon: Gavel, 
+      color: "text-orange-600", 
+      bg: "bg-orange-50" 
+    },
+    { 
+      title: "Refer & Earn", 
+      desc: "Viral Referral System", 
+      href: "/referrals", 
+      icon: Gift, 
+      color: "text-pink-600", 
+      bg: "bg-pink-50" 
+    },
+    { 
+      title: "Biometric KYC", 
+      desc: "AI Identity Verification", 
+      href: "/verify", 
+      icon: Fingerprint, 
+      color: "text-purple-600", 
+      bg: "bg-purple-50" 
+    },
+    { 
+      title: "Protected Payments", 
+      desc: "Escrow-Style Hold", 
+      href: "/legal", 
+      icon: Lock, 
+      color: "text-green-600", 
+      bg: "bg-green-50" 
+    },
+    { 
+      title: "Market Insights", 
+      desc: "Seller Demand Data", 
+      href: "/insights", 
+      icon: TrendingUp, 
+      color: "text-indigo-600", 
+      bg: "bg-indigo-50" 
+    },
+    { 
+      title: "Safe Zones", 
+      desc: "Vetted Meetup Points", 
+      href: "/legal", 
+      icon: MapPin, 
+      color: "text-red-600", 
+      bg: "bg-red-50" 
+    },
+  ];
+
   return (
     <div className="w-full z-50">
       <nav className="h-[88px] bg-white border-b border-slate-100 flex items-center px-8 transition-all duration-500">
@@ -121,25 +184,26 @@ export function Navigation() {
                   Explore <ChevronDown className="w-4 h-4" />
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent className="w-64 rounded-[1.5rem] p-3 shadow-2xl border-none ring-1 ring-slate-100 mt-4 animate-in fade-in zoom-in-95 duration-200">
-                <DropdownMenuItem asChild className="rounded-xl p-3 cursor-pointer">
-                  <Link href="/search" className="flex items-center gap-3">
-                    <ShoppingBag className="w-4 h-4 text-primary" />
-                    <span className="font-bold text-xs uppercase">Marketplace</span>
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild className="rounded-xl p-3 cursor-pointer">
-                  <Link href="/auctions" className="flex items-center gap-3">
-                    <Gavel className="w-4 h-4 text-primary" />
-                    <span className="font-bold text-xs uppercase">Auctions</span>
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild className="rounded-xl p-3 cursor-pointer">
-                  <Link href="/verify" className="flex items-center gap-3">
-                    <Briefcase className="w-4 h-4 text-primary" />
-                    <span className="font-bold text-xs uppercase">Seller Hub</span>
-                  </Link>
-                </DropdownMenuItem>
+              <DropdownMenuContent className="w-80 rounded-[2.5rem] p-4 shadow-2xl border-none ring-1 ring-slate-100 mt-4 animate-in fade-in zoom-in-95 duration-200">
+                <div className="flex items-center justify-between px-3 pb-4 mb-2 border-b border-slate-50">
+                  <DropdownMenuLabel className="font-black text-[10px] uppercase tracking-[0.2em] text-slate-400 p-0">Platform Hub</DropdownMenuLabel>
+                  <LayoutGrid className="w-3 h-3 text-slate-200" />
+                </div>
+                <div className="space-y-1">
+                  {menuItems.map((item, idx) => (
+                    <DropdownMenuItem key={idx} asChild className="rounded-2xl p-3 cursor-pointer hover:bg-slate-50 transition-all group outline-none focus:bg-slate-50">
+                      <Link href={item.href} className="flex items-center gap-4">
+                        <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center transition-all group-hover:scale-110", item.bg, item.color)}>
+                          <item.icon className="w-5 h-5" />
+                        </div>
+                        <div>
+                          <p className="font-black text-xs uppercase tracking-tight text-slate-900 leading-none mb-1.5">{item.title}</p>
+                          <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wide">{item.desc}</p>
+                        </div>
+                      </Link>
+                    </DropdownMenuItem>
+                  ))}
+                </div>
               </DropdownMenuContent>
             </DropdownMenu>
 
