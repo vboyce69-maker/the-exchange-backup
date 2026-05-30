@@ -45,16 +45,16 @@ import { collection, query, orderBy, limit, getCountFromServer } from "firebase/
 import { MARKET_CONFIG } from "@/app/lib/market-config";
 
 const CATEGORIES = [
-  { name: "Vehicles", icon: Car, color: "bg-blue-500", description: "Cars, Trucks & Parts" },
-  { name: "Electronics", icon: Smartphone, color: "bg-purple-500", description: "Phones, Laptops & TV" },
-  { name: "Real Estate", icon: Home, color: "bg-green-500", description: "Buy, Sell & Rent" },
-  { name: "Clothing", icon: Shirt, color: "bg-pink-500", description: "Fashion & Trends" },
-  { name: "Sneakers", icon: Footprints, color: "bg-orange-500", description: "Collectibles & Kickz" },
-  { name: "Gaming", icon: Gamepad2, color: "bg-indigo-500", description: "Consoles & Games" },
-  { name: "Art", icon: Palette, color: "bg-rose-500", description: "Art & Supplies" },
-  { name: "Jewelry", icon: Watch, color: "bg-yellow-500", description: "Luxury & Gems" },
-  { name: "Sports", icon: Bike, color: "bg-cyan-500", description: "Gear & Equipment" },
-  { name: "Photography", icon: Camera, color: "bg-red-500", description: "Cameras & Glass" },
+  { name: "Vehicles", icon: Car, color: "bg-gradient-to-br from-blue-600 to-blue-800", description: "Cars, Trucks & Parts" },
+  { name: "Electronics", icon: Smartphone, color: "bg-gradient-to-br from-purple-600 to-purple-800", description: "Phones, Laptops & TV" },
+  { name: "Real Estate", icon: Home, color: "bg-gradient-to-br from-emerald-600 to-emerald-800", description: "Buy, Sell & Rent" },
+  { name: "Clothing", icon: Shirt, color: "bg-gradient-to-br from-pink-600 to-pink-800", description: "Fashion & Trends" },
+  { name: "Sneakers", icon: Footprints, color: "bg-gradient-to-br from-orange-600 to-orange-800", description: "Collectibles & Kickz" },
+  { name: "Gaming", icon: Gamepad2, color: "bg-gradient-to-br from-indigo-600 to-indigo-800", description: "Consoles & Games" },
+  { name: "Art", icon: Palette, color: "bg-gradient-to-br from-rose-600 to-rose-800", description: "Art & Supplies" },
+  { name: "Jewelry", icon: Watch, color: "bg-gradient-to-br from-amber-500 to-amber-700", description: "Luxury & Gems" },
+  { name: "Sports", icon: Bike, color: "bg-gradient-to-br from-cyan-600 to-cyan-800", description: "Gear & Equipment" },
+  { name: "Photography", icon: Camera, color: "bg-gradient-to-br from-red-600 to-red-800", description: "Cameras & Glass" },
 ];
 
 const SA_CITIES = [
@@ -155,7 +155,7 @@ export default function LandingPage() {
       </div>
 
       {/* Hero Section - RESPONSIVE OPTIMIZED */}
-      <section className="relative min-h-[400px] lg:min-h-[550px] flex items-center overflow-hidden bg-[#225BC3] py-12 lg:py-0">
+      <section className="relative min-h-[400px] lg:min-h-[550px] flex items-center overflow-hidden bg-gradient-to-b from-[#225BC3] to-[#1a47a1] py-12 lg:py-0">
         <div className="absolute inset-0 opacity-25">
            <Image 
             src="https://picsum.photos/seed/localbid-hero/1920/1080" 
@@ -248,8 +248,8 @@ export default function LandingPage() {
                   href={`/search?category=${cat.name.toLowerCase()}`}
                   className="bg-white p-3 rounded-xl shadow-sm border border-slate-100 flex flex-col items-center gap-1.5 hover:bg-slate-50 transition-all hover:-translate-y-0.5 group"
                 >
-                  <div className={cn("w-10 h-10 rounded-lg flex items-center justify-center shadow-md group-hover:scale-110 transition-transform", cat.color)}>
-                    <Icon className="w-4 h-4 text-white" />
+                  <div className={cn("w-12 h-12 rounded-xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform", cat.color)}>
+                    <Icon className="w-5 h-5 text-white" />
                   </div>
                   <div className="text-center">
                     <span className="text-[8px] font-black uppercase text-slate-900 block leading-none">{cat.name}</span>
