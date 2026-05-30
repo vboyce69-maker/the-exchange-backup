@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useMemo, useState, useRef } from "react";
@@ -52,6 +51,7 @@ export default function UserProfilePage() {
   const [rating, setRating] = useState(5);
   const [reviewComment, setReviewComment] = useState("");
   const [isSubmittingReview, setIsSubmittingReview] = useState(false);
+  const [isBoostingId, setIsBoostingId] = useState<string | null>(null);
 
   const profileRef = useMemoFirebase(() => {
     return id ? doc(db, "userProfiles", id as string) : null;
@@ -60,7 +60,7 @@ export default function UserProfilePage() {
   const { data: profile, isLoading: isProfileLoading } = useDoc(profileRef);
 
   const userListingsQuery = useMemoFirebase(() => {
-    return id ? query(collection(db, "publicListings"), where("sellerId", "==", id)) : null;
+    return id ? query(collection(db, "publicListings"), where("sellerId", "==", id), orderBy("postedDate", "desc")) : null;
   }, [db, id]);
 
   const { data: listings, isLoading: isListingsLoading } = useCollection(userListingsQuery);
@@ -91,6 +91,23 @@ export default function UserProfilePage() {
       toast({ variant: "destructive", title: "Upload Failed", description: err.message });
     } finally {
       setIsUploading(false);
+    }
+  };
+
+  const handleBoostListing = async (listingId: string) => {
+    if (!db || !isOwner) return;
+    setIsBoostingId(listingId);
+    try {
+      const listingRef = doc(db, "publicListings", listingId);
+      await updateDoc(listingRef, {
+        isBoosted: true,
+        boostedAt: new Date().toISOString()
+      });
+      toast({ title: "Visibility Maxed!", description: "Item pushed to the top of the market." });
+    } catch (err) {
+      toast({ variant: "destructive", title: "Boost Failed", description: "Platform sync delay. Try again." });
+    } finally {
+      setIsBoostingId(null);
     }
   };
 
@@ -206,9 +223,17 @@ export default function UserProfilePage() {
               <TabsContent value="active" className="mt-10">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                   {listings?.map(listing => (
-                    <ListingCard key={listing.id} {...listing} sellerName={`${user.firstName}`} isVerified={true} />
+                    <ListingCard 
+                      key={listing.id} 
+                      {...listing} 
+                      sellerName={`${user.firstName}`} 
+                      isVerified={true} 
+                      isOwner={isOwner}
+                      onBoost={() => handleBoostListing(listing.id)}
+                    />
                   ))}
-                  {listings?.length === 0 && <div className="col-span-2 py-32 text-center opacity-30"><Package className="w-16 h-16 mx-auto mb-4" /><p className="font-black uppercase text-xs tracking-widest">No listings found</p></div>}
+                  {(isListingsLoading) && <div className="col-span-2 py-20 flex justify-center"><Loader2 className="w-8 h-8 animate-spin text-slate-200" /></div>}
+                  {listings?.length === 0 && !isListingsLoading && <div className="col-span-2 py-32 text-center opacity-30"><Package className="w-16 h-16 mx-auto mb-4" /><p className="font-black uppercase text-xs tracking-widest">No listings found</p></div>}
                 </div>
               </TabsContent>
 
