@@ -3,5 +3,5 @@
 # https://firebase.google.com/docs/app-hosting/configure
 
 runConfig:
-  # Increased to 3 to support concurrent traffic spikes for auctions
+  # Increased to 3 to support concurrent traffic spikes for auctions and high-trust marketplace activity
   maxInstances: 3

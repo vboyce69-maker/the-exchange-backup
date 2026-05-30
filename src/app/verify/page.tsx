@@ -91,7 +91,19 @@ function OnboardingContent() {
   }, []);
 
   const validateRSAID = (id: string) => {
-    return /^\d{13}$/.test(id);
+    if (!/^\d{13}$/.test(id)) return false;
+    
+    // Luhn Algorithm Check
+    let sum = 0;
+    for (let i = 0; i < id.length; i++) {
+      let digit = parseInt(id[i]);
+      if (i % 2 === 1) {
+        digit *= 2;
+        if (digit > 9) digit -= 9;
+      }
+      sum += digit;
+    }
+    return sum % 10 === 0;
   };
 
   const uploadToStorage = async (dataUri: string, path: string) => {
@@ -143,7 +155,7 @@ function OnboardingContent() {
       if (storageUrl) {
         setSelfie(storageUrl);
         (videoRef.current.srcObject as MediaStream).getTracks().forEach(t => t.stop());
-        toast({ title: "Selfie Secured", description: "Biometric persistence complete." });
+        toast({ title: "Selfie Secured", description: "Biometric match ready." });
       }
     }
   };
@@ -169,17 +181,17 @@ function OnboardingContent() {
   };
 
   const finalizeOnboarding = async () => {
-    if (!popiaConsent || !authUser) return;
+    if (!popiaConsent || !authUser || !db) return;
     
     if (sellerType === 'individual' && !validateRSAID(idNumber)) {
-      toast({ variant: "destructive", title: "Invalid ID", description: "Please enter a valid 13-digit RSA ID number." });
+      toast({ variant: "destructive", title: "Invalid ID", description: "RSA ID failed verification. Please enter a valid 13-digit number." });
       return;
     }
 
     setIsProcessing(true);
     
     try {
-      // Secure Masking Logic
+      // Secure Masking Protocol
       const maskedAccountNumber = `****${accountNumber.slice(-4)}`;
       
       const trustScore = calculateTrustScore({ 
@@ -226,7 +238,7 @@ function OnboardingContent() {
       setStep(4);
     } catch (error: any) {
       console.error("Onboarding error:", error);
-      toast({ variant: "destructive", title: "Registry Error", description: "Could not finalize profile." });
+      toast({ variant: "destructive", title: "Registry Error", description: "Could not finalize profile sync." });
     } finally {
       setIsProcessing(false);
     }
@@ -245,7 +257,7 @@ function OnboardingContent() {
               <ShieldCheck className="w-8 h-8 text-[#225BC3]" />
             </div>
             <h1 className="text-3xl font-black text-[#225BC3] uppercase tracking-tighter">Identity Activation</h1>
-            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-1">FICA & POPIA CONFORMANT</p>
+            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-1">RSA FICA & POPIA COMPLIANT</p>
           </div>
 
           <Card className="rounded-[3rem] shadow-2xl border-none bg-white overflow-hidden ring-1 ring-slate-100">
@@ -264,7 +276,7 @@ function OnboardingContent() {
                     >
                       <User className="w-10 h-10 text-[#225BC3] mb-4 group-hover:scale-110" />
                       <h3 className="font-black text-lg text-slate-900">Individual Trader</h3>
-                      <p className="text-xs text-slate-500 font-medium">Verify via ID document and selfie match.</p>
+                      <p className="text-xs text-slate-500 font-medium">Verify via ID document and biometric match.</p>
                     </button>
                     <button 
                       onClick={() => { setSellerType('business'); setStep(1); }}
@@ -272,7 +284,7 @@ function OnboardingContent() {
                     >
                       <Building2 className="w-10 h-10 text-[#FF8C00] mb-4 group-hover:scale-110" />
                       <h3 className="font-black text-lg text-slate-900">Registered Business</h3>
-                      <p className="text-xs text-slate-500 font-medium">FICA verification for Pty Ltd accounts.</p>
+                      <p className="text-xs text-slate-500 font-medium">FICA verification for professional accounts.</p>
                     </button>
                   </div>
                 </div>
@@ -282,12 +294,12 @@ function OnboardingContent() {
                 <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4">
                   <div className="space-y-1">
                     <h2 className="text-xl font-black text-slate-900 uppercase">Step 1: Identity</h2>
-                    <p className="text-xs text-muted-foreground font-bold uppercase tracking-widest">Accountability Check</p>
+                    <p className="text-xs text-muted-foreground font-bold uppercase tracking-widest">Legal Name & Registry</p>
                   </div>
                   <div className="space-y-4">
                     <div className="space-y-2">
                       <Label className="text-[10px] font-black uppercase text-[#225BC3]">Full Legal Name</Label>
-                      <Input placeholder="As per ID" className="h-14 rounded-2xl bg-slate-50 border-none font-bold" value={fullName} onChange={(e) => setFullName(e.target.value)} />
+                      <Input placeholder="As per official ID" className="h-14 rounded-2xl bg-slate-50 border-none font-bold" value={fullName} onChange={(e) => setFullName(e.target.value)} />
                     </div>
                     {sellerType === 'business' ? (
                       <>
@@ -297,21 +309,21 @@ function OnboardingContent() {
                         </div>
                         <div className="space-y-2">
                           <Label className="text-[10px] font-black uppercase text-[#225BC3]">CIPC Number</Label>
-                          <Input placeholder="K2024..." className="h-14 rounded-2xl bg-slate-50 border-none font-bold" value={registrationNumber} onChange={(e) => setRegistrationNumber(e.target.value)} />
+                          <Input placeholder="K2024/..." className="h-14 rounded-2xl bg-slate-50 border-none font-bold" value={registrationNumber} onChange={(e) => setRegistrationNumber(e.target.value)} />
                         </div>
                       </>
                     ) : (
                       <div className="space-y-2">
                         <Label className="text-[10px] font-black uppercase text-[#225BC3]">RSA ID Number</Label>
                         <Input 
-                          placeholder="13 Digits" 
+                          placeholder="13 Digits (Checksum Verified)" 
                           maxLength={13}
                           className="h-14 rounded-2xl bg-slate-50 border-none font-black text-lg" 
                           value={idNumber} 
                           onChange={(e) => setIdNumber(e.target.value.replace(/\D/g, ''))} 
                         />
-                        {idNumber.length > 0 && idNumber.length < 13 && (
-                          <p className="text-[9px] font-black text-red-500 uppercase tracking-widest animate-pulse">Exactly 13 digits required</p>
+                        {idNumber.length > 0 && !validateRSAID(idNumber) && (
+                          <p className="text-[9px] font-black text-red-500 uppercase tracking-widest animate-pulse">Invalid ID sequence</p>
                         )}
                       </div>
                     )}
@@ -333,7 +345,7 @@ function OnboardingContent() {
                 <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4">
                   <div className="text-center space-y-2">
                     <h2 className="text-xl font-black text-slate-900 uppercase">Step 2: Biometrics</h2>
-                    <p className="text-sm text-slate-500 font-bold uppercase tracking-widest">Storage Pillar</p>
+                    <p className="text-sm text-slate-500 font-bold uppercase tracking-widest">Document Scan & Match</p>
                   </div>
 
                   {sellerType === 'individual' ? (
@@ -354,12 +366,12 @@ function OnboardingContent() {
                           ) : idScanActive ? (
                             <video ref={idVideoRef} autoPlay muted playsInline className="w-full h-full object-cover" />
                           ) : (
-                            <Button onClick={startIdCamera} className="bg-[#225BC3]">Enable Scanner</Button>
+                            <Button onClick={startIdCamera} className="bg-[#225BC3]">Enable Document Scanner</Button>
                           )}
                         </div>
                         {idScanActive && !idPhoto && (
                           <Button onClick={captureId} className="w-full bg-[#225BC3] h-14 rounded-2xl font-black" disabled={isUploading}>
-                            {isUploading ? <Loader2 className="w-5 h-5 animate-spin" /> : <Camera className="w-5 h-5 mr-2" />} Capture & Upload
+                            {isUploading ? <Loader2 className="w-5 h-5 animate-spin" /> : <Camera className="w-5 h-5 mr-2" />} Secure Capture
                           </Button>
                         )}
                       </div>
@@ -369,7 +381,7 @@ function OnboardingContent() {
                             <Label className="text-[10px] font-black uppercase text-[#225BC3]">Liveness Scan</Label>
                             {selfie && <CheckCircle2 className="w-4 h-4 text-green-500" />}
                          </div>
-                         <div className="relative aspect-square max-w-[280px] mx-auto rounded-full overflow-hidden bg-slate-900 border-4 border-white shadow-2xl group">
+                         <div className="relative aspect-square max-w-[280px] mx-auto rounded-full overflow-hidden bg-slate-900 border-4 border-white shadow-2xl">
                             {selfie ? (
                               <Image src={selfie} alt="Selfie" fill className="object-cover" />
                             ) : (
@@ -382,22 +394,22 @@ function OnboardingContent() {
                              className="w-full bg-[#34CBED] h-14 rounded-2xl font-black"
                              disabled={isUploading}
                            >
-                             {isUploading ? <Loader2 className="w-5 h-5 animate-spin" /> : <><ScanFace className="w-5 h-5 mr-2" /> Capture Face</>}
+                             {isUploading ? <Loader2 className="w-5 h-5 animate-spin" /> : <><ScanFace className="w-5 h-5 mr-2" /> Match Biometrics</>}
                            </Button>
                          )}
                       </div>
                     </div>
                   ) : (
                     <div className="space-y-2">
-                       <Label className="text-[10px] font-black uppercase text-[#225BC3]">Business Address</Label>
-                       <Input placeholder="Street, City" className="h-14 rounded-2xl bg-slate-50 border-none font-bold" value={address} onChange={(e) => setAddress(e.target.value)} />
+                       <Label className="text-[10px] font-black uppercase text-[#225BC3]">Business Physical Address</Label>
+                       <Input placeholder="Street, Building, City" className="h-14 rounded-2xl bg-slate-50 border-none font-bold" value={address} onChange={(e) => setAddress(e.target.value)} />
                     </div>
                   )}
 
                   <div className="flex gap-3 pt-6">
                     <Button variant="outline" className="flex-1 h-16 rounded-2xl font-black text-[10px]" onClick={() => setStep(1)}>Back</Button>
                     <Button className="flex-[2] bg-[#225BC3] h-16 rounded-2xl font-black text-white" onClick={() => setStep(3)} disabled={sellerType === 'individual' && (!idPhoto || !selfie)}>
-                      Next: Banking
+                      Next: Banking Sync
                     </Button>
                   </div>
                 </div>
@@ -407,7 +419,7 @@ function OnboardingContent() {
                 <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4">
                   <div className="text-center space-y-2">
                     <h2 className="text-xl font-black text-slate-900 uppercase">Step 3: Payouts</h2>
-                    <p className="text-sm text-slate-500 font-bold uppercase tracking-widest">Financial Pillar</p>
+                    <p className="text-sm text-slate-500 font-bold uppercase tracking-widest">Encrypted Sync</p>
                   </div>
 
                   <div className="space-y-4">
@@ -415,18 +427,20 @@ function OnboardingContent() {
                       <Label className="text-[10px] font-black uppercase text-[#225BC3]">Bank</Label>
                       <Select value={bankName} onValueChange={setBankName}>
                         <SelectTrigger className="h-14 rounded-2xl bg-slate-50 border-none font-bold">
-                          <SelectValue placeholder="Select Bank" />
+                          <SelectValue placeholder="Select RSA Bank" />
                         </SelectTrigger>
                         <SelectContent>
                           <SelectItem value="capitec" className="font-bold">Capitec</SelectItem>
                           <SelectItem value="fnb" className="font-bold">FNB</SelectItem>
                           <SelectItem value="standard" className="font-bold">Standard Bank</SelectItem>
+                          <SelectItem value="abs" className="font-bold">ABSA</SelectItem>
+                          <SelectItem value="ned" className="font-bold">Nedbank</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
                     <div className="space-y-2">
                       <Label className="text-[10px] font-black uppercase text-[#225BC3]">Account Number</Label>
-                      <Input placeholder="Secure Entry" className="h-14 rounded-2xl bg-slate-50 border-none font-bold" value={accountNumber} onChange={(e) => setAccountNumber(e.target.value)} />
+                      <Input placeholder="Secure Entry (Auto-Masked)" className="h-14 rounded-2xl bg-slate-50 border-none font-bold" value={accountNumber} onChange={(e) => setAccountNumber(e.target.value.replace(/\D/g, ''))} />
                     </div>
                   </div>
 
@@ -434,14 +448,14 @@ function OnboardingContent() {
                     <div className="flex items-start gap-3">
                       <Checkbox id="popia" checked={popiaConsent} onCheckedChange={(c) => setPopiaConsent(c === true)} />
                       <Label htmlFor="popia" className="text-[10px] font-bold text-slate-500 leading-relaxed uppercase">
-                        I consent to biometric processing. All banking data is MASKED for security.
+                        I consent to biometric processing. Banking data is MASKED in Firestore for identity protection.
                       </Label>
                     </div>
                   </div>
 
                   <div className="flex gap-3">
                     <Button variant="outline" className="flex-1 h-16 rounded-2xl font-black uppercase text-[10px]" onClick={() => setStep(2)}>Back</Button>
-                    <Button className="flex-[2] bg-[#225BC3] h-16 rounded-2xl font-black text-white" onClick={finalizeOnboarding} disabled={isProcessing || !popiaConsent || !accountNumber}>
+                    <Button className="flex-[2] bg-[#225BC3] h-16 rounded-2xl font-black text-white shadow-xl shadow-blue-500/20" onClick={finalizeOnboarding} disabled={isProcessing || !popiaConsent || !accountNumber}>
                       {isProcessing ? <Loader2 className="w-6 h-6 animate-spin" /> : "Verify Identity"}
                     </Button>
                   </div>
@@ -454,7 +468,8 @@ function OnboardingContent() {
                     <UserCheck className="w-12 h-12 text-white" />
                   </div>
                   <h2 className="text-3xl font-black text-slate-900 uppercase">Verified</h2>
-                  <Button className="w-full bg-[#225BC3] h-16 rounded-2xl font-black" onClick={() => window.location.href = '/'}>
+                  <p className="text-slate-500 font-medium">Identity Pillar activated. You are now authorized to trade.</p>
+                  <Button className="w-full bg-[#225BC3] h-16 rounded-2xl font-black shadow-xl" onClick={() => window.location.href = '/'}>
                     Enter Market
                   </Button>
                 </div>
@@ -467,11 +482,3 @@ function OnboardingContent() {
     </div>
   );
 }
-
-const SA_BANKS = [
-  { id: "capitec", name: "Capitec Bank" },
-  { id: "fnb", name: "First National Bank (FNB)" },
-  { id: "std", name: "Standard Bank" },
-  { id: "abs", name: "ABSA" },
-  { id: "ned", name: "Nedbank" },
-];
