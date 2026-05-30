@@ -24,6 +24,11 @@ export const TEST_SUITES = {
     { id: "SESSION_HARD_STOP", name: "Server-side Session Termination", expected: "ZERO_LOCATION_RETENTION" },
     { id: "RAPID_JUMP_RETRY", name: "Realistic Pause/Jump Pattern", expected: "TRAJECTORY_VALIDATED" }
   ],
+  AUTH_VERIFICATION: [
+    { id: "SMS_TARGET_ZA_01", name: "RSA Phone OTP Handshake", input: "+27614304746", expected: "INITIATION_SUCCESS" },
+    { id: "SMS_RETRY_BACKOFF", name: "Rapid OTP Request Throttling", input: "+27614304746", expected: "429_TOO_MANY_REQUESTS" },
+    { id: "INVALID_FORMAT_REJECTION", name: "Malformed ZA Number Rejection", input: "012345", expected: "FORMAT_ERROR" }
+  ],
   STRESS_LOAD: [
     { id: "LOAD_100K_CONCURRENT", name: "100,000 Concurrent Users", expected: "API_LATENCY_PEAK" },
     { id: "BURST_10X_SPIKE", name: "10x Traffic Spike in 30s", expected: "AUTOSCALE_TRIGGER" },
