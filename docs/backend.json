@@ -58,7 +58,9 @@
         "highestBid": { "type": "number" },
         "isBulk": { "type": "boolean" },
         "quantity": { "type": "number" },
-        "auctionEndDate": { "type": "string", "format": "date-time" }
+        "auctionEndDate": { "type": "string", "format": "date-time" },
+        "isBoosted": { "type": "boolean", "description": "Whether the listing is currently prioritized." },
+        "boostedAt": { "type": "string", "format": "date-time" }
       },
       "required": ["id", "sellerId", "title", "price", "status"]
     },

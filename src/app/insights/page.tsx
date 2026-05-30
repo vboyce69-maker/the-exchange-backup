@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useEffect, useState } from "react";
@@ -17,7 +18,8 @@ import {
   Clock
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useUser } from "@/firebase";
+import { useUser, useFirestore, useCollection, useMemoFirebase } from "@/firebase";
+import { collection, query, where, doc, updateDoc, writeBatch } from "firebase/firestore";
 import { toast } from "@/hooks/use-toast";
 
 const INSIGHTS_CACHE_KEY = 'exchange_insights_cache';
@@ -25,10 +27,19 @@ const CACHE_TTL = 3600000; // 1 hour
 
 export default function InsightsPage() {
   const { user } = useUser();
+  const db = useFirestore();
   const [insights, setInsights] = useState<SellerDemandInsightsOutput | null>(null);
   const [loading, setLoading] = useState(true);
   const [isCached, setIsCached] = useState(false);
   const [isBoosting, setIsBoosting] = useState(false);
+
+  // Fetch active listings for this user to enable bulk boosting
+  const activeListingsQuery = useMemoFirebase(() => {
+    if (!user || !db) return null;
+    return query(collection(db, "publicListings"), where("sellerId", "==", user.uid));
+  }, [db, user]);
+
+  const { data: userListings } = useCollection(activeListingsQuery);
 
   useEffect(() => {
     async function fetchInsights() {
@@ -77,25 +88,35 @@ export default function InsightsPage() {
     window.location.reload();
   };
 
-  const handleBoostListings = () => {
-    if (!user) {
+  const handleBoostListings = async () => {
+    if (!user || !db || !userListings) {
       toast({
         variant: "destructive",
-        title: "Authentication Required",
-        description: "Please sign in to boost your listings.",
+        title: "Action Restricted",
+        description: "Please sign in and ensure you have active listings to boost.",
       });
       return;
     }
 
     setIsBoosting(true);
-    // Simulate API call to boost listings
-    setTimeout(() => {
-      setIsBoosting(false);
+    try {
+      // Bulk update using non-blocking updates (simulation since we can't iterate batch easily in non-blocking helper)
+      for (const listing of userListings) {
+        if (!listing.isBoosted) {
+          const ref = doc(db, "publicListings", listing.id);
+          updateDoc(ref, { isBoosted: true, boostedAt: new Date().toISOString() });
+        }
+      }
+      
       toast({
-        title: "Listings Boosted!",
-        description: "Your active items are now prioritized in search results for 48 hours.",
+        title: "Inventory Boosted!",
+        description: "All your active items are now prioritized in search results.",
       });
-    }, 1500);
+    } catch (err) {
+      toast({ variant: "destructive", title: "Boost Error", description: "Could not apply premium status." });
+    } finally {
+      setIsBoosting(false);
+    }
   };
 
   const handleViewVolumeDetails = () => {
@@ -144,12 +165,12 @@ export default function InsightsPage() {
               Refresh Data
             </Button>
             <Button 
-              className="bg-[#FF8C00] text-white font-black rounded-2xl h-12 px-8 shadow-xl hover:scale-105 transition-transform" 
+              className="bg-[#FF8C00] text-white font-black rounded-2xl h-12 px-8 shadow-xl hover:scale-105 transition-all" 
               size="lg"
               onClick={handleBoostListings}
-              disabled={isBoosting}
+              disabled={isBoosting || !userListings?.length}
             >
-              {isBoosting ? <Loader2 className="w-5 h-5 animate-spin" /> : "Boost Active Listings"}
+              {isBoosting ? <Loader2 className="w-5 h-5 animate-spin" /> : "Boost All Listings"}
             </Button>
           </div>
         </div>

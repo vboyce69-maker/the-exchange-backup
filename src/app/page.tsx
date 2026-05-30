@@ -1,6 +1,7 @@
+
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { Navigation } from "@/components/Navigation";
 import { ListingCard } from "@/components/ListingCard";
@@ -64,11 +65,20 @@ export default function LandingPage() {
     return query(
       collection(db, "publicListings"),
       orderBy("postedDate", "desc"),
-      limit(4)
+      limit(10) // Fetch more to allow for boosted sorting
     );
   }, [db]);
 
-  const { data: listings, isLoading } = useCollection(trendingQuery);
+  const { data: rawListings, isLoading } = useCollection(trendingQuery);
+
+  const sortedListings = useMemo(() => {
+    if (!rawListings) return [];
+    return [...rawListings].sort((a, b) => {
+      if (a.isBoosted && !b.isBoosted) return -1;
+      if (!a.isBoosted && b.isBoosted) return 1;
+      return new Date(b.postedDate).getTime() - new Date(a.postedDate).getTime();
+    }).slice(0, 4); // Only show top 4
+  }, [rawListings]);
 
   return (
     <div className="min-h-screen bg-[#F8FAFC]">
@@ -242,9 +252,9 @@ export default function LandingPage() {
               <div className="flex justify-center py-32">
                 <Loader2 className="w-16 h-16 animate-spin text-primary opacity-20" />
               </div>
-            ) : listings && listings.length > 0 ? (
+            ) : sortedListings.length > 0 ? (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-12">
-                {listings.map((listing) => (
+                {sortedListings.map((listing) => (
                   <ListingCard 
                     key={listing.id} 
                     id={listing.id}
@@ -257,6 +267,7 @@ export default function LandingPage() {
                     isVerified={true}
                     isAuction={listing.isAuction}
                     isBulk={listing.isBulk}
+                    isBoosted={listing.isBoosted}
                     quantity={listing.quantity}
                     auctionEndDate={listing.auctionEndDate}
                   />
