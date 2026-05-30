@@ -27,6 +27,8 @@ interface ListingCardProps {
   auctionEndDate?: string;
   sellerTransactions?: number;
   sellerReliability?: number;
+  isOwner?: boolean;
+  onBoost?: () => void;
 }
 
 export function ListingCard({
@@ -45,6 +47,8 @@ export function ListingCard({
   auctionEndDate,
   sellerTransactions = 0,
   sellerReliability = 0,
+  isOwner,
+  onBoost,
 }: ListingCardProps) {
   const [timeLeft, setTimeLeft] = useState<string>("");
   const [isSaved, setIsSaved] = useState(false);
@@ -127,7 +131,7 @@ export function ListingCard({
         </div>
       </Link>
 
-      <CardContent className="p-6 pt-0 space-y-4">
+      <CardContent className="p-6 pt-0 space-y-4 flex-1 flex flex-col">
         <div className="space-y-1">
           <div className="flex justify-between items-start gap-4">
              <Link href={`/listings/${id}`} className="flex-1 min-w-0">
@@ -137,7 +141,7 @@ export function ListingCard({
           <p className="font-black text-primary text-2xl tracking-tighter leading-none">R {price.toLocaleString()}</p>
         </div>
         
-        <div className="flex items-center justify-between pt-4 border-t border-slate-50">
+        <div className="flex items-center justify-between pt-4 border-t border-slate-50 mt-auto">
           <div className="flex items-center gap-1.5 text-slate-400 text-[9px] font-black uppercase tracking-widest">
             <MapPin className="w-3.5 h-3.5 text-secondary" />
             {location}
@@ -147,6 +151,21 @@ export function ListingCard({
              <VerifiedBadge />
           </div>
         </div>
+
+        {isOwner && !isBoosted && (
+          <div className="pt-4 mt-2">
+            <Button 
+              size="sm"
+              onClick={(e) => {
+                e.preventDefault();
+                onBoost?.();
+              }}
+              className="w-full bg-[#225BC3] text-white font-black rounded-xl h-10 gap-2 shadow-xl hover:scale-[1.02] transition-all text-[9px] uppercase tracking-widest"
+            >
+              <Zap className="w-3 h-3 fill-current" /> Boost Item
+            </Button>
+          </div>
+        )}
       </CardContent>
     </div>
   );
