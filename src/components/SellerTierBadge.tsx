@@ -15,21 +15,21 @@ interface SellerTierBadgeProps {
 export function SellerTierBadge({ level, className }: SellerTierBadgeProps) {
   const tiers = {
     beginner: {
-      label: "Beginner Seller",
+      label: "Beginner",
       icon: Medal,
-      color: "bg-orange-100 text-orange-700 border-orange-200",
-      iconColor: "text-orange-600"
+      color: "bg-orange-50 text-orange-600 border-orange-100",
+      iconColor: "text-orange-500"
     },
     trusted: {
-      label: "Trusted Seller",
+      label: "Trusted",
       icon: Award,
-      color: "bg-slate-100 text-slate-700 border-slate-200",
-      iconColor: "text-slate-500"
+      color: "bg-slate-50 text-slate-600 border-slate-100",
+      iconColor: "text-slate-400"
     },
     pro: {
       label: "Verified Pro",
       icon: Trophy,
-      color: "bg-yellow-100 text-yellow-700 border-yellow-200",
+      color: "bg-yellow-50 text-yellow-700 border-yellow-100",
       iconColor: "text-yellow-600"
     }
   };
@@ -38,16 +38,13 @@ export function SellerTierBadge({ level, className }: SellerTierBadgeProps) {
   const Icon = config.icon;
 
   return (
-    <Badge 
-      variant="outline" 
-      className={cn(
-        "flex items-center justify-center gap-1.5 px-3 py-1 rounded-xl font-black uppercase text-[9px] tracking-widest border shadow-sm",
+    <div className={cn(
+        "inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl font-bold uppercase text-[8px] tracking-widest border shadow-sm",
         config.color,
         className
-      )}
-    >
+      )}>
       <Icon className={cn("w-3 h-3", config.iconColor)} />
       {config.label}
-    </Badge>
+    </div>
   );
 }
