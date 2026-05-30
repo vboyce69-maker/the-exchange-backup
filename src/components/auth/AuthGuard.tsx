@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useEffect, ReactNode } from 'react';
@@ -11,7 +12,7 @@ interface AuthGuardProps {
 
 /**
  * Higher-Order Component to protect routes requiring authentication.
- * Aligned with Next.js App Router security patterns.
+ * Enhanced: Redirects unverified users to verify-email.
  */
 export function AuthGuard({ children }: AuthGuardProps) {
   const { user, isUserLoading } = useUser();
@@ -19,11 +20,15 @@ export function AuthGuard({ children }: AuthGuardProps) {
   const pathname = usePathname();
 
   useEffect(() => {
-    if (!isUserLoading && !user) {
-      // Redirect to login, preserving the attempted destination
-      const searchParams = new URLSearchParams();
-      searchParams.set('redirect', pathname);
-      router.push(`/login?${searchParams.toString()}`);
+    if (!isUserLoading) {
+      if (!user) {
+        const searchParams = new URLSearchParams();
+        searchParams.set('redirect', pathname);
+        router.push(`/login?${searchParams.toString()}`);
+      } else if (!user.emailVerified && pathname !== '/verify-email') {
+        // Redirection Pillar: Forces email activation before marketplace access
+        router.push('/verify-email');
+      }
     }
   }, [user, isUserLoading, router, pathname]);
 
@@ -42,14 +47,14 @@ export function AuthGuard({ children }: AuthGuardProps) {
         <div className="w-16 h-16 bg-blue-50 rounded-2xl flex items-center justify-center text-[#225BC3]">
           <Lock className="w-8 h-8" />
         </div>
-        <div className="space-y-2">
-          <h2 className="text-2xl font-black text-[#225BC3] uppercase tracking-tighter">Access Restricted</h2>
-          <p className="text-sm text-slate-500 font-medium max-w-xs mx-auto">
-            Please sign in to access the secure marketplace features.
-          </p>
-        </div>
+        <h2 className="text-2xl font-black text-[#225BC3] uppercase">Access Restricted</h2>
       </div>
     );
+  }
+
+  // Safety Pillar: Prevent rendering if email isn't verified (except for the verification page itself)
+  if (!user.emailVerified && pathname !== '/verify-email') {
+    return null;
   }
 
   return <>{children}</>;
