@@ -35,8 +35,15 @@ import {
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { useCollection, useFirestore, useMemoFirebase } from "@/firebase";
-import { collection, query, orderBy, limit } from "firebase/firestore";
+import { collection, query, orderBy, limit, where } from "firebase/firestore";
 import { VerifiedBadge } from "@/components/VerifiedBadge";
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+} from "@/components/ui/carousel";
 
 const CATEGORIES = [
   { name: "Vehicles", icon: Car, bg: "from-blue-500 to-blue-600" },
@@ -65,19 +72,24 @@ export default function LandingPage() {
     return query(
       collection(db, "publicListings"),
       orderBy("postedDate", "desc"),
-      limit(10) // Fetch more to allow for boosted sorting
+      limit(20)
     );
   }, [db]);
 
   const { data: rawListings, isLoading } = useCollection(trendingQuery);
 
-  const sortedListings = useMemo(() => {
+  const boostedListings = useMemo(() => {
+    if (!rawListings) return [];
+    return rawListings.filter(l => l.isBoosted).sort((a, b) => new Date(b.boostedAt || 0).getTime() - new Date(a.boostedAt || 0).getTime());
+  }, [rawListings]);
+
+  const trendingListings = useMemo(() => {
     if (!rawListings) return [];
     return [...rawListings].sort((a, b) => {
       if (a.isBoosted && !b.isBoosted) return -1;
       if (!a.isBoosted && b.isBoosted) return 1;
       return new Date(b.postedDate).getTime() - new Date(a.postedDate).getTime();
-    }).slice(0, 4); // Only show top 4
+    }).slice(0, 4);
   }, [rawListings]);
 
   return (
@@ -86,7 +98,6 @@ export default function LandingPage() {
 
       <main className="container mx-auto px-4 py-8 lg:py-12">
         
-        {/* Main Content Area */}
         <div className="space-y-24">
           
           {/* Hero Section */}
@@ -122,74 +133,104 @@ export default function LandingPage() {
               </div>
             </div>
 
-            {/* Hero Floating Element Container */}
+            {/* Hero Boosted Slideshow */}
             <div className="hidden lg:block space-y-6">
-              <div className="bg-white p-8 rounded-[3rem] shadow-[0_40px_80px_rgba(0,0,0,0.06)] border border-slate-50 relative z-20 animate-fade-up">
-                 <Link href="/profile/verified-pro-1" className="block mb-6 group/seller hover:opacity-100 transition-opacity">
-                    <div className="flex items-center gap-4 mb-5">
-                        <div className="w-16 h-16 bg-slate-100 rounded-[1.2rem] overflow-hidden border-2 border-white shadow-md group-hover/seller:ring-2 group-hover/seller:ring-primary transition-all">
-                           <img src="https://picsum.photos/seed/user-david/200/200" className="w-full h-full object-cover" />
-                        </div>
-                        <div>
-                           <div className="flex items-center gap-2">
-                             <p className="font-black text-lg text-slate-900 uppercase tracking-tight group-hover/seller:text-primary transition-colors">David Mbeki</p>
-                             <VerifiedBadge />
-                           </div>
-                           <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-1">Founding Member #042</p>
-                        </div>
-                    </div>
-                    
-                    <div className="grid grid-cols-2 gap-3 mb-5">
-                       <div className="p-3 bg-slate-50 rounded-2xl border border-slate-100 space-y-1">
-                          <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-1">
-                             <Star className="w-2.5 h-2.5 text-[#FF8C00] fill-current" /> Seller Rating
-                          </p>
-                          <p className="text-sm font-black text-slate-900">4.9 / 5.0</p>
-                       </div>
-                       <div className="p-3 bg-slate-50 rounded-2xl border border-slate-100 space-y-1">
-                          <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-1">
-                             <TrendingUp className="w-2.5 h-2.5 text-primary" /> Reliability
-                          </p>
-                          <p className="text-sm font-black text-slate-900">98% Score</p>
-                       </div>
-                    </div>
+              {boostedListings.length > 0 ? (
+                <Carousel className="w-full" opts={{ loop: true }}>
+                  <CarouselContent>
+                    {boostedListings.map((listing) => (
+                      <CarouselItem key={listing.id}>
+                        <div className="bg-white p-8 rounded-[3rem] shadow-[0_40px_80px_rgba(0,0,0,0.06)] border border-slate-50 relative z-20 transition-all">
+                          <Link href={`/profile/${listing.sellerId}`} className="block mb-6 group/seller hover:opacity-100 transition-opacity">
+                            <div className="flex items-center gap-4 mb-5">
+                                <div className="w-16 h-16 bg-slate-100 rounded-[1.2rem] overflow-hidden border-2 border-white shadow-md group-hover/seller:ring-2 group-hover/seller:ring-primary transition-all">
+                                   <img src={`https://picsum.photos/seed/${listing.sellerId}/200/200`} className="w-full h-full object-cover" />
+                                </div>
+                                <div>
+                                   <div className="flex items-center gap-2">
+                                     <p className="font-black text-lg text-slate-900 uppercase tracking-tight group-hover/seller:text-primary transition-colors">Verified Pro</p>
+                                     <VerifiedBadge />
+                                   </div>
+                                   <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-1">Trust Verified Identity</p>
+                                </div>
+                            </div>
+                            
+                            <div className="grid grid-cols-2 gap-3 mb-5">
+                               <div className="p-3 bg-slate-50 rounded-2xl border border-slate-100 space-y-1">
+                                  <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-1">
+                                     <Star className="w-2.5 h-2.5 text-[#FF8C00] fill-current" /> Rating
+                                  </p>
+                                  <p className="text-sm font-black text-slate-900">4.9 / 5.0</p>
+                               </div>
+                               <div className="p-3 bg-slate-50 rounded-2xl border border-slate-100 space-y-1">
+                                  <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-1">
+                                     <TrendingUp className="w-2.5 h-2.5 text-primary" /> Reliability
+                                  </p>
+                                  <p className="text-sm font-black text-slate-900">{listing.trustScore || 90}% Score</p>
+                               </div>
+                            </div>
 
-                    <div className="p-4 bg-primary/5 rounded-2xl border border-primary/10 space-y-2">
-                       <p className="text-[8px] font-black text-primary uppercase tracking-widest flex items-center gap-1.5">
-                          <Fingerprint className="w-3 h-3" /> Trust Engine Analysis
-                       </p>
-                       <div className="flex flex-wrap gap-x-4 gap-y-2">
-                          <div className="flex items-center gap-1.5">
-                             <div className="w-1.5 h-1.5 bg-green-500 rounded-full" />
-                             <span className="text-[8px] font-bold text-slate-600 uppercase">Biometric Match</span>
-                          </div>
-                          <div className="flex items-center gap-1.5">
-                             <div className="w-1.5 h-1.5 bg-green-500 rounded-full" />
-                             <span className="text-[8px] font-bold text-slate-600 uppercase">FICA Validated</span>
-                          </div>
-                          <div className="flex items-center gap-1.5">
-                             <div className="w-1.5 h-1.5 bg-green-500 rounded-full" />
-                             <span className="text-[8px] font-bold text-slate-600 uppercase">OTP Secure</span>
-                          </div>
-                       </div>
-                    </div>
-                 </Link>
+                            <div className="p-4 bg-primary/5 rounded-2xl border border-primary/10 space-y-2">
+                               <p className="text-[8px] font-black text-primary uppercase tracking-widest flex items-center gap-1.5">
+                                  <Fingerprint className="w-3 h-3" /> Trust Engine Analysis
+                               </p>
+                               <div className="flex flex-wrap gap-x-4 gap-y-2">
+                                  <div className="flex items-center gap-1.5">
+                                     <div className="w-1.5 h-1.5 bg-green-500 rounded-full" />
+                                     <span className="text-[8px] font-bold text-slate-600 uppercase">Biometric Match</span>
+                                  </div>
+                                  <div className="flex items-center gap-1.5">
+                                     <div className="w-1.5 h-1.5 bg-green-500 rounded-full" />
+                                     <span className="text-[8px] font-bold text-slate-600 uppercase">FICA Validated</span>
+                                  </div>
+                               </div>
+                            </div>
+                          </Link>
 
-                 <Link href="/listings/hero-macbook-pro-1" className="block group/product">
-                    <div className="relative aspect-[16/10] rounded-3xl overflow-hidden mb-8 shadow-2xl border-4 border-white group-hover/product:scale-[1.02] transition-transform duration-500">
-                        <img src="https://picsum.photos/seed/macbook/800/600" className="w-full h-full object-cover" />
-                    </div>
-                    <div className="flex justify-between items-end">
-                        <div>
-                           <p className="font-black text-2xl text-slate-900 tracking-tight group-hover/product:text-primary transition-colors">MacBook Pro M3</p>
-                           <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-1">High-End Lot</p>
+                          <Link href={`/listings/${listing.id}`} className="block group/product">
+                            <div className="relative aspect-[16/10] rounded-3xl overflow-hidden mb-8 shadow-2xl border-4 border-white group-hover/product:scale-[1.02] transition-transform duration-500">
+                                <img src={listing.imageUrls?.[0] || "https://picsum.photos/seed/product/800/600"} className="w-full h-full object-cover" />
+                                <div className="absolute top-4 left-4">
+                                   <Badge className="bg-accent text-white border-none shadow-lg font-black text-[10px] uppercase px-4 py-1.5 rounded-xl animate-pulse">
+                                      <Zap className="w-3 h-3 mr-1.5 fill-current" /> Premium Boost
+                                   </Badge>
+                                </div>
+                            </div>
+                            <div className="flex justify-between items-end">
+                                <div>
+                                   <p className="font-black text-2xl text-slate-900 tracking-tight group-hover/product:text-primary transition-colors truncate max-w-[200px] uppercase">{listing.title}</p>
+                                   <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-1">{listing.isBulk ? 'Bulk Lot' : 'Premium Item'}</p>
+                                </div>
+                                <p className="font-black text-4xl text-primary leading-none tracking-tighter">R {listing.price?.toLocaleString()}</p>
+                            </div>
+                          </Link>
                         </div>
-                        <p className="font-black text-4xl text-primary leading-none">R 32,500</p>
-                    </div>
-                 </Link>
-              </div>
+                      </CarouselItem>
+                    ))}
+                  </CarouselContent>
+                  <div className="flex justify-center gap-2 mt-6">
+                    <CarouselPrevious className="static translate-y-0 h-10 w-10 bg-white border-none shadow-md hover:bg-slate-50" />
+                    <CarouselNext className="static translate-y-0 h-10 w-10 bg-white border-none shadow-md hover:bg-slate-50" />
+                  </div>
+                </Carousel>
+              ) : (
+                /* Fallback if no items are boosted yet */
+                <div className="bg-white p-12 rounded-[3rem] shadow-[0_40px_80px_rgba(0,0,0,0.06)] border border-slate-50 relative z-20 flex flex-col items-center text-center space-y-6">
+                  <div className="w-24 h-24 bg-blue-50 rounded-[2rem] flex items-center justify-center text-primary shadow-inner">
+                    <Zap className="w-12 h-12 animate-pulse fill-current" />
+                  </div>
+                  <div className="space-y-2">
+                    <h3 className="text-2xl font-black text-slate-900 uppercase tracking-tighter leading-none">Boost Your Inventory</h3>
+                    <p className="text-slate-400 font-medium text-sm">Become a Founding Member and push your listings to the spotlight.</p>
+                  </div>
+                  <Link href="/verify">
+                    <Button className="h-14 px-10 rounded-2xl bg-primary text-white font-black uppercase text-xs tracking-widest shadow-xl shadow-primary/20">
+                      Get Verified Status
+                    </Button>
+                  </Link>
+                </div>
+              )}
 
-              {/* Redesigned Prominent Trending Auction Banner */}
               <div className="animate-fade-up [animation-delay:200ms]">
                 <div className="bg-[#FF8C00] p-6 rounded-[2.5rem] shadow-2xl flex items-center justify-between gap-6 group hover:scale-[1.02] transition-all duration-300">
                    <div className="flex items-center gap-4">
@@ -252,9 +293,9 @@ export default function LandingPage() {
               <div className="flex justify-center py-32">
                 <Loader2 className="w-16 h-16 animate-spin text-primary opacity-20" />
               </div>
-            ) : sortedListings.length > 0 ? (
+            ) : trendingListings.length > 0 ? (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-12">
-                {sortedListings.map((listing) => (
+                {trendingListings.map((listing) => (
                   <ListingCard 
                     key={listing.id} 
                     id={listing.id}
