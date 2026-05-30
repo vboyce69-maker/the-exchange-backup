@@ -155,7 +155,9 @@ export default function UserProfilePage() {
                   <div className="w-36 h-36 rounded-[3rem] overflow-hidden border-4 border-white shadow-2xl relative group">
                     <Avatar className="w-full h-full">
                       <AvatarImage src={user.profileImageUrl} />
-                      <AvatarFallback className="bg-[#225BC3] text-white font-black text-4xl">{user.firstName?.[0] || "U"}</AvatarFallback>
+                      <AvatarFallback className="bg-[#225BC3] text-white font-black text-5xl flex items-center justify-center leading-none">
+                        {user.firstName?.[0] || "U"}
+                      </AvatarFallback>
                     </Avatar>
                     
                     {isOwner && (
@@ -295,23 +297,27 @@ export default function UserProfilePage() {
                    <div className="relative w-28 h-28 flex items-center justify-center mb-4">
                       <svg className="w-full h-full transform -rotate-90">
                         <circle cx="56" cy="56" r="50" stroke="currentColor" strokeWidth="8" fill="transparent" className="text-slate-100" />
-                        <circle cx="56" cy="56" r="50" stroke="currentColor" strokeWidth="8" fill="transparent" strokeDasharray={314} strokeDashoffset={314 * (1 - (user.reliabilityScore || 50) / 100)} className="text-[#225BC3]" />
+                        <circle cx="56" cy="56" r="50" stroke="currentColor" strokeWidth="8" fill="transparent" strokeDasharray={314} strokeDashoffset={314 * (1 - (user.reliabilityScore || 50) / 100)} strokeLinecap="round" className="text-[#225BC3]" />
                       </svg>
-                      <div className="absolute flex flex-col items-center leading-none">
-                        <span className="text-2xl font-black text-[#225BC3]">{user.reliabilityScore || 50}%</span>
-                        <span className="text-[7px] font-black uppercase text-slate-400 tracking-tighter">Trust Score</span>
+                      <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
+                        <span className="text-3xl font-black text-[#225BC3] leading-none">{(user.reliabilityScore || 50)}%</span>
+                        <span className="text-[7px] font-black uppercase text-slate-400 tracking-widest mt-1">Trust Score</span>
                       </div>
                    </div>
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
-                  <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100">
-                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Trades</p>
-                    <p className="text-lg font-black text-[#225BC3]">{user.transactionsCompleted || 0}</p>
+                  <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100 space-y-1">
+                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1 flex items-center gap-1.5">
+                      <History className="w-3 h-3" /> Trades
+                    </p>
+                    <p className="text-xl font-black text-[#225BC3]">{user.transactionsCompleted || 0}</p>
                   </div>
-                  <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100">
-                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Disputes</p>
-                    <p className={cn("text-lg font-black", (user.disputeCount || 0) > 0 ? "text-red-500" : "text-green-600")}>
+                  <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100 space-y-1">
+                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1 flex items-center gap-1.5">
+                      <ShieldCheck className="w-3 h-3" /> Disputes
+                    </p>
+                    <p className={cn("text-xl font-black", (user.disputeCount || 0) > 0 ? "text-red-500" : "text-green-600")}>
                       {user.disputeCount || 0}
                     </p>
                   </div>
