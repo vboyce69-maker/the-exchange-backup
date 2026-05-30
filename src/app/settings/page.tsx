@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect, useRef } from "react";
@@ -46,7 +47,8 @@ function SettingsContent() {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const profileRef = useMemoFirebase(() => {
-    return user ? doc(db, "userProfiles", user.uid) : null;
+    if (!user || !db) return null;
+    return doc(db, "userProfiles", user.uid);
   }, [db, user?.uid]);
 
   const { data: profile, isLoading: isProfileLoading } = useDoc(profileRef);
@@ -69,7 +71,7 @@ function SettingsContent() {
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (!file || !user) return;
+    if (!file || !user || !storage) return;
 
     setIsUploading(true);
     try {
@@ -78,8 +80,10 @@ function SettingsContent() {
       const downloadURL = await getDownloadURL(storageRef);
 
       await updateProfile(user, { photoURL: downloadURL });
-      const userRef = doc(db, "userProfiles", user.uid);
-      await updateDoc(userRef, { profileImageUrl: downloadURL });
+      if (db) {
+        const userRef = doc(db, "userProfiles", user.uid);
+        await updateDoc(userRef, { profileImageUrl: downloadURL });
+      }
 
       toast({ title: "Avatar Updated", description: "Your live photo is now active." });
     } catch (err: any) {
@@ -91,7 +95,7 @@ function SettingsContent() {
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!user) return;
+    if (!user || !db) return;
 
     setIsSaving(true);
     try {
@@ -103,8 +107,9 @@ function SettingsContent() {
         updatedAt: new Date().toISOString()
       };
 
+      const profileDocRef = doc(db, "userProfiles", user.uid);
       if (!profile) {
-        await setDoc(doc(db, "userProfiles", user.uid), {
+        await setDoc(profileDocRef, {
           ...data,
           id: user.uid,
           registrationDate: new Date().toISOString(),
@@ -114,7 +119,7 @@ function SettingsContent() {
           disputeCount: 0
         });
       } else {
-        await updateDoc(doc(db, "userProfiles", user.uid), data);
+        await updateDoc(profileDocRef, data);
       }
 
       toast({ title: "Profile Updated", description: "Your details have been saved." });
