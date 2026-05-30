@@ -34,8 +34,8 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
-import { useCollection, useFirestore, useMemoFirebase } from "@/firebase";
-import { collection, query, orderBy, limit, where } from "firebase/firestore";
+import { useCollection, useFirestore, useMemoFirebase, useUser, useDoc } from "@/firebase";
+import { collection, query, orderBy, limit, where, doc } from "firebase/firestore";
 import { VerifiedBadge } from "@/components/VerifiedBadge";
 import {
   Carousel,
@@ -62,10 +62,19 @@ export default function LandingPage() {
   const router = useRouter();
   const [hasMounted, setHasMounted] = useState(false);
   const db = useFirestore();
+  const { user } = useUser();
 
   useEffect(() => {
     setHasMounted(true);
   }, []);
+
+  const profileRef = useMemoFirebase(() => {
+    if (!db || !user) return null;
+    return doc(db, "userProfiles", user.uid);
+  }, [db, user?.uid]);
+
+  const { data: profile } = useDoc(profileRef);
+  const isVerified = profile?.kycStatus === 'verified';
 
   const trendingQuery = useMemoFirebase(() => {
     if (!db) return null;
@@ -125,9 +134,9 @@ export default function LandingPage() {
                     Browse Market
                   </Button>
                 </Link>
-                <Link href="/verify">
+                <Link href={isVerified ? "/create" : "/verify"}>
                   <Button size="lg" variant="outline" className="h-[72px] px-10 rounded-[1.5rem] border-slate-200 bg-white font-black text-slate-600 shadow-lg hover:bg-slate-50 transition-all text-xl">
-                    Seller Verification
+                    {isVerified ? "Post an Item" : "Seller Verification"}
                   </Button>
                 </Link>
               </div>
