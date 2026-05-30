@@ -1,14 +1,16 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { 
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
-  sendEmailVerification
+  sendEmailVerification,
+  User
 } from "firebase/auth";
-import { auth } from "@/firebase";
+import { auth, db } from "@/firebase";
+import { doc, getDoc, setDoc } from "firebase/firestore";
 import { Navigation } from "@/components/Navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -28,9 +30,11 @@ import {
 import { toast } from "@/hooks/use-toast";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { PhoneAuth } from "@/components/auth/PhoneAuth";
+import { MARKET_CONFIG } from "@/app/lib/market-config";
 
 export default function LoginPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [agreedToTerms, setAgreedToTerms] = useState(false);
@@ -40,6 +44,32 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [isSignUp, setIsSignUp] = useState(false);
+
+  const redirectPath = searchParams.get('redirect') || '/';
+
+  const ensureUserProfile = async (user: User) => {
+    const profileRef = doc(db, "userProfiles", user.uid);
+    const profileSnap = await getDoc(profileRef);
+
+    if (!profileSnap.exists()) {
+      // Initialize base profile for new user
+      await setDoc(profileRef, {
+        id: user.uid,
+        firstName: "",
+        lastName: "",
+        username: email.split('@')[0] || `user_${user.uid.substring(0, 5)}`,
+        bio: "New member of The Exchange community.",
+        registrationDate: new Date().toISOString(),
+        isIdVerified: false,
+        kycStatus: 'unverified',
+        reliabilityScore: MARKET_CONFIG.BASE_TRUST_SCORE,
+        transactionsCompleted: 0,
+        disputeCount: 0,
+        isFoundingMember: true, // Auto-assign for early adopters
+        profileImageUrl: `https://picsum.photos/seed/${user.uid}/200/200`
+      });
+    }
+  };
 
   const handleEmailAuth = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -52,18 +82,28 @@ export default function LoginPage() {
     try {
       if (isSignUp) {
         const userCred = await createUserWithEmailAndPassword(auth, email, password);
+        await ensureUserProfile(userCred.user);
         await sendEmailVerification(userCred.user);
         toast({ title: "Account Created", description: "Verification link sent to your email." });
         router.push("/verify-email");
       } else {
-        await signInWithEmailAndPassword(auth, email, password);
-        router.push("/");
+        const userCred = await signInWithEmailAndPassword(auth, email, password);
+        await ensureUserProfile(userCred.user);
+        router.push(redirectPath);
       }
     } catch (err: any) {
       setError(err.message);
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleAuthSuccess = async () => {
+    if (auth.currentUser) {
+      await ensureUserProfile(auth.currentUser);
+    }
+    toast({ title: "Welcome Back", description: "Authentication successful." });
+    router.push(redirectPath);
   };
 
   return (
@@ -97,10 +137,7 @@ export default function LoginPage() {
                   <PhoneAuth 
                     agreedToTerms={agreedToTerms}
                     onConsentChange={setAgreedToTerms}
-                    onSuccess={() => {
-                      toast({ title: "Welcome Back", description: "Authentication successful." });
-                      router.push("/");
-                    }}
+                    onSuccess={handleAuthSuccess}
                   />
                 </TabsContent>
 
@@ -167,18 +204,6 @@ export default function LoginPage() {
               </CardContent>
             </Tabs>
           </Card>
-
-          <div className="p-6 bg-[#225BC3]/5 rounded-[2rem] border border-[#225BC3]/10 flex gap-4">
-             <div className="bg-white p-2 rounded-xl shadow-sm h-fit">
-                <ShieldCheck className="w-6 h-6 text-[#225BC3]" />
-             </div>
-             <div>
-                <p className="text-[10px] font-black text-[#225BC3] uppercase tracking-widest mb-1">Sybil-Attack Prevention</p>
-                <p className="text-[9px] text-blue-600/80 font-bold leading-relaxed">
-                  We use phone-based OTP verification to ensure every user on the platform is a verified resident, effectively eliminating anonymous fraud syndicates.
-                </p>
-             </div>
-          </div>
         </div>
       </main>
     </div>

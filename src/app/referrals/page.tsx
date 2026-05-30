@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { Navigation } from "@/components/Navigation";
+import { AuthGuard } from "@/components/auth/AuthGuard";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -24,6 +25,14 @@ import { useUser } from "@/firebase";
 import { cn } from "@/lib/utils";
 
 export default function ReferralPage() {
+  return (
+    <AuthGuard>
+      <ReferralContent />
+    </AuthGuard>
+  );
+}
+
+function ReferralContent() {
   const { user } = useUser();
   const [referralCode, setReferralCode] = useState("");
   const [copied, setCopied] = useState(false);
@@ -62,7 +71,6 @@ export default function ReferralPage() {
       <main className="container mx-auto px-4 py-8 lg:py-12">
         <div className="max-w-5xl mx-auto space-y-8 lg:space-y-12">
           
-          {/* Hero Promo - COMPACT VERSION */}
           <div className="bg-[#225BC3] rounded-[2.5rem] lg:rounded-[3.5rem] p-8 lg:p-12 text-white relative overflow-hidden shadow-2xl min-h-[220px] flex items-center">
              <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl -mr-32 -mt-32" />
              <div className="relative z-10 space-y-4 lg:space-y-6 text-center lg:text-left w-full lg:w-auto">
@@ -77,7 +85,6 @@ export default function ReferralPage() {
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8">
-            {/* Share Card */}
             <Card className="lg:col-span-7 rounded-[2.5rem] lg:rounded-[3rem] border-none shadow-xl bg-white p-6 lg:p-10 flex flex-col justify-between ring-1 ring-slate-100">
               <div className="space-y-6 lg:space-y-8">
                 <div className="flex flex-col lg:flex-row items-center lg:items-start gap-4 lg:gap-6 text-center lg:text-left">
@@ -120,7 +127,6 @@ export default function ReferralPage() {
               </div>
             </Card>
 
-            {/* Reward Milestones */}
             <Card className="lg:col-span-5 rounded-[2.5rem] lg:rounded-[3rem] border-none shadow-xl bg-white p-6 lg:p-10 ring-1 ring-slate-100">
                <div className="flex items-center gap-3 mb-6 lg:mb-8">
                   <Trophy className="w-6 h-6 lg:w-8 lg:h-8 text-[#FF8C00]" />
