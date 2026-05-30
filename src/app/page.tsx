@@ -226,25 +226,25 @@ export default function LandingPage() {
 
           {/* Footer Trust Shield */}
           <section>
-            <div className="bg-slate-900 rounded-[4rem] p-12 lg:p-24 text-white relative overflow-hidden">
+            <div className="bg-slate-900 rounded-[3rem] p-10 lg:p-16 text-white relative overflow-hidden">
                <div className="absolute -right-40 -bottom-40 w-[600px] h-[600px] bg-primary/10 rounded-full blur-[120px]" />
                
-               <div className="max-w-2xl relative z-10 space-y-10">
-                  <div className="w-20 h-20 bg-white/10 backdrop-blur-md rounded-[2rem] flex items-center justify-center border border-white/20 shadow-2xl">
-                     <Lock className="w-10 h-10 text-primary" />
+               <div className="max-w-2xl relative z-10 space-y-6">
+                  <div className="w-14 h-14 bg-white/10 backdrop-blur-md rounded-2xl flex items-center justify-center border border-white/20 shadow-2xl">
+                     <Lock className="w-6 h-6 text-primary" />
                   </div>
-                  <h2 className="text-5xl lg:text-7xl font-black leading-[0.95] tracking-tighter uppercase">Shop with total <br /><span className="text-primary italic">Confidence.</span></h2>
-                  <p className="text-xl text-white/60 font-medium leading-relaxed">
+                  <h2 className="text-3xl lg:text-5xl font-black leading-[0.95] tracking-tighter uppercase">Shop with total <br /><span className="text-primary italic">Confidence.</span></h2>
+                  <p className="text-lg text-white/60 font-medium leading-relaxed max-w-xl">
                     Every trade is protected by our biometric verification and secure escrow protocol. We've eliminated the risk so you can focus on the deal.
                   </p>
-                  <div className="flex flex-wrap gap-6 pt-6">
+                  <div className="flex flex-wrap gap-4 pt-4">
                      <Link href="/verify">
-                       <Button className="h-20 px-12 rounded-3xl bg-primary text-white font-black text-xl shadow-2xl hover:scale-105 active:scale-95 transition-all uppercase tracking-tighter">
+                       <Button className="h-14 px-8 rounded-2xl bg-primary text-white font-black text-base shadow-xl hover:scale-105 active:scale-95 transition-all uppercase tracking-tighter">
                          Get Verified Badge
                        </Button>
                      </Link>
                      <Link href="/legal">
-                       <Button variant="ghost" className="h-20 px-12 rounded-3xl text-white/80 hover:text-white hover:bg-white/5 font-black uppercase tracking-widest text-xs border border-white/10 backdrop-blur-md">
+                       <Button variant="ghost" className="h-14 px-8 rounded-2xl text-white/80 hover:text-white hover:bg-white/5 font-black uppercase tracking-widest text-[10px] border border-white/10 backdrop-blur-md">
                          Safety Center
                        </Button>
                      </Link>
