@@ -38,6 +38,7 @@ import { doc, getCountFromServer, collection } from "firebase/firestore";
 import { signOut } from "firebase/auth";
 import { Badge } from "@/components/ui/badge";
 import { MARKET_CONFIG } from "@/app/lib/market-config";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 export function Navigation() {
   const router = useRouter();
@@ -189,21 +190,23 @@ export function Navigation() {
                   <DropdownMenuLabel className="font-black text-[10px] uppercase tracking-[0.2em] text-slate-400 p-0">Platform Hub</DropdownMenuLabel>
                   <LayoutGrid className="w-3 h-3 text-slate-200" />
                 </div>
-                <div className="space-y-1">
-                  {menuItems.map((item, idx) => (
-                    <DropdownMenuItem key={idx} asChild className="rounded-2xl p-3 cursor-pointer hover:bg-slate-50 transition-all group outline-none focus:bg-slate-50">
-                      <Link href={item.href} className="flex items-center gap-4">
-                        <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center transition-all group-hover:scale-110", item.bg, item.color)}>
-                          <item.icon className="w-5 h-5" />
-                        </div>
-                        <div>
-                          <p className="font-black text-xs uppercase tracking-tight text-slate-900 leading-none mb-1.5">{item.title}</p>
-                          <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wide">{item.desc}</p>
-                        </div>
-                      </Link>
-                    </DropdownMenuItem>
-                  ))}
-                </div>
+                <ScrollArea className="h-[400px] pr-2">
+                  <div className="space-y-1">
+                    {menuItems.map((item, idx) => (
+                      <DropdownMenuItem key={idx} asChild className="rounded-2xl p-3 cursor-pointer hover:bg-slate-50 transition-all group outline-none focus:bg-slate-50">
+                        <Link href={item.href} className="flex items-center gap-4">
+                          <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center transition-all group-hover:scale-110", item.bg, item.color)}>
+                            <item.icon className="w-5 h-5" />
+                          </div>
+                          <div>
+                            <p className="font-black text-xs uppercase tracking-tight text-slate-900 leading-none mb-1.5">{item.title}</p>
+                            <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wide">{item.desc}</p>
+                          </div>
+                        </Link>
+                      </DropdownMenuItem>
+                    ))}
+                  </div>
+                </ScrollArea>
               </DropdownMenuContent>
             </DropdownMenu>
 
