@@ -1,6 +1,7 @@
+
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useState, useRef } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { Navigation } from "@/components/Navigation";
 import { ListingCard } from "@/components/ListingCard";
@@ -25,18 +26,26 @@ import {
   History,
   Zap,
   Award,
-  Fingerprint
+  Fingerprint,
+  Camera
 } from "lucide-react";
 import { VerifiedBadge } from "@/components/VerifiedBadge";
 import { SellerTierBadge, SellerTier } from "@/components/SellerTierBadge";
-import { useDoc, useCollection, useFirestore, useMemoFirebase } from "@/firebase";
-import { doc, collection, query, where, orderBy } from "firebase/firestore";
+import { useDoc, useCollection, useFirestore, useMemoFirebase, useUser, useStorage } from "@/firebase";
+import { doc, collection, query, where, orderBy, updateDoc } from "firebase/firestore";
+import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
+import { updateProfile } from "firebase/auth";
 import { cn } from "@/lib/utils";
+import { toast } from "@/hooks/use-toast";
 
 export default function UserProfilePage() {
   const { id } = useParams();
   const router = useRouter();
   const db = useFirestore();
+  const storage = useStorage();
+  const { user: authUser } = useUser();
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [isUploading, setIsUploading] = useState(false);
 
   const profileRef = useMemoFirebase(() => {
     if (!id || id === 'me') return null;
@@ -61,6 +70,34 @@ export default function UserProfilePage() {
   }, [db, id]);
 
   const { data: reviews, isLoading: isReviewsLoading } = useCollection(reviewsQuery);
+
+  const isOwner = authUser?.uid === id;
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !authUser || !db || !storage) return;
+
+    setIsUploading(true);
+    try {
+      const storageRef = ref(storage, `profile_pics/${authUser.uid}`);
+      await uploadBytes(storageRef, file);
+      const downloadURL = await getDownloadURL(storageRef);
+
+      // Update Auth Profile
+      await updateProfile(authUser, { photoURL: downloadURL });
+      
+      // Update Firestore Profile
+      const userRef = doc(db, "userProfiles", authUser.uid);
+      await updateDoc(userRef, { profileImageUrl: downloadURL });
+
+      toast({ title: "Avatar Updated", description: "Your profile picture has been updated." });
+    } catch (err: any) {
+      console.error("Upload error:", err);
+      toast({ variant: "destructive", title: "Upload Failed", description: err.message });
+    } finally {
+      setIsUploading(false);
+    }
+  };
 
   if (isProfileLoading) {
     return (
@@ -114,12 +151,40 @@ export default function UserProfilePage() {
             <Card className="rounded-[3rem] border-none shadow-2xl bg-white p-10 ring-1 ring-[#225BC3]/5">
               <div className="flex flex-col items-center text-center">
                 <div className="relative mb-8">
-                  <div className="w-36 h-36 rounded-[3rem] overflow-hidden border-4 border-white shadow-2xl relative">
+                  <div className="w-36 h-36 rounded-[3rem] overflow-hidden border-4 border-white shadow-2xl relative group">
                     <Avatar className="w-full h-full">
                       <AvatarImage src={user.profileImageUrl} />
-                      <AvatarFallback>{user.firstName?.[0] || "U"}</AvatarFallback>
+                      <AvatarFallback className="bg-[#225BC3] text-white font-black text-4xl">{user.firstName?.[0] || "U"}</AvatarFallback>
                     </Avatar>
+                    
+                    {isOwner && (
+                      <div 
+                        className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-all flex items-center justify-center cursor-pointer backdrop-blur-sm"
+                        onClick={() => fileInputRef.current?.click()}
+                      >
+                        {isUploading ? (
+                          <Loader2 className="w-10 h-10 animate-spin text-white" />
+                        ) : (
+                          <div className="flex flex-col items-center gap-1">
+                            <Camera className="w-10 h-10 text-white" />
+                            <span className="text-[8px] font-black uppercase text-white tracking-widest">Update</span>
+                          </div>
+                        )}
+                      </div>
+                    )}
                   </div>
+
+                  {isOwner && (
+                    <input 
+                      type="file" 
+                      ref={fileInputRef} 
+                      className="hidden" 
+                      accept="image/*" 
+                      capture="user"
+                      onChange={handleImageUpload} 
+                    />
+                  )}
+
                   {user.isFoundingMember && (
                     <div className="absolute -top-3 -left-3 bg-[#FF8C00] text-white p-2 rounded-2xl shadow-xl animate-bounce">
                         <Zap className="w-6 h-6 fill-current" />
@@ -157,7 +222,6 @@ export default function UserProfilePage() {
                   "{user.bio || "Secure verified trader."}"
                 </p>
 
-                {/* Trust Engine Analysis block integration */}
                 <div className="w-full p-6 bg-[#225BC3]/5 rounded-3xl border border-[#225BC3]/10 space-y-4 text-left mb-8">
                    <div className="flex justify-between items-center">
                       <p className="text-[10px] font-black text-[#225BC3] uppercase tracking-widest flex items-center gap-1.5">
@@ -197,12 +261,14 @@ export default function UserProfilePage() {
                   ))}
                 </div>
                 
-                <Button 
-                  className="w-full rounded-2xl bg-[#225BC3] font-black h-14 shadow-xl uppercase text-[10px] tracking-widest"
-                  onClick={() => router.push('/messages')}
-                >
-                  <MessageSquare className="w-5 h-5 mr-2" /> Start Secure Chat
-                </Button>
+                {!isOwner && (
+                  <Button 
+                    className="w-full rounded-2xl bg-[#225BC3] font-black h-14 shadow-xl uppercase text-[10px] tracking-widest"
+                    onClick={() => router.push('/messages')}
+                  >
+                    <MessageSquare className="w-5 h-5 mr-2" /> Start Secure Chat
+                  </Button>
+                )}
               </div>
             </Card>
 
