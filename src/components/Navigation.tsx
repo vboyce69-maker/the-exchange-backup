@@ -1,3 +1,4 @@
+
 "use client";
 
 import Link from "next/link";
@@ -25,7 +26,8 @@ import {
   Gift,
   Mail,
   ScanFace,
-  AlertCircle
+  AlertCircle,
+  LayoutDashboard
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
@@ -49,7 +51,6 @@ export function Navigation() {
   const [searchVal, setSearchVal] = useState("");
   const [isMobileSearchOpen, setIsMobileSearchOpen] = useState(false);
 
-  // Fetch real-time verification status for the profile menu
   const profileRef = useMemoFirebase(() => {
     return user ? doc(db, "userProfiles", user.uid) : null;
   }, [db, user?.uid]);
@@ -74,90 +75,67 @@ export function Navigation() {
   };
 
   const features = [
-    { name: "Browse Marketplace", description: "Fixed Price & Lots", icon: ShoppingBag, href: "/search", color: "text-[#225BC3]" },
-    { name: "Live Auctions", description: "Bidding & Bulk Lots", icon: Gavel, href: "/auctions", color: "text-[#FF8C00]" },
-    { name: "Refer & Earn", description: "Viral Referral System", icon: Gift, href: "/referrals", color: "text-pink-500" },
-    { name: "Biometric KYC", description: "AI Identity Verification", icon: Fingerprint, href: "/verify", color: "text-blue-500" },
-    { name: "Protected Payments", description: "Escrow-Style Hold", icon: Lock, href: "/legal", color: "text-green-500" },
-    { name: "Market Insights", description: "Seller Demand Data", icon: TrendingUp, href: "/insights", color: "text-purple-500" },
-    { name: "Safe Zones", description: "Vetted Meetup Points", icon: MapPin, href: "/messages", color: "text-orange-500" },
-    { name: "AI Test Center", description: "Autonomous QA Agent", icon: Settings, href: "/admin/test-center", color: "text-red-500" },
+    { name: "Marketplace", description: "Fixed Price & Lots", icon: ShoppingBag, href: "/search", color: "text-primary" },
+    { name: "Timed Auctions", description: "Bidding & Bids", icon: Gavel, href: "/auctions", color: "text-accent" },
+    { name: "Seller Hub", description: "Manage Inventory", icon: Briefcase, href: "/verify", color: "text-blue-500" },
+    { name: "Rewards", description: "Viral Referrals", icon: Gift, href: "/referrals", color: "text-pink-500" },
+    { name: "Safety Hub", description: "Legal & Protection", icon: Lock, href: "/legal", color: "text-green-500" },
+    { name: "Health Logs", description: "System Integrity", icon: LayoutDashboard, href: "/admin/health", color: "text-slate-500" },
   ];
 
   return (
-    <nav className="sticky top-0 z-50 w-full border-b bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/60 px-2 lg:px-4">
-      <div className="container mx-auto h-14 lg:h-16 flex items-center justify-between gap-1 lg:gap-2">
-        <Link href="/" className="flex items-center gap-1.5 lg:gap-2 shrink-0 group">
-          <div className="bg-[#225BC3] p-1 lg:p-2 rounded-lg lg:rounded-xl shadow-lg shadow-blue-500/20 group-hover:scale-110 transition-transform">
-            <ShieldCheck className="w-4 h-4 lg:w-5 lg:h-5 text-white" />
+    <nav className="glass-navbar h-[88px] flex items-center px-4 transition-all duration-300">
+      <div className="container mx-auto flex items-center justify-between gap-8">
+        <Link href="/" className="flex items-center gap-2.5 shrink-0 group">
+          <div className="bg-primary p-2.5 rounded-2xl shadow-lg shadow-primary/20 group-hover:scale-105 transition-transform duration-300">
+            <ShieldCheck className="w-6 h-6 text-white" />
           </div>
-          <div className="flex flex-col space-y-0">
-            <span className="font-black text-xl lg:text-3xl text-[#225BC3] tracking-tighter uppercase leading-none">THE <span className="text-[#34CBED]">EXCHANGE</span></span>
-            <span className="text-[5px] lg:text-[7px] font-black text-[#225BC3]/60 tracking-widest uppercase mt-0.5">Verified Marketplace</span>
+          <div className="flex flex-col">
+            <span className="font-extrabold text-2xl text-slate-900 tracking-tighter uppercase leading-none">THE <span className="text-primary">EXCHANGE</span></span>
+            <span className="text-[8px] font-bold text-slate-400 tracking-[0.2em] uppercase mt-1">Premium Verified</span>
           </div>
         </Link>
 
-        {/* Desktop Search */}
-        <form onSubmit={handleSearchSubmit} className="hidden lg:flex flex-1 max-w-md mx-8 relative group">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[#225BC3] group-focus-within:scale-110 transition-all duration-300 z-10" />
-          <input 
-            type="text" 
-            placeholder="Search for items, brands..." 
-            value={searchVal}
-            onChange={(e) => setSearchVal(e.target.value)}
-            className="w-full h-10 pl-11 pr-4 rounded-2xl bg-white border border-[#225BC3]/20 shadow-sm focus:border-[#225BC3]/40 focus:ring-4 focus:ring-[#225BC3]/5 outline-none font-medium text-sm transition-all"
-          />
+        {/* Desktop Search - TAKEALOT STYLE */}
+        <form onSubmit={handleSearchSubmit} className="hidden md:flex flex-1 max-w-2xl relative group">
+          <div className="relative w-full">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-primary transition-colors" />
+            <input 
+              type="text" 
+              placeholder="Search for items, brands, or categories..." 
+              value={searchVal}
+              onChange={(e) => setSearchVal(e.target.value)}
+              className="w-full h-12 pl-12 pr-4 rounded-2xl bg-slate-100 border-transparent focus:bg-white focus:border-primary/20 focus:ring-4 focus:ring-primary/5 outline-none font-medium text-sm transition-all"
+            />
+          </div>
         </form>
 
-        <div className="flex items-center gap-1 lg:gap-4">
-          {/* Mobile Search Toggle */}
-          <Button 
-            variant="ghost" 
-            size="icon" 
-            className="lg:hidden rounded-xl h-8 w-8 lg:h-9 lg:w-9 text-[#225BC3] active:scale-95"
-            onClick={() => setIsMobileSearchOpen(!isMobileSearchOpen)}
-          >
-            <Search className="w-4 h-4" />
-          </Button>
-
-          <Link href="/verify">
-            <Button variant="outline" className="border-[#225BC3]/20 text-[#225BC3] font-black rounded-xl lg:rounded-2xl h-8 lg:h-9 px-2.5 lg:px-6 uppercase text-[8px] lg:text-[10px] tracking-tighter active:scale-95 transition-transform hover:bg-[#225BC3]/5">
-              <Briefcase className="w-3.5 h-3.5 lg:w-4 lg:mr-2" />
-              <span className="hidden sm:inline">Seller Hub</span>
-            </Button>
-          </Link>
-
-          <Link href="/create">
-            <Button className="bg-[#FF8C00] hover:bg-[#FF8C00]/90 text-white font-black rounded-xl lg:rounded-2xl h-8 lg:h-9 px-2.5 lg:px-6 shadow-lg shadow-orange-500/20 uppercase text-[8px] lg:text-[10px] tracking-tighter active:scale-95 transition-transform">
-              <PlusCircle className="w-3.5 h-3.5 lg:w-4 lg:mr-2" />
-              <span className="hidden sm:inline">List Item</span>
+        <div className="flex items-center gap-3">
+          <Link href="/create" className="hidden sm:block">
+            <Button className="btn-premium h-11 px-6 bg-primary text-white shadow-md shadow-primary/10">
+              <PlusCircle className="w-4 h-4 mr-2" />
+              List Item
             </Button>
           </Link>
 
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <button className="flex items-center gap-1 text-[8px] lg:text-[10px] font-black uppercase tracking-tighter text-[#225BC3] hover:text-[#34CBED] outline-none h-8 lg:h-9 px-2 lg:px-4 rounded-xl lg:rounded-2xl bg-[#225BC3]/5 hover:bg-[#225BC3]/10 transition-colors border border-[#225BC3]/10 active:scale-95">
-                <span className="hidden xs:inline">Hub</span> <ChevronDown className="w-3 h-3" />
-              </button>
+              <Button variant="ghost" className="h-11 rounded-2xl px-4 gap-2 font-bold text-slate-600 hover:bg-slate-100">
+                Explore <ChevronDown className="w-4 h-4" />
+              </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent className="w-72 max-h-[80vh] overflow-y-auto rounded-[2rem] p-4 shadow-2xl border-none ring-1 ring-black/5 mt-2 bg-white grid grid-cols-1 gap-1">
-              <div className="sticky top-0 bg-white z-10 pb-2">
-                <DropdownMenuLabel className="font-black text-[9px] uppercase tracking-[0.2em] text-[#225BC3] px-3 py-2 flex items-center justify-between">
-                  Platform Hub
-                  <Briefcase className="w-3 h-3" />
-                </DropdownMenuLabel>
-                <DropdownMenuSeparator className="bg-slate-100 mx-3" />
-              </div>
-              <div className="space-y-1">
-                {features.map((feature) => (
-                  <DropdownMenuItem key={feature.name} className="rounded-2xl p-3 cursor-pointer focus:bg-[#225BC3]/5 group" asChild>
-                    <Link href={feature.href} className="flex items-center gap-4">
-                      <div className={cn("w-10 h-10 rounded-xl bg-slate-50 flex items-center justify-center group-focus:bg-white group-focus:shadow-sm transition-all shadow-sm", feature.color)}>
-                        <feature.icon className="w-5 h-5" />
+            <DropdownMenuContent className="w-72 rounded-3xl p-3 shadow-2xl border-none ring-1 ring-slate-100 mt-4 animate-in fade-in zoom-in-95 duration-200">
+              <DropdownMenuLabel className="font-extrabold text-[10px] uppercase tracking-widest text-slate-400 px-3 py-2">Quick Navigation</DropdownMenuLabel>
+              <div className="grid grid-cols-1 gap-1">
+                {features.map((f) => (
+                  <DropdownMenuItem key={f.name} asChild className="rounded-2xl p-3 cursor-pointer focus:bg-slate-50">
+                    <Link href={f.href} className="flex items-center gap-4">
+                      <div className={cn("w-10 h-10 rounded-xl bg-slate-50 flex items-center justify-center", f.color)}>
+                        <f.icon className="w-5 h-5" />
                       </div>
                       <div>
-                        <p className="font-black text-xs text-slate-900 leading-none mb-1">{feature.name}</p>
-                        <p className="text-[9px] font-bold text-muted-foreground">{feature.description}</p>
+                        <p className="font-bold text-sm text-slate-900 leading-none mb-1">{f.name}</p>
+                        <p className="text-[10px] text-slate-500 font-medium">{f.description}</p>
                       </div>
                     </Link>
                   </DropdownMenuItem>
@@ -169,123 +147,55 @@ export function Navigation() {
           {user ? (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button size="icon" variant="ghost" className="rounded-xl lg:rounded-2xl h-8 w-8 lg:h-9 lg:w-9 bg-slate-50 overflow-hidden border border-slate-100 active:scale-95">
+                <Button size="icon" variant="ghost" className="rounded-2xl h-11 w-11 bg-slate-100 border border-slate-200/50 overflow-hidden hover:scale-105 transition-transform">
                   {user.photoURL ? (
                     <img src={user.photoURL} alt="user" className="w-full h-full object-cover" />
                   ) : (
-                    <User className="w-4 h-4 lg:w-5 lg:h-5 text-[#225BC3]" />
+                    <User className="w-5 h-5 text-primary" />
                   )}
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-72 rounded-[2rem] p-4 shadow-2xl border-none ring-1 ring-black/5 mt-2 bg-white">
-                <DropdownMenuLabel className="font-black text-[10px] uppercase tracking-[0.2em] text-slate-400 px-3 pb-3">Identity Center</DropdownMenuLabel>
-                
-                {/* Verification Status Summary */}
-                <div className="px-3 mb-4 space-y-2">
-                   <div 
-                    className={cn(
-                      "flex items-center justify-between p-3 bg-slate-50 rounded-2xl border border-slate-100 transition-all",
-                      !profile?.isIdVerified && "cursor-pointer hover:bg-orange-50 hover:border-orange-200"
-                    )}
-                    onClick={() => !profile?.isIdVerified && router.push('/verify')}
-                   >
-                      <div className="flex items-center gap-2">
-                        <ScanFace className={cn("w-4 h-4", profile?.isIdVerified ? "text-green-500" : "text-slate-400")} />
-                        <span className="text-[10px] font-black uppercase text-slate-700">Identity KYC</span>
-                      </div>
-                      {profile?.isIdVerified ? (
-                        <ShieldCheck className="w-4 h-4 text-green-500" />
-                      ) : (
-                        <Badge className="bg-orange-100 text-orange-600 text-[8px] font-black border-none uppercase">Pending</Badge>
-                      )}
+              <DropdownMenuContent align="end" className="w-72 rounded-3xl p-4 shadow-2xl border-none ring-1 ring-slate-100 mt-4">
+                <div className="flex items-center gap-3 px-2 pb-4 border-b border-slate-100 mb-2">
+                   <div className="w-12 h-12 rounded-2xl bg-slate-100 overflow-hidden">
+                      <img src={user.photoURL || `https://picsum.photos/seed/${user.uid}/200/200`} className="w-full h-full object-cover" />
                    </div>
-                   <div 
-                    className={cn(
-                      "flex items-center justify-between p-3 bg-slate-50 rounded-2xl border border-slate-100 transition-all",
-                      !user.emailVerified && "cursor-pointer hover:bg-red-50 hover:border-red-200"
-                    )}
-                    onClick={() => !user.emailVerified && router.push('/verify-email')}
-                   >
-                      <div className="flex items-center gap-2">
-                        <Mail className={cn("w-4 h-4", user.emailVerified ? "text-green-500" : "text-slate-400")} />
-                        <span className="text-[10px] font-black uppercase text-slate-700">Email Verified</span>
-                      </div>
-                      {user.emailVerified ? (
-                        <ShieldCheck className="w-4 h-4 text-green-500" />
-                      ) : (
-                        <Badge className="bg-red-100 text-red-600 text-[8px] font-black border-none uppercase">Action</Badge>
-                      )}
+                   <div className="min-w-0">
+                      <p className="font-bold text-sm text-slate-900 truncate">{profile?.firstName || user.displayName || 'Verified User'}</p>
+                      <Badge className={cn(
+                        "text-[8px] font-black uppercase tracking-wider py-0.5 px-1.5",
+                        profile?.isIdVerified ? "bg-green-100 text-green-700" : "bg-orange-100 text-orange-600"
+                      )}>
+                        {profile?.isIdVerified ? 'Verified Profile' : 'Pending Verification'}
+                      </Badge>
                    </div>
                 </div>
-
-                {!profile?.isIdVerified && (
-                  <DropdownMenuItem asChild className="rounded-xl p-4 font-black bg-[#225BC3] text-white focus:bg-[#225BC3]/90 focus:text-white cursor-pointer mb-2">
-                    <Link href="/verify" className="flex items-center gap-3">
-                      <Fingerprint className="w-5 h-5" />
-                      <div className="flex flex-col">
-                        <span className="text-xs uppercase">Complete Verification</span>
-                        <span className="text-[8px] opacity-80">Facial Recognition & ID Upload</span>
-                      </div>
-                    </Link>
-                  </DropdownMenuItem>
-                )}
-
-                <DropdownMenuSeparator className="my-2" />
-
+                
                 <DropdownMenuItem asChild className="rounded-xl p-3 font-bold gap-3 cursor-pointer">
                   <Link href={`/profile/${user.uid}`}>
-                    <User className="w-4 h-4 text-[#225BC3]" /> Public Profile
+                    <User className="w-4 h-4 text-primary" /> Public Profile
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild className="rounded-xl p-3 font-bold gap-3 cursor-pointer">
                   <Link href="/settings">
-                    <Settings className="w-4 h-4 text-[#225BC3]" /> Manage Account
+                    <Settings className="w-4 h-4 text-primary" /> Settings
                   </Link>
                 </DropdownMenuItem>
-                
-                <DropdownMenuSeparator className="my-2" />
-                
+                <DropdownMenuSeparator className="bg-slate-50 my-2" />
                 <DropdownMenuItem onClick={handleSignOut} className="rounded-xl p-3 font-bold gap-3 text-red-500 focus:bg-red-50 focus:text-red-600 cursor-pointer">
-                  <LogOut className="w-4 h-4" />
-                  Sign Out
+                  <LogOut className="w-4 h-4" /> Sign Out
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
           ) : (
             <Link href="/login">
-              <Button variant="ghost" className="rounded-xl lg:rounded-2xl h-8 lg:h-9 font-black uppercase text-[8px] lg:text-[10px] tracking-tighter text-[#225BC3] gap-1 lg:gap-1.5 border border-[#225BC3]/10 active:scale-95">
-                <LogIn className="w-3.5 h-3.5 lg:w-4" />
-                <span className="hidden xs:inline">Sign In</span>
+              <Button className="btn-premium h-11 px-8 bg-slate-900 text-white shadow-xl">
+                Sign In
               </Button>
             </Link>
           )}
         </div>
       </div>
-
-      {/* Mobile Search Bar Expansion */}
-      {isMobileSearchOpen && (
-        <div className="lg:hidden absolute left-0 right-0 top-14 bg-white p-4 shadow-xl border-b animate-in slide-in-from-top-4">
-          <form onSubmit={handleSearchSubmit} className="relative">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[#225BC3] z-10" />
-            <input 
-              autoFocus
-              type="text" 
-              placeholder="Search marketplace..." 
-              value={searchVal}
-              onChange={(e) => setSearchVal(e.target.value)}
-              className="w-full h-11 pl-11 pr-12 rounded-2xl bg-white border border-[#225BC3]/20 outline-none font-bold text-sm shadow-sm focus:border-[#225BC3]/40 transition-all"
-            />
-            <Button 
-              type="button" 
-              variant="ghost" 
-              className="absolute right-2 top-1/2 -translate-y-1/2 h-8 w-8 p-0"
-              onClick={() => setIsMobileSearchOpen(false)}
-            >
-              <X className="w-4 h-4" />
-            </Button>
-          </form>
-        </div>
-      )}
     </nav>
   );
 }
