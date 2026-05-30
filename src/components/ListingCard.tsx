@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useEffect, useState } from "react";
@@ -81,31 +80,37 @@ export function ListingCard({
   }, [isAuction, auctionEndDate]);
 
   return (
-    <div className="group relative premium-card flex flex-col">
-      <Link href={`/listings/${id}`} className="block p-3">
-        <div className="relative aspect-square overflow-hidden rounded-2xl bg-slate-100">
+    <div className="group relative premium-card flex flex-col overflow-hidden">
+      <Link href={`/listings/${id}`} className="block p-4">
+        <div className="relative aspect-square overflow-hidden rounded-[1.5rem] bg-slate-50 shadow-inner">
           <Image
             src={imageUrl || "https://picsum.photos/seed/placeholder/800/600"}
             alt={title}
             fill
-            className="object-cover transition-transform duration-500 group-hover:scale-105"
+            className="object-cover transition-transform duration-700 group-hover:scale-110"
             data-ai-hint="product image"
           />
           
-          <div className="absolute top-3 left-3 flex flex-col gap-2">
+          <div className="absolute top-4 left-4 flex flex-col gap-2 z-10">
             {isBoosted && (
-              <Badge className="bg-accent text-white border-none shadow-lg font-black text-[8px] uppercase px-2 py-1">
+              <Badge className="bg-accent text-white border-none shadow-xl font-black text-[8px] uppercase px-3 py-1 rounded-xl">
                 <Zap className="w-2.5 h-2.5 mr-1 fill-current" />
                 Featured
               </Badge>
             )}
             {isAuction && (
               <Badge className={cn(
-                "border-none shadow-lg font-black text-[8px] uppercase px-2 py-1",
-                timeLeft === "Ended" ? "bg-slate-500 text-white" : "bg-primary text-white"
+                "border-none shadow-xl font-black text-[8px] uppercase px-3 py-1 rounded-xl",
+                timeLeft === "Ended" ? "bg-slate-900/80 text-white" : "bg-primary text-white"
               )}>
                 <Gavel className="w-2.5 h-2.5 mr-1" />
                 {timeLeft === "Ended" ? "Ended" : `${timeLeft}`}
+              </Badge>
+            )}
+            {isBulk && (
+              <Badge className="bg-white/90 text-slate-900 border-none shadow-xl font-black text-[8px] uppercase px-3 py-1 rounded-xl backdrop-blur-md">
+                <Layers className="w-2.5 h-2.5 mr-1" />
+                Lot: {quantity}
               </Badge>
             )}
           </div>
@@ -113,41 +118,45 @@ export function ListingCard({
           <button 
             onClick={(e) => { e.preventDefault(); setIsSaved(!isSaved); }}
             className={cn(
-              "absolute top-3 right-3 z-10 w-9 h-9 rounded-full flex items-center justify-center transition-all shadow-xl backdrop-blur-md",
-              isSaved ? "bg-pink-500 text-white scale-110" : "bg-white/90 text-slate-400 hover:text-pink-500"
+              "absolute top-4 right-4 z-10 w-11 h-11 rounded-full flex items-center justify-center transition-all shadow-2xl backdrop-blur-xl border border-white/20",
+              isSaved ? "bg-pink-500 text-white scale-110" : "bg-white/60 text-slate-400 hover:text-pink-500 hover:bg-white"
             )}
           >
-            <Heart className={cn("w-4 h-4", isSaved && "fill-current")} />
+            <Heart className={cn("w-5 h-5", isSaved && "fill-current")} />
           </button>
         </div>
       </Link>
 
-      <CardContent className="p-4 pt-0 space-y-4">
+      <CardContent className="p-6 pt-0 space-y-4">
         <div className="space-y-1">
-          <div className="flex justify-between items-start">
+          <div className="flex justify-between items-start gap-4">
              <Link href={`/listings/${id}`} className="flex-1 min-w-0">
-               <h3 className="font-extrabold text-base text-slate-900 line-clamp-1 group-hover:text-primary transition-colors tracking-tight">{title}</h3>
+               <h3 className="font-black text-lg text-slate-900 line-clamp-1 group-hover:text-primary transition-colors tracking-tight uppercase">{title}</h3>
              </Link>
           </div>
           <p className="font-black text-primary text-2xl tracking-tighter leading-none">R {price.toLocaleString()}</p>
         </div>
         
-        <div className="flex items-center justify-between pt-2 border-t border-slate-50">
-          <div className="flex items-center gap-1.5 text-slate-400 text-[10px] font-bold uppercase tracking-tight">
+        <div className="flex items-center justify-between pt-4 border-t border-slate-50">
+          <div className="flex items-center gap-1.5 text-slate-400 text-[9px] font-black uppercase tracking-widest">
             <MapPin className="w-3.5 h-3.5 text-secondary" />
             {location}
           </div>
-          <div className="flex flex-col items-end gap-1">
-             <div className="flex items-center gap-2">
-                <div className="flex items-center gap-1 text-slate-900 font-bold text-xs">
-                  <Star className="w-3 h-3 text-accent fill-current" />
-                  <span>{sellerRating || 4.9}</span>
-                </div>
-                <VerifiedBadge />
-             </div>
+          <div className="flex items-center gap-2">
+             <StarRating value={sellerRating || 4.9} />
+             <VerifiedBadge />
           </div>
         </div>
       </CardContent>
+    </div>
+  );
+}
+
+function StarRating({ value }: { value: number }) {
+  return (
+    <div className="flex items-center gap-1 text-slate-900 font-black text-[10px]">
+      <Star className="w-3 h-3 text-accent fill-current" />
+      <span>{value}</span>
     </div>
   );
 }
