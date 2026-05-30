@@ -38,14 +38,15 @@ function ReferralContent() {
   const [isInitializing, setIsInitializing] = useState(true);
 
   const referralRef = useMemoFirebase(() => {
-    return user ? doc(db, "referrals", user.uid) : null;
+    if (!db || !user) return null;
+    return doc(db, "referrals", user.uid);
   }, [db, user]);
 
   const { data: referralData, isLoading } = useDoc(referralRef);
 
   useEffect(() => {
     async function initReferral() {
-      if (!user || !db || !isLoading && referralData) {
+      if (!user || !db || (!isLoading && referralData)) {
         setIsInitializing(false);
         return;
       }
