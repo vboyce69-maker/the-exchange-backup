@@ -80,7 +80,7 @@ export default function LandingPage() {
         <div className="space-y-24">
           
           {/* Hero Section */}
-          <section className="grid lg:grid-cols-2 gap-16 items-center pt-8">
+          <section className="grid lg:grid-cols-2 gap-16 items-start pt-8">
             <div className="space-y-10 animate-fade-up">
               <div className="inline-flex items-center gap-3 bg-white px-6 py-2.5 rounded-full border border-slate-100 shadow-sm">
                 <ShieldCheck className="w-4 h-4 text-primary" />
