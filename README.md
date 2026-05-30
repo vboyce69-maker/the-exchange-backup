@@ -1,3 +1,4 @@
+
 # The Exchange | Premium Verified Marketplace
 
 This is a high-trust, local peer-to-peer and professional marketplace built with Next.js, Firebase, and Genkit.
@@ -37,7 +38,8 @@ npm run firebase:deploy # Deploy rules, indexes, and hosting
 If verification emails are not arriving:
 1. **Authorized Domains**: Add your app domain to the "Authorized domains" list in the Firebase Console (Authentication > Settings).
 2. **Spam Folder**: Check your spam/junk folder as automated links are often filtered.
-3. **Phone Users**: If you signed up via phone, ensure you've added an email to your profile in the **Account Hub**.
+3. **Sender Domain**: Verify that the "Custom Sender Domain" in Firebase is correctly configured if you are using a branded email address.
+4. **Email Templates**: Ensure the "Email address verification" template is enabled in the Firebase Console (Authentication > Templates).
 
 ## How to Preview on Mobile
 The Exchange is a **Mobile-Responsive Web App**. You can view the full mobile experience on your physical device:
