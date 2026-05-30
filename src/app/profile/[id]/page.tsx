@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useMemo, useState, useRef } from "react";
@@ -54,19 +55,22 @@ export default function UserProfilePage() {
   const [isBoostingId, setIsBoostingId] = useState<string | null>(null);
 
   const profileRef = useMemoFirebase(() => {
-    return id ? doc(db, "userProfiles", id as string) : null;
+    if (!db || !id) return null;
+    return doc(db, "userProfiles", id as string);
   }, [db, id]);
 
   const { data: profile, isLoading: isProfileLoading } = useDoc(profileRef);
 
   const userListingsQuery = useMemoFirebase(() => {
-    return id ? query(collection(db, "publicListings"), where("sellerId", "==", id), orderBy("postedDate", "desc")) : null;
+    if (!db || !id) return null;
+    return query(collection(db, "publicListings"), where("sellerId", "==", id), orderBy("postedDate", "desc"));
   }, [db, id]);
 
   const { data: listings, isLoading: isListingsLoading } = useCollection(userListingsQuery);
 
   const reviewsQuery = useMemoFirebase(() => {
-    return id ? query(collection(db, "userProfiles", id as string, "reviews"), orderBy("createdAt", "desc")) : null;
+    if (!db || !id) return null;
+    return query(collection(db, "userProfiles", id as string, "reviews"), orderBy("createdAt", "desc"));
   }, [db, id]);
 
   const { data: reviews, isLoading: isReviewsLoading } = useCollection(reviewsQuery);

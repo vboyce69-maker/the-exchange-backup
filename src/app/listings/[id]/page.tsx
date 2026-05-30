@@ -89,7 +89,8 @@ export default function ListingDetailPage() {
   const [now, setNow] = useState<Date | null>(null);
 
   const listingRef = useMemoFirebase(() => {
-    return id ? doc(db, "publicListings", id as string) : null;
+    if (!db || !id) return null;
+    return doc(db, "publicListings", id as string);
   }, [db, id]);
 
   const { data: listing, isLoading } = useDoc(listingRef);

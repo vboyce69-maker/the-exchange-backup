@@ -47,7 +47,7 @@ function SettingsContent() {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const profileRef = useMemoFirebase(() => {
-    if (!user || !db) return null;
+    if (!db || !user) return null;
     return doc(db, "userProfiles", user.uid);
   }, [db, user?.uid]);
 
