@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
@@ -13,7 +14,6 @@ import {
   MessageSquare, 
   Star,
   Info,
-  Calendar,
   ChevronRight,
   CreditCard,
   Building2,
@@ -23,28 +23,26 @@ import {
   FileText,
   ArrowLeft,
   AlertTriangle,
-  Scale,
   Layers,
-  Box,
-  TrendingUp,
   Clock,
-  ArrowRight,
   Loader2,
   ShieldAlert,
   History,
-  AlertCircle,
   Shield,
   Banknote,
-  Smartphone
+  Smartphone,
+  Camera,
+  Flag
 } from "lucide-react";
 import Image from "next/image";
 import { VerifiedBadge } from "@/components/VerifiedBadge";
 import { SellerTierBadge, SellerTier } from "@/components/SellerTierBadge";
 import { toast } from "@/hooks/use-toast";
-import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogTitle, DialogDescription, DialogHeader, DialogFooter } from "@/components/ui/dialog";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
 import {
   Carousel,
@@ -53,9 +51,10 @@ import {
   CarouselNext,
   CarouselPrevious,
 } from "@/components/ui/carousel";
-import { useDoc, useFirestore, useMemoFirebase, useUser } from "@/firebase";
-import { doc, updateDoc } from "firebase/firestore";
-import { updateDocumentNonBlocking } from "@/firebase/non-blocking-updates";
+import { useDoc, useFirestore, useMemoFirebase, useUser, useStorage } from "@/firebase";
+import { doc, collection, query, where, getDocs, addDoc, serverTimestamp } from "firebase/firestore";
+import { updateDocumentNonBlocking, addDocumentNonBlocking } from "@/firebase/non-blocking-updates";
+import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 
 const PAYMENT_METHODS = [
   { id: "card", name: "Credit/Debit Card", icon: CreditCard, description: "Visa, Mastercard, American Express" },
@@ -67,9 +66,15 @@ export default function ListingDetailPage() {
   const { id } = useParams();
   const router = useRouter();
   const db = useFirestore();
+  const storage = useStorage();
   const { user } = useUser();
 
   const [isPaymentOpen, setIsPaymentOpen] = useState(false);
+  const [isDisputeOpen, setIsDisputeOpen] = useState(false);
+  const [disputeReason, setDisputeReason] = useState("");
+  const [disputeEvidence, setDisputeEvidence] = useState<File | null>(null);
+  const [isSubmittingDispute, setIsSubmittingDispute] = useState(false);
+  
   const [paymentMethod, setPaymentMethod] = useState("card");
   const [isPaying, setIsPaying] = useState(false);
   const [bidAmount, setBidAmount] = useState("");
@@ -77,7 +82,6 @@ export default function ListingDetailPage() {
   const [isAccepting, setIsAccepting] = useState(false);
   const [now, setNow] = useState<Date | null>(null);
 
-  // Banking Details State
   const [cardDetails, setCardDetails] = useState({ number: "", expiry: "", cvv: "" });
   const [capitecPhone, setCapitecPhone] = useState("");
   const [eftDetails, setEftDetails] = useState({ bank: "", account: "" });
@@ -109,10 +113,32 @@ export default function ListingDetailPage() {
     return `${h}h ${m}m remaining`;
   }, [listing, now]);
 
-  const getSellerTier = (transactions: number, score: number): SellerTier => {
-    if (transactions >= 50 && score >= 95) return 'pro';
-    if (transactions >= 10 && score >= 90) return 'trusted';
-    return 'beginner';
+  const handleStartChat = async () => {
+    if (!user || !db || !listing) return;
+    
+    // Check for existing thread
+    const q = query(
+      collection(db, "chatThreads"), 
+      where("listingId", "==", id),
+      where("participants", "array-contains", user.uid)
+    );
+    const snap = await getDocs(q);
+    
+    let threadId;
+    if (snap.empty) {
+      const newThread = await addDoc(collection(db, "chatThreads"), {
+        listingId: id,
+        listingTitle: listing.title,
+        participants: [user.uid, listing.sellerId],
+        updatedAt: serverTimestamp(),
+        lastMessage: "Conversation initiated."
+      });
+      threadId = newThread.id;
+    } else {
+      threadId = snap.docs[0].id;
+    }
+    
+    router.push(`/messages?thread=${threadId}`);
   };
 
   const handlePayment = () => {
@@ -124,8 +150,37 @@ export default function ListingDetailPage() {
         title: "Funds Held in Protection Hold",
         description: "Payment secured. Funds will be released only after you confirm the meetup.",
       });
-      router.push('/messages');
+      handleStartChat();
     }, 2000);
+  };
+
+  const handleSubmitDispute = async () => {
+    if (!user || !db || !storage || !disputeReason) return;
+    setIsSubmittingDispute(true);
+    try {
+      let evidenceUrl = "";
+      if (disputeEvidence) {
+        const sRef = ref(storage, `disputes/${user.uid}/${Date.now()}`);
+        await uploadBytes(sRef, disputeEvidence);
+        evidenceUrl = await getDownloadURL(sRef);
+      }
+
+      await addDoc(collection(db, "disputes"), {
+        reporterId: user.uid,
+        listingId: id,
+        reason: disputeReason,
+        evidenceUrl,
+        status: 'open',
+        createdAt: serverTimestamp()
+      });
+
+      toast({ title: "Report Submitted", description: "Our security team has been notified." });
+      setIsDisputeOpen(false);
+    } catch (err) {
+      toast({ variant: "destructive", title: "Error", description: "Failed to submit report." });
+    } finally {
+      setIsSubmittingDispute(false);
+    }
   };
 
   const handlePlaceBid = async () => {
@@ -142,8 +197,7 @@ export default function ListingDetailPage() {
     }
 
     setIsBidding(true);
-    const listingDoc = doc(db, "publicListings", id as string);
-    updateDocumentNonBlocking(listingDoc, {
+    updateDocumentNonBlocking(doc(db, "publicListings", id as string), {
       highestBid: amount,
       highestBidderId: user.uid,
       status: "auction_active"
@@ -154,24 +208,6 @@ export default function ListingDetailPage() {
       setBidAmount("");
       toast({ title: "Bid Placed!", description: `You are now the highest bidder at R ${amount.toLocaleString()}.` });
     }, 800);
-  };
-
-  const handleAcceptHighestBid = async () => {
-    if (!listingRef || !listing) return;
-    setIsAccepting(true);
-    
-    updateDocumentNonBlocking(listingRef, {
-      status: "pending_meetup"
-    });
-
-    setTimeout(() => {
-      setIsAccepting(false);
-      toast({
-        title: "Bid Accepted",
-        description: "The buyer has been notified. Starting the secure meetup process.",
-      });
-      router.push('/messages');
-    }, 1500);
   };
 
   if (isLoading) {
@@ -187,18 +223,21 @@ export default function ListingDetailPage() {
 
   if (!listing) return null;
 
-  const sellerTransactions = 56;
-  const sellerReliability = 94;
-  const sellerTier = getSellerTier(sellerTransactions, sellerReliability);
-
   return (
     <div className="min-h-screen bg-[#F8FAFC]">
       <Navigation />
       
       <main className="container mx-auto px-4 py-6 lg:py-8">
-        <Button variant="ghost" onClick={() => router.back()} className="mb-4 lg:mb-6 font-bold text-slate-500 hover:text-[#225BC3] h-10 rounded-xl">
-          <ArrowLeft className="w-4 h-4 mr-2" /> <span className="text-sm">Back to Search</span>
-        </Button>
+        <div className="flex items-center justify-between mb-4 lg:mb-6">
+          <Button variant="ghost" onClick={() => router.back()} className="font-bold text-slate-500 hover:text-[#225BC3] h-10 rounded-xl">
+            <ArrowLeft className="w-4 h-4 mr-2" /> <span className="text-sm">Back</span>
+          </Button>
+          {!isSeller && (
+            <Button variant="ghost" className="text-red-400 font-black uppercase text-[10px] tracking-widest gap-2" onClick={() => setIsDisputeOpen(true)}>
+              <Flag className="w-3.5 h-3.5" /> Report Listing
+            </Button>
+          )}
+        </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-12">
           {/* Photos */}
@@ -232,42 +271,17 @@ export default function ListingDetailPage() {
               <Card className="rounded-[2.5rem] border-none shadow-xl bg-white p-6 lg:p-8">
                 <TabsContent value="description" className="mt-0">
                   <h3 className="text-lg lg:text-xl font-black text-slate-900 mb-4">About this listing</h3>
-                  <p className="text-slate-600 text-sm lg:text-base leading-relaxed font-medium whitespace-pre-wrap">
-                    {listing.description}
-                  </p>
-                  
-                  {listing.isBulk && (
-                    <div className="mt-8 p-6 bg-blue-50 rounded-3xl border border-blue-100 flex gap-4">
-                      <Layers className="w-8 h-8 lg:w-10 lg:h-10 text-[#225BC3] shrink-0" />
-                      <div>
-                        <p className="text-[10px] font-black text-[#225BC3] uppercase tracking-widest mb-1">Bulk Lot Information</p>
-                        <p className="text-[11px] text-blue-700 font-bold leading-relaxed">
-                          This is a bulk lot containing {listing.quantity} items. Please verify the total count and condition of all items before completing the transaction.
-                        </p>
-                      </div>
-                    </div>
-                  )}
-
+                  <p className="text-slate-600 text-sm lg:text-base leading-relaxed font-medium whitespace-pre-wrap">{listing.description}</p>
                   <div className="mt-6 p-6 bg-red-50 rounded-3xl border border-red-100 flex gap-4">
                     <ShieldAlert className="w-8 h-8 lg:w-10 lg:h-10 text-red-600 shrink-0" />
-                    <div>
-                      <p className="text-[10px] font-black text-red-700 uppercase tracking-widest mb-1">Off-Platform Liability Waiver</p>
-                      <p className="text-[11px] text-red-600 font-bold leading-relaxed">
-                        NOTICE: Any deals made outside of 'The Exchange' are at your own risk. Always use in-app chat and payments.
-                      </p>
-                    </div>
+                    <p className="text-[11px] text-red-600 font-bold leading-relaxed">NOTICE: Deals outside 'The Exchange' are at your own risk. Use in-app payments.</p>
                   </div>
                 </TabsContent>
-                
                 <TabsContent value="specs" className="mt-0">
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div className="flex justify-between p-4 bg-slate-50 rounded-2xl border border-slate-100">
                       <span className="font-bold text-slate-500 text-xs uppercase tracking-wider">Condition</span>
                       <span className="font-black text-[#225BC3] text-sm">{listing.condition}</span>
-                    </div>
-                    <div className="flex justify-between p-4 bg-slate-50 rounded-2xl border border-slate-100">
-                      <span className="font-bold text-slate-500 text-xs uppercase tracking-wider">Type</span>
-                      <span className="font-black text-[#225BC3] text-sm">{listing.isBulk ? 'Bulk Lot' : 'Single Item'}</span>
                     </div>
                   </div>
                 </TabsContent>
@@ -278,153 +292,79 @@ export default function ListingDetailPage() {
           {/* Action Sidebar */}
           <div className="lg:col-span-5 space-y-6">
             <Card className="rounded-[2.5rem] lg:rounded-[3rem] border-none shadow-2xl bg-white overflow-hidden ring-1 ring-slate-100">
-              <div className="bg-[#225BC3] p-4 lg:p-4 text-white">
-                <div className="flex justify-between items-start mb-2 lg:mb-2">
-                   <div className="flex flex-col gap-1 lg:gap-1.5">
-                     <Badge className="bg-[#34CBED] text-white border-none px-2 lg:px-3 uppercase text-[7px] lg:text-[8px] font-black w-fit ml-6">Protected Hold</Badge>
-                     {listing.isBulk && (
-                       <Badge className="bg-[#FF8C00] text-white border-none px-2 lg:px-3 uppercase text-[7px] lg:text-[8px] font-black w-fit flex items-center gap-1">
-                         <Layers className="w-2.5 h-2.5" /> Bulk Lot ({listing.quantity})
-                       </Badge>
-                     )}
-                   </div>
+              <div className="bg-[#225BC3] p-6 text-white">
+                <div className="flex justify-between items-start mb-2">
+                   <Badge className="bg-[#34CBED] text-white border-none px-3 uppercase text-[8px] font-black w-fit">Protected Hold</Badge>
                    {listing.isAuction && (
                      <div className="text-right">
-                        <p className="text-[9px] lg:text-[10px] font-black uppercase tracking-widest text-white/60 mb-0.5">Status</p>
-                        <p className="text-base lg:text-lg font-black whitespace-nowrap">{isAuctionEnded ? "Ended" : "Live Bidding"}</p>
+                        <p className="text-[9px] font-black uppercase tracking-widest text-white/60 mb-0.5">Auction Status</p>
+                        <p className="text-lg font-black">{isAuctionEnded ? "Ended" : "Live"}</p>
                      </div>
                    )}
                 </div>
-                <h1 className="text-base lg:text-lg font-black mb-1 leading-tight">{listing.title}</h1>
-                <p className="text-white/60 text-xs lg:text-sm font-bold flex items-center gap-1">
-                  <MapPin className="w-3.5 h-3.5" /> {listing.location || 'Local'}
-                </p>
+                <h1 className="text-xl lg:text-2xl font-black mb-1 tracking-tight">{listing.title}</h1>
+                <p className="text-white/60 text-sm font-bold flex items-center gap-1"><MapPin className="w-4 h-4" /> {listing.location || 'Local'}</p>
               </div>
               
-              <CardContent className="p-4 lg:p-4 space-y-4 lg:space-y-6">
+              <CardContent className="p-6 space-y-6">
                 <div className="flex justify-between items-center">
                   <div>
-                    <span className="text-[9px] lg:text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-1">
-                      {listing.isAuction ? (listing.highestBid ? 'Highest Bid' : 'Starting Bid') : 'Price'}
+                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-1">
+                      {listing.isAuction ? 'Highest Bid' : 'Price'}
                     </span>
-                    <span className="text-xl lg:text-2xl font-black text-[#225BC3]">R {(listing.highestBid || listing.price || 0).toLocaleString()}</span>
+                    <span className="text-2xl lg:text-3xl font-black text-[#225BC3]">R {(listing.highestBid || listing.price || 0).toLocaleString()}</span>
                   </div>
                   <VerifiedBadge />
                 </div>
 
-                {/* Bidding/Buying Logic */}
                 <div className="space-y-4">
                   {listing.isAuction ? (
                     isAuctionEnded ? (
-                      isSeller ? (
-                        <div className="space-y-4">
-                          <Button 
-                            className="w-full h-14 lg:h-16 bg-[#FF8C00] text-white font-black rounded-2xl text-base lg:text-lg shadow-xl"
-                            onClick={handleAcceptHighestBid}
-                            disabled={isAccepting || !listing.highestBid}
-                          >
-                            {isAccepting ? <Loader2 className="w-6 h-6 animate-spin" /> : "Accept Highest Bid"}
-                          </Button>
-                        </div>
-                      ) : user?.uid === listing.highestBidderId ? (
-                        <div className="p-6 bg-green-50 rounded-2xl border border-green-100 text-center">
-                           <ShieldCheck className="w-10 h-10 text-green-600 mx-auto mb-2" />
-                           <p className="text-lg font-black text-green-800">You Won!</p>
-                        </div>
-                      ) : (
-                        <div className="p-6 bg-slate-50 rounded-2xl border border-slate-100 text-center">
-                           <Gavel className="w-10 h-10 text-slate-300 mx-auto mb-2" />
-                           <p className="text-lg font-black text-slate-400">Auction Ended</p>
-                        </div>
-                      )
+                      <div className="p-6 bg-slate-50 rounded-2xl text-center">
+                         <Gavel className="w-10 h-10 text-slate-300 mx-auto mb-2" />
+                         <p className="text-lg font-black text-slate-400 uppercase">Auction Ended</p>
+                      </div>
                     ) : (
                       <div className="space-y-4">
-                        <div className="flex items-center gap-3 text-[10px] lg:text-sm font-black text-[#FF8C00] uppercase tracking-widest">
+                        <div className="flex items-center gap-3 text-sm font-black text-[#FF8C00] uppercase tracking-widest">
                           <Clock className="w-4 h-4" /> {timeLeft}
                         </div>
                         <div className="flex gap-3">
-                          <Input 
-                            type="number" 
-                            placeholder="Enter bid" 
-                            className="h-12 lg:h-14 rounded-xl font-bold bg-slate-50 border-none"
-                            value={bidAmount}
-                            onChange={(e) => setBidAmount(e.target.value)}
-                          />
-                          <Button 
-                            className="h-12 lg:h-14 px-6 lg:px-8 bg-[#225BC3] text-white font-black rounded-xl text-xs lg:text-base"
-                            onClick={handlePlaceBid}
-                            disabled={isBidding}
-                          >
-                            {isBidding ? <Loader2 className="w-5 h-5 animate-spin" /> : "Bid"}
+                          <Input type="number" placeholder="Bid amount" className="h-14 rounded-xl font-bold bg-slate-50" value={bidAmount} onChange={(e) => setBidAmount(e.target.value)} />
+                          <Button className="h-14 px-8 bg-[#225BC3] text-white font-black rounded-xl" onClick={handlePlaceBid} disabled={isBidding}>
+                            {isBidding ? <Loader2 className="w-5 h-5 animate-spin" /> : "Place Bid"}
                           </Button>
                         </div>
                       </div>
                     )
                   ) : (
-                    <Button className="w-full bg-[#FF8C00] text-white font-black h-14 lg:h-16 rounded-2xl shadow-xl text-base lg:text-lg" onClick={() => setIsPaymentOpen(true)}>
-                      Buy with Protection Hold
+                    <Button className="w-full bg-[#FF8C00] text-white font-black h-16 rounded-2xl shadow-xl text-lg" onClick={() => setIsPaymentOpen(true)}>
+                      Secure Purchase
                     </Button>
                   )}
-                </div>
-
-                <div className="p-4 lg:p-6 bg-green-50 rounded-[2rem] border border-green-100 space-y-2 lg:space-y-3">
-                   <div className="flex items-center gap-3">
-                      <ShieldCheck className="w-6 h-6 lg:w-8 lg:h-8 text-green-600 shrink-0" />
-                      <h4 className="font-black text-green-800 uppercase text-[9px] lg:text-[10px] tracking-widest">Safe Trade Guarantee</h4>
-                   </div>
-                   <p className="text-[9px] lg:text-[10px] text-green-700 leading-relaxed font-bold">
-                     Funds are held in platform escrow until you verify the item at a Safe Zone.
-                   </p>
+                  {!isSeller && (
+                    <Button variant="outline" className="w-full h-14 rounded-2xl font-black border-[#225BC3]/20 text-[#225BC3]" onClick={handleStartChat}>
+                       <MessageSquare className="w-5 h-5 mr-2" /> Message Seller
+                    </Button>
+                  )}
                 </div>
               </CardContent>
             </Card>
 
-            <Card className="rounded-[2.5rem] border-none shadow-xl bg-white overflow-hidden">
-               <div className="p-6 lg:p-8 space-y-6">
-                  <div className="flex items-center justify-between">
-                     <div className="flex items-center gap-4">
-                        <div className="relative w-14 h-14 lg:w-16 lg:h-16 rounded-2xl overflow-hidden shadow-lg border-2 border-slate-50">
-                           <Image src={`https://picsum.photos/seed/user${listing.sellerId}/200/200`} alt="seller" fill />
-                        </div>
-                        <div>
-                           <div className="flex items-center gap-1.5">
-                              <h3 className="font-black text-base lg:text-lg text-slate-900 leading-none">Verified Seller</h3>
-                              <VerifiedBadge />
-                           </div>
-                           <div className="mt-2">
-                             <SellerTierBadge level={sellerTier} />
-                           </div>
-                        </div>
+            <Card className="rounded-[2.5rem] border-none shadow-xl bg-white p-8 space-y-6">
+               <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-4">
+                     <div className="w-16 h-16 rounded-2xl overflow-hidden shadow-lg border-2 border-slate-50">
+                        <Image src={`https://picsum.photos/seed/user${listing.sellerId}/200/200`} alt="seller" width={64} height={64} />
                      </div>
-                     <Button variant="ghost" size="icon" className="rounded-xl h-10 w-10 lg:h-12 lg:w-12 bg-slate-50" onClick={() => router.push(`/profile/${listing.sellerId}`)}>
-                        <ChevronRight className="w-5 h-5 lg:w-6 lg:h-6" />
-                     </Button>
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-3">
-                     <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100 space-y-1">
-                        <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-1">
-                           <History className="w-2.5 h-2.5" /> Trades
-                        </p>
-                        <p className="text-lg lg:text-xl font-black text-[#225BC3]">{sellerTransactions}</p>
-                     </div>
-                     <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100 space-y-1">
-                        <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-1">
-                           <Shield className="w-2.5 h-2.5" /> Disputes
-                        </p>
-                        <p className="text-lg lg:text-xl font-black text-green-600">0</p>
+                     <div>
+                        <h3 className="font-black text-lg text-slate-900 leading-none">Verified Seller</h3>
+                        <VerifiedBadge />
                      </div>
                   </div>
-
-                  <div className="pt-2">
-                     <Button 
-                        variant="outline" 
-                        className="w-full h-11 lg:h-12 rounded-xl font-black text-[9px] lg:text-[10px] uppercase tracking-widest border-[#225BC3]/20 text-[#225BC3] hover:bg-[#225BC3]/5"
-                        onClick={() => router.push(`/profile/${listing.sellerId}`)}
-                     >
-                        View Full Trust Record
-                     </Button>
-                  </div>
+                  <Button variant="ghost" size="icon" className="rounded-xl h-12 w-12 bg-slate-50" onClick={() => router.push(`/profile/${listing.sellerId}`)}>
+                     <ChevronRight className="w-6 h-6" />
+                  </Button>
                </div>
             </Card>
           </div>
@@ -435,157 +375,49 @@ export default function ListingDetailPage() {
       <Dialog open={isPaymentOpen} onOpenChange={setIsPaymentOpen}>
         <DialogContent className="sm:max-w-[400px] rounded-[2rem] border-none p-0 overflow-hidden shadow-2xl mx-4">
           <div className="bg-[#225BC3] p-6 text-white">
-            <DialogTitle className="text-xl font-black flex items-center gap-3 uppercase tracking-tighter text-white">
-              <Lock className="w-5 h-5 text-[#34CBED]" />
-              Secure Pay
-            </DialogTitle>
-            <DialogDescription className="text-xs text-white/70 font-medium mt-1 leading-relaxed">
-              Complete your payment for this item securely via our protected hold system.
-            </DialogDescription>
+            <DialogTitle className="text-xl font-black text-white">Secure Payout Hold</DialogTitle>
+            <DialogDescription className="text-xs text-white/70">Funds are held until trade completion.</DialogDescription>
           </div>
-          <div className="p-6 space-y-6 max-h-[70vh] overflow-y-auto scrollbar-hide">
-            <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100 flex justify-between items-center">
-               <div>
-                  <p className="text-[9px] font-black text-slate-400 uppercase mb-0.5">Hold Amount</p>
-                  <p className="text-xl font-black text-[#225BC3]">R {listing.price?.toLocaleString()}</p>
-               </div>
-               <ShieldCheck className="w-6 h-6 text-green-500" />
-            </div>
-
+          <div className="p-6 space-y-6">
             <RadioGroup value={paymentMethod} onValueChange={setPaymentMethod} className="gap-2.5">
                {PAYMENT_METHODS.map((method) => (
-                  <div 
-                    key={method.id} 
-                    className="relative"
-                    onClick={() => setPaymentMethod(method.id)}
-                  >
-                     <RadioGroupItem value={method.id} id={method.id} className="sr-only" />
-                     <Label 
-                        htmlFor={method.id} 
-                        className={cn(
-                           "flex items-center gap-3.5 p-3.5 rounded-[1.2rem] border-2 transition-all cursor-pointer",
-                           paymentMethod === method.id ? "border-[#225BC3] bg-[#225BC3]/5" : "border-slate-100 bg-white"
-                        )}
-                     >
-                        <method.icon className={cn("w-4 h-4", paymentMethod === method.id ? "text-[#225BC3]" : "text-slate-400")} />
-                        <div className="flex-1">
-                           <p className="font-black text-slate-900 text-xs">{method.name}</p>
-                           <p className="text-[8px] font-bold text-muted-foreground">{method.description}</p>
-                        </div>
-                     </Label>
-                  </div>
+                  <Label key={method.id} className={cn("flex items-center gap-3.5 p-3.5 rounded-2xl border-2 transition-all cursor-pointer", paymentMethod === method.id ? "border-[#225BC3] bg-[#225BC3]/5" : "border-slate-100 bg-white")}>
+                     <RadioGroupItem value={method.id} className="sr-only" />
+                     <method.icon className={cn("w-4 h-4", paymentMethod === method.id ? "text-[#225BC3]" : "text-slate-400")} />
+                     <span className="font-black text-xs">{method.name}</span>
+                  </Label>
                ))}
             </RadioGroup>
-
-            {/* Dynamic Banking Feature Inputs */}
-            <div className="animate-in fade-in slide-in-from-top-2 duration-300">
-               {paymentMethod === 'card' && (
-                  <div className="space-y-4 p-4 bg-slate-50 rounded-2xl border border-slate-200">
-                     <div className="space-y-2">
-                        <Label className="text-[9px] font-black uppercase text-slate-400">Card Number</Label>
-                        <div className="relative">
-                           <CreditCard className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-300" />
-                           <Input 
-                              placeholder="0000 0000 0000 0000" 
-                              className="h-10 pl-9 rounded-xl bg-white border-slate-200 font-mono text-sm" 
-                              value={cardDetails.number}
-                              onChange={(e) => setCardDetails({...cardDetails, number: e.target.value.replace(/\D/g, '').substring(0, 16).replace(/(.{4})/g, '$1 ').trim()})}
-                           />
-                        </div>
-                     </div>
-                     <div className="grid grid-cols-2 gap-4">
-                        <div className="space-y-2">
-                           <Label className="text-[9px] font-black uppercase text-slate-400">Expiry Date</Label>
-                           <Input 
-                              placeholder="MM/YY" 
-                              className="h-10 rounded-xl bg-white border-slate-200 text-sm" 
-                              value={cardDetails.expiry}
-                              onChange={(e) => setCardDetails({...cardDetails, expiry: e.target.value.replace(/\D/g, '').substring(0, 4).replace(/(.{2})/, '$1/')})}
-                           />
-                        </div>
-                        <div className="space-y-2">
-                           <Label className="text-[9px] font-black uppercase text-slate-400">CVV</Label>
-                           <Input 
-                              placeholder="123" 
-                              type="password"
-                              className="h-10 rounded-xl bg-white border-slate-200 text-sm" 
-                              value={cardDetails.cvv}
-                              onChange={(e) => setCardDetails({...cardDetails, cvv: e.target.value.replace(/\D/g, '').substring(0, 3)})}
-                           />
-                        </div>
-                     </div>
-                  </div>
-               )}
-
-               {paymentMethod === 'capitec' && (
-                  <div className="space-y-4 p-4 bg-slate-50 rounded-2xl border border-slate-200">
-                     <div className="flex items-center gap-3 mb-2">
-                        <div className="w-8 h-8 bg-white rounded-lg flex items-center justify-center border border-slate-100">
-                           <Smartphone className="w-4 h-4 text-[#225BC3]" />
-                        </div>
-                        <p className="text-[10px] font-bold text-slate-600">Enter your Capitec-linked mobile number to trigger the push notification.</p>
-                     </div>
-                     <div className="space-y-2">
-                        <Label className="text-[9px] font-black uppercase text-slate-400">Mobile Number</Label>
-                        <Input 
-                           placeholder="+27 00 000 0000" 
-                           className="h-12 rounded-xl bg-white border-slate-200 font-bold text-base text-center" 
-                           value={capitecPhone}
-                           onChange={(e) => setCapitecPhone(e.target.value)}
-                        />
-                     </div>
-                  </div>
-               )}
-
-               {paymentMethod === 'eft' && (
-                  <div className="space-y-4 p-4 bg-slate-50 rounded-2xl border border-slate-200">
-                     <div className="space-y-2">
-                        <Label className="text-[9px] font-black uppercase text-slate-400">Select Your Bank</Label>
-                        <select 
-                           className="w-full h-11 px-3 rounded-xl bg-white border border-slate-200 text-sm font-bold text-slate-700 outline-none focus:ring-2 focus:ring-[#225BC3]/10"
-                           value={eftDetails.bank}
-                           onChange={(e) => setEftDetails({...eftDetails, bank: e.target.value})}
-                        >
-                           <option value="">Choose Bank...</option>
-                           <option value="fnb">First National Bank (FNB)</option>
-                           <option value="std">Standard Bank</option>
-                           <option value="abs">ABSA</option>
-                           <option value="ned">Nedbank</option>
-                           <option value="cap">Capitec</option>
-                           <option value="tyme">TymeBank</option>
-                        </select>
-                     </div>
-                     <div className="space-y-2">
-                        <Label className="text-[9px] font-black uppercase text-slate-400">Account Number Confirmation</Label>
-                        <div className="relative">
-                           <Banknote className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-300" />
-                           <Input 
-                              placeholder="Account Number" 
-                              className="h-10 pl-9 rounded-xl bg-white border-slate-200 font-bold text-sm" 
-                              value={eftDetails.account}
-                              onChange={(e) => setEftDetails({...eftDetails, account: e.target.value.replace(/\D/g, '')})}
-                           />
-                        </div>
-                        <p className="text-[8px] text-slate-400 font-medium italic">Verified by Ozow secure banking gateway.</p>
-                     </div>
-                  </div>
-               )}
-            </div>
-
-            <div className="pt-2">
-               <Button 
-                  className="w-full h-14 bg-[#225BC3] text-white font-black rounded-2xl shadow-2xl text-base disabled:opacity-50" 
-                  onClick={handlePayment} 
-                  disabled={isPaying || (paymentMethod === 'card' && !cardDetails.number) || (paymentMethod === 'capitec' && !capitecPhone) || (paymentMethod === 'eft' && !eftDetails.account)}
-               >
-                  {isPaying ? <Loader2 className="w-5 h-5 animate-spin mr-2" /> : null}
-                  {isPaying ? "Verifying..." : `Pay R ${listing.price?.toLocaleString()}`}
-               </Button>
-               <p className="text-[8px] text-center text-slate-400 font-black uppercase tracking-widest mt-4 flex items-center justify-center gap-2">
-                  <ShieldCheck className="w-3 h-3" /> PCI-DSS Compliant • AES-256 Encrypted
-               </p>
-            </div>
+            <Button className="w-full h-14 bg-[#225BC3] text-white font-black rounded-2xl shadow-2xl" onClick={handlePayment} disabled={isPaying}>
+               {isPaying ? <Loader2 className="w-5 h-5 animate-spin" /> : `Commit R ${listing.price?.toLocaleString()}`}
+            </Button>
           </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Dispute Dialog */}
+      <Dialog open={isDisputeOpen} onOpenChange={setIsDisputeOpen}>
+        <DialogContent className="rounded-[2rem] p-8 max-w-md">
+           <DialogHeader>
+              <DialogTitle className="text-2xl font-black text-red-600 uppercase tracking-tighter">Security Incident Report</DialogTitle>
+              <DialogDescription className="text-sm font-medium">Describe the issue and attach evidence for platform review.</DialogDescription>
+           </DialogHeader>
+           <div className="space-y-6 py-4">
+              <div className="space-y-2">
+                 <Label className="text-[10px] font-black uppercase text-slate-400">Reason for Report</Label>
+                 <Textarea placeholder="Explain what happened..." className="rounded-xl bg-slate-50 border-none min-h-[100px]" value={disputeReason} onChange={(e) => setDisputeReason(e.target.value)} />
+              </div>
+              <div className="space-y-2">
+                 <Label className="text-[10px] font-black uppercase text-slate-400">Evidence Photo</Label>
+                 <Input type="file" className="rounded-xl bg-slate-50 border-none h-12 py-3" onChange={(e) => setDisputeEvidence(e.target.files?.[0] || null)} />
+              </div>
+           </div>
+           <DialogFooter>
+              <Button variant="ghost" onClick={() => setIsDisputeOpen(false)} className="rounded-xl font-black">Cancel</Button>
+              <Button className="bg-red-600 rounded-xl font-black text-white px-8 h-12" onClick={handleSubmitDispute} disabled={isSubmittingDispute || !disputeReason}>
+                 {isSubmittingDispute ? <Loader2 className="w-4 h-4 animate-spin" /> : "Submit To Security"}
+              </Button>
+           </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>

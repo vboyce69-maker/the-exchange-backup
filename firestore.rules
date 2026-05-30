@@ -3,9 +3,6 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
     
-    // ===============================================================
-    // Helper Functions
-    // ===============================================================
     function isAuthenticated() {
       return request.auth != null;
     }
@@ -14,61 +11,50 @@ service cloud.firestore {
       return isAuthenticated() && request.auth.uid == userId;
     }
 
-    // ===============================================================
-    // Domain Validators
-    // ===============================================================
-    function isValidUser(data) {
-      return data.phoneNumber is string &&
-             data.isVerified is bool &&
-             data.createdAt is timestamp &&
-             data.role in ['buyer', 'seller', 'admin'] &&
-             (!('displayName' in data) || data.displayName is string) &&
-             (!('businessInfo' in data) || (
-               data.businessInfo is map &&
-               data.businessInfo.registrationNumber is string &&
-               data.businessInfo.address is string &&
-               (!('vatNumber' in data.businessInfo) || data.businessInfo.vatNumber is string)
-             ));
-    }
-
-    // ===============================================================
-    // Collection Rules
-    // ===============================================================
-    
-    // Core user account security: STRICT OWNER ONLY
-    match /users/{userId} {
-      allow read: if isOwner(userId);
-      allow create: if isOwner(userId) && 
-                      isValidUser(request.resource.data) && 
-                      request.resource.data.role != 'admin'; 
-      allow update: if isOwner(userId) && 
-                      isValidUser(request.resource.data) && 
-                      request.resource.data.role == resource.data.role;
-    }
-
-    // User Profiles: Public stats allowed, but sensitive fields must be hidden or owner-only
+    // Profiles: Public read, owner write
     match /userProfiles/{userId} {
       allow read: if true;
       allow write: if isOwner(userId);
+      
+      match /reviews/{reviewId} {
+        allow read: if true;
+        allow create: if isAuthenticated();
+      }
     }
 
-    // Public Listings: Anyone can browse, only owner can modify
+    // Listings: Public read, owner modify
     match /publicListings/{listingId} {
       allow read: if true;
       allow create: if isAuthenticated();
-      allow update, delete: if isAuthenticated() && request.auth.uid == resource.data.sellerId;
+      allow update, delete: if isAuthenticated() && (request.auth.uid == resource.data.sellerId || request.auth.uid == resource.data.highestBidderId);
     }
 
-    // Moderation Queue: Users can submit, only admins (logic) can read
+    // Messaging: Participants only
+    match /chatThreads/{threadId} {
+      allow read, write: if isAuthenticated() && request.auth.uid in resource.data.participants;
+      allow create: if isAuthenticated();
+      
+      match /messages/{messageId} {
+        allow read: if isAuthenticated() && request.auth.uid in get(/databases/$(database)/documents/chatThreads/$(threadId)).data.participants;
+        allow create: if isAuthenticated();
+      }
+    }
+
+    // Disputes: Reporters can create, participants can read
+    match /disputes/{disputeId} {
+      allow create: if isAuthenticated();
+      allow read: if isAuthenticated() && (request.auth.uid == resource.data.reporterId || request.auth.token.role == 'admin');
+    }
+
+    // Referrals: Owner only
+    match /referrals/{userId} {
+      allow read, write: if isOwner(userId);
+    }
+
+    // Moderation: Admin only
     match /moderationQueue/{recordId} {
       allow create: if isAuthenticated();
-      allow read, update, delete: if false; 
-    }
-
-    // System Errors: Anonymous write allowed for recovery
-    match /systemErrors/{errorId} {
-      allow create: if true;
-      allow read, update, delete: if false;
+      allow read: if isAuthenticated() && request.auth.token.role == 'admin';
     }
   }
 }
