@@ -1,10 +1,33 @@
 
 {
   "entities": {
+    "User": {
+      "title": "User",
+      "type": "object",
+      "description": "Core account data for buyers and sellers.",
+      "properties": {
+        "phoneNumber": { "type": "string" },
+        "displayName": { "type": "string" },
+        "isVerified": { "type": "boolean" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "lastSignIn": { "type": "string", "format": "date-time" },
+        "role": { "type": "string", "enum": ["buyer", "seller", "admin"] },
+        "businessInfo": {
+          "type": "object",
+          "properties": {
+            "registrationNumber": { "type": "string" },
+            "vatNumber": { "type": "string" },
+            "address": { "type": "string" }
+          },
+          "required": ["registrationNumber", "address"]
+        }
+      },
+      "required": ["phoneNumber", "isVerified", "createdAt", "role"]
+    },
     "UserProfile": {
       "title": "UserProfile",
       "type": "object",
-      "description": "User profile with verification status and transaction history.",
+      "description": "Public-facing user profile with trust metrics.",
       "properties": {
         "id": { "type": "string" },
         "username": { "type": "string" },
@@ -60,6 +83,14 @@
   },
   "firestore": {
     "structure": [
+      {
+        "path": "/users/{userId}",
+        "definition": {
+          "entityName": "User",
+          "schema": { "$ref": "#/backend/entities/User" },
+          "description": "Private account data and role settings."
+        }
+      },
       {
         "path": "/userProfiles/{userId}",
         "definition": {
