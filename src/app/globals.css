@@ -1,12 +1,11 @@
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
   :root {
-    --background: 210 40% 98.5%; /* Softer background #F8FAFC */
-    --foreground: 222 47% 11%;
+    --background: 222 47% 11%; /* Dark for depth */
+    --foreground: 210 40% 98%;
     --card: 0 0% 100%;
     --card-foreground: 222 47% 11%;
     --popover: 0 0% 100%;
@@ -15,16 +14,16 @@
     --primary-foreground: 210 40% 98%;
     --secondary: 187 92% 45%; /* Accent Cyan #22D3EE */
     --secondary-foreground: 222 47% 11%;
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
+    --muted: 217 32% 17%;
+    --muted-foreground: 215 20% 65%;
     --accent: 38 92% 50%; /* Premium Orange #F59E0B */
     --accent-foreground: 0 0% 100%;
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 40% 98%;
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
+    --border: 217.2 32.6% 17.5%;
+    --input: 217.2 32.6% 17.5%;
     --ring: 221 83% 53%;
-    --radius: 1.25rem;
+    --radius: 1.5rem;
   }
 }
 
@@ -36,19 +35,33 @@
     @apply bg-background text-foreground antialiased;
     font-family: 'Inter', sans-serif;
   }
-  h1, h2, h3, h4, h5, h6 {
-    @apply tracking-tight font-bold;
-  }
 }
 
 @layer components {
+  .depth-bg {
+    background: radial-gradient(circle at 0% 0%, #1e3a8a 0%, #0f172a 100%);
+    @apply relative min-h-screen w-full overflow-x-hidden;
+  }
+
+  .glass-chassis {
+    @apply bg-white/70 backdrop-blur-3xl border border-white/20 shadow-2xl;
+  }
+
   .premium-card {
-    @apply bg-white rounded-3xl shadow-premium border border-slate-100/50 transition-all duration-300 hover:shadow-premium-hover hover:-translate-y-1;
+    @apply bg-white rounded-[2rem] border border-slate-100/50 transition-all duration-300;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.08);
   }
+
+  .premium-card:hover {
+    @apply shadow-2xl;
+    transform: translateY(-3px);
+  }
+
   .glass-navbar {
-    @apply bg-white/85 backdrop-blur-xl border-b border-slate-200/60 sticky top-0 z-50;
+    @apply bg-white/60 backdrop-blur-2xl border-b border-white/20 sticky top-0 z-50;
   }
-  .btn-premium {
-    @apply rounded-2xl font-bold transition-all duration-200 hover:shadow-lg active:scale-[0.98] hover:-translate-y-0.5;
+
+  .light-orb {
+    @apply absolute rounded-full blur-[120px] pointer-events-none opacity-20;
   }
 }
