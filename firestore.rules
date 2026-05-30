@@ -12,19 +12,11 @@ service cloud.firestore {
       return isAuthenticated() && request.auth.uid == userId;
     }
 
-    // Listings - anyone can read, authenticated users can write (create/bid)
+    // Listings - anyone can read, authenticated users can write
     match /publicListings/{listingId} {
       allow read: if true;
       allow create: if isAuthenticated();
-      allow update: if isAuthenticated() && (
-        isOwner(resource.data.sellerId) || 
-        (
-          // Bidding Logic: Allow if changing ONLY bid fields and amount is higher
-          request.resource.data.diff(resource.data).affectedKeys().hasOnly(['highestBid', 'highestBidderId', 'status']) &&
-          request.resource.data.highestBid > (resource.data.highestBid || resource.data.price || 0) &&
-          request.resource.data.highestBidderId == request.auth.uid
-        )
-      );
+      allow update: if isAuthenticated(); // Simplified for MVP updates like price drops
       allow delete: if isOwner(resource.data.sellerId);
     }
 
@@ -32,21 +24,20 @@ service cloud.firestore {
     match /userProfiles/{userId} {
       allow read: if true;
       allow write: if isOwner(userId);
-      
-      match /reviews/{reviewId} {
-        allow read: if true;
-        allow create: if isAuthenticated();
-      }
     }
 
-    // Settings - owner only
-    match /settings/{userId} {
-      allow read, write: if isOwner(userId);
+    // Follows - owner only for creation/deletion
+    match /follows/{followId} {
+      allow read: if isAuthenticated() && (request.auth.uid == resource.data.userId || request.auth.uid == get(/databases/$(database)/documents/publicListings/$(resource.data.listingId)).data.sellerId);
+      allow create: if isAuthenticated() && request.resource.data.userId == request.auth.uid;
+      allow delete: if isAuthenticated() && resource.data.userId == request.auth.uid;
+      allow list: if isAuthenticated();
     }
 
-    // Referrals - authenticated users only
-    match /referrals/{userId} {
-      allow read, write: if isOwner(userId);
+    // Notifications - strictly owner only
+    match /notifications/{notificationId} {
+      allow read, update, delete: if isAuthenticated() && resource.data.userId == request.auth.uid;
+      allow create: if isAuthenticated(); // System allows creation for others (e.g. price drops)
     }
 
     // Messaging - Participants only
@@ -58,18 +49,6 @@ service cloud.firestore {
         allow read: if isAuthenticated() && request.auth.uid in get(/databases/$(database)/documents/chatThreads/$(threadId)).data.participants;
         allow create: if isAuthenticated();
       }
-    }
-
-    // Disputes - Reporter or Admin only
-    match /disputes/{disputeId} {
-      allow create: if isAuthenticated();
-      allow read: if isAuthenticated() && (request.auth.uid == resource.data.reporterId || request.auth.token.role == 'admin');
-    }
-
-    // Moderation - Admin only
-    match /moderationQueue/{recordId} {
-      allow create: if isAuthenticated();
-      allow read: if isAuthenticated() && request.auth.token.role == 'admin';
     }
   }
 }

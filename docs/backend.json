@@ -64,6 +64,29 @@
       },
       "required": ["id", "sellerId", "title", "price", "status"]
     },
+    "ListingFollow": {
+      "title": "ListingFollow",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "listingId": { "type": "string" },
+        "initialPrice": { "type": "number" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      }
+    },
+    "Notification": {
+      "title": "Notification",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "title": { "type": "string" },
+        "message": { "type": "string" },
+        "timestamp": { "type": "string", "format": "date-time" },
+        "isRead": { "type": "boolean" },
+        "listingId": { "type": "string" },
+        "type": { "type": "string", "enum": ["price_drop", "system", "outbid"] }
+      }
+    },
     "ChatThread": {
       "title": "ChatThread",
       "type": "object",
@@ -82,18 +105,6 @@
         "senderId": { "type": "string" },
         "text": { "type": "string" },
         "timestamp": { "type": "string", "format": "date-time" }
-      }
-    },
-    "Dispute": {
-      "title": "Dispute",
-      "type": "object",
-      "properties": {
-        "reporterId": { "type": "string" },
-        "listingId": { "type": "string" },
-        "reason": { "type": "string" },
-        "evidenceUrl": { "type": "string" },
-        "status": { "type": "string", "enum": ["open", "resolved"] },
-        "createdAt": { "type": "string", "format": "date-time" }
       }
     }
   },
@@ -119,14 +130,6 @@
         }
       },
       {
-        "path": "/userProfiles/{userId}/reviews/{reviewId}",
-        "definition": {
-          "entityName": "Review",
-          "schema": { "type": "object" },
-          "description": "User reviews."
-        }
-      },
-      {
         "path": "/publicListings/{listingId}",
         "definition": {
           "entityName": "ProductListing",
@@ -135,35 +138,27 @@
         }
       },
       {
+        "path": "/follows/{followId}",
+        "definition": {
+          "entityName": "ListingFollow",
+          "schema": { "$ref": "#/backend/entities/ListingFollow" },
+          "description": "Users following specific listings for price drops."
+        }
+      },
+      {
+        "path": "/notifications/{notificationId}",
+        "definition": {
+          "entityName": "Notification",
+          "schema": { "$ref": "#/backend/entities/Notification" },
+          "description": "User specific alerts and updates."
+        }
+      },
+      {
         "path": "/chatThreads/{threadId}",
         "definition": {
           "entityName": "ChatThread",
           "schema": { "$ref": "#/backend/entities/ChatThread" },
-          "description": "High-level chat metadata."
-        }
-      },
-      {
-        "path": "/chatThreads/{threadId}/messages/{messageId}",
-        "definition": {
-          "entityName": "ChatMessage",
-          "schema": { "$ref": "#/backend/entities/ChatMessage" },
-          "description": "Individual chat messages."
-        }
-      },
-      {
-        "path": "/disputes/{disputeId}",
-        "definition": {
-          "entityName": "Dispute",
-          "schema": { "$ref": "#/backend/entities/Dispute" },
-          "description": "Flagged transaction logs."
-        }
-      },
-      {
-        "path": "/referrals/{userId}",
-        "definition": {
-          "entityName": "Referral",
-          "schema": { "type": "object" },
-          "description": "Referral code tracking."
+          "description": "Messaging handshake metadata."
         }
       }
     ]
