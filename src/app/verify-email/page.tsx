@@ -36,11 +36,10 @@ export default function VerifyEmailPage() {
   }, [countdown]);
 
   const handleSendVerification = async () => {
-    if (!user) return;
+    if (!user || !auth) return;
     setIsSending(true);
     try {
       // If user is editing or has no email, update it first
-      // NOTE: This is a sensitive action and may require recent login
       if (emailInput && emailInput !== user.email) {
         await updateEmail(user, emailInput);
       }
@@ -66,6 +65,8 @@ export default function VerifyEmailPage() {
         errorMessage = "This email is already linked to another account.";
       } else if (err.code === 'auth/too-many-requests') {
         errorMessage = "System busy. Please wait a few moments before trying again.";
+      } else if (err.code === 'auth/unauthorized-domain') {
+        errorMessage = "Domain Unauthorized: Please add the current preview URL to the 'Authorized Domains' list in the Firebase Console (Authentication > Settings).";
       }
 
       toast({
@@ -79,8 +80,10 @@ export default function VerifyEmailPage() {
   };
 
   const handleSignOut = async () => {
-    await signOut(auth);
-    router.push('/login');
+    if (auth) {
+      await signOut(auth);
+      router.push('/login');
+    }
   };
 
   if (isUserLoading) {
