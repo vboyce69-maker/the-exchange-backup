@@ -109,8 +109,8 @@ export default function LandingPage() {
               </div>
             </div>
 
-            {/* Hero Floating Element */}
-            <div className="hidden lg:block relative">
+            {/* Hero Floating Element Container */}
+            <div className="hidden lg:block space-y-6">
               <div className="bg-white p-8 rounded-[3rem] shadow-[0_40px_80px_rgba(0,0,0,0.06)] border border-slate-50 relative z-20 animate-fade-up">
                  <div className="flex items-center gap-4 mb-6">
                     <div className="w-14 h-14 bg-slate-100 rounded-full overflow-hidden border-2 border-white shadow-md">
@@ -132,10 +132,25 @@ export default function LandingPage() {
                     <p className="font-black text-4xl text-primary leading-none">R 32,500</p>
                  </div>
               </div>
-              {/* Decorative Accent */}
-              <div className="absolute -bottom-6 -right-6 w-48 h-16 bg-[#FF8C00] rounded-2xl flex items-center justify-center gap-3 shadow-2xl z-30 transform rotate-2">
-                 <Zap className="w-5 h-5 text-white fill-current animate-pulse" />
-                 <span className="text-white font-black uppercase text-[10px] tracking-widest">Trending Auction</span>
+
+              {/* Redesigned Prominent Trending Auction Banner */}
+              <div className="animate-fade-up [animation-delay:200ms]">
+                <div className="bg-[#FF8C00] p-6 rounded-[2.5rem] shadow-2xl flex items-center justify-between gap-6 group hover:scale-[1.02] transition-all duration-300">
+                   <div className="flex items-center gap-4">
+                      <div className="w-14 h-14 bg-white/20 rounded-2xl flex items-center justify-center shadow-inner">
+                         <Zap className="w-7 h-7 text-white fill-current animate-bounce" />
+                      </div>
+                      <div>
+                         <p className="text-white font-black uppercase text-xs tracking-widest leading-none">Trending Auction</p>
+                         <p className="text-white/80 text-[10px] font-bold uppercase mt-1.5 tracking-tight">Active bidding on high-value lots</p>
+                      </div>
+                   </div>
+                   <Link href="/auctions">
+                     <Button className="bg-white text-[#FF8C00] font-black h-12 px-8 rounded-2xl shadow-xl hover:bg-slate-50 active:scale-95 transition-all text-xs uppercase tracking-widest">
+                        View Bids
+                     </Button>
+                   </Link>
+                </div>
               </div>
             </div>
           </section>
