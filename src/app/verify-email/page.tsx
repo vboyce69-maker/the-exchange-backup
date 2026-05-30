@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Mail, Loader2, CheckCircle2, ShieldCheck, ArrowRight, Home, AlertCircle, RefreshCw } from "lucide-react";
 import { useUser, useAuth } from "@/firebase";
-import { sendEmailVerification, updateEmail, signOut } from "firebase/auth";
+import { sendEmailVerification, verifyBeforeUpdateEmail, signOut } from "firebase/auth";
 import { toast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -39,17 +39,22 @@ export default function VerifyEmailPage() {
     if (!user || !auth) return;
     setIsSending(true);
     try {
-      // If user is editing or has no email, update it first
+      // If user is editing or has no email, we use verifyBeforeUpdateEmail
+      // This is required by modern Firebase security settings to prevent "blind" updates
       if (emailInput && emailInput !== user.email) {
-        await updateEmail(user, emailInput);
+        await verifyBeforeUpdateEmail(user, emailInput);
+        toast({
+          title: "Verification Sent",
+          description: `A secure link was sent to ${emailInput}. Your account will update once you confirm the link.`,
+        });
+      } else {
+        // Just resend verification to existing email
+        await sendEmailVerification(user);
+        toast({
+          title: "Link Transmitted",
+          description: `Verification link sent to ${user.email}. Please check your inbox and junk folder.`,
+        });
       }
-      
-      await sendEmailVerification(user);
-      
-      toast({
-        title: "Link Transmitted",
-        description: `Verification link sent to ${emailInput}. Please check your inbox and junk folder.`,
-      });
       
       setCountdown(60); // Prevent spamming for 1 minute
       setIsEditing(false);
@@ -66,7 +71,9 @@ export default function VerifyEmailPage() {
       } else if (err.code === 'auth/too-many-requests') {
         errorMessage = "System busy. Please wait a few moments before trying again.";
       } else if (err.code === 'auth/unauthorized-domain') {
-        errorMessage = "Domain Unauthorized: Please add the current preview URL to the 'Authorized Domains' list in the Firebase Console (Authentication > Settings).";
+        errorMessage = "Domain Unauthorized: Please add the current preview URL to the 'Authorized Domains' list in the Firebase Console.";
+      } else if (err.code === 'auth/operation-not-allowed') {
+        errorMessage = "Verification-first updates are required. Please ensure the email link provider is active in the console.";
       }
 
       toast({
