@@ -4,7 +4,6 @@
 
 @layer base {
   :root {
-    /* Updated to a more sophisticated "Fintech" palette */
     --background: 222 47% 11%; 
     --foreground: 210 40% 98%;
     --card: 0 0% 100%;
@@ -45,7 +44,8 @@
   }
 
   .glass-chassis {
-    @apply bg-white/70 backdrop-blur-3xl border border-white/20 shadow-2xl;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.98) 0%, rgba(241, 245, 249, 0.95) 100%);
+    @apply backdrop-blur-3xl border border-white/40 shadow-[0_50px_100px_rgba(0,0,0,0.3)];
   }
 
   .premium-card {
@@ -59,7 +59,7 @@
   }
 
   .glass-navbar {
-    @apply bg-white/60 backdrop-blur-2xl border border-white/20 sticky top-0 z-50;
+    @apply bg-white border-b border-slate-100 sticky top-0 z-50;
   }
 
   .light-orb {
