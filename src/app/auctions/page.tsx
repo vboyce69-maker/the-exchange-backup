@@ -82,7 +82,7 @@ function AuctionsContent() {
       <main className="container mx-auto px-4 py-12">
         <div className="mb-12">
           <div className="flex items-center gap-3 mb-4">
-            <Badge className="bg-[#FF8C00] text-white font-black px-4 py-1 border-none rounded-full uppercase tracking-widest text-[10px]">
+            <Badge className="bg-[#FF8C00] text-white font-black px-4 py-1 border-none rounded-full uppercase tracking-widest text-[10px] animate-pulse">
               Live Bidding
             </Badge>
             {(categoryFilter || searchQuery) && (
