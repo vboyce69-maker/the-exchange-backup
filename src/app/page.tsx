@@ -322,28 +322,32 @@ export default function LandingPage() {
             )}
           </section>
 
-          {/* Footer Trust Shield */}
-          <section>
-            <div className="bg-slate-900 rounded-[3rem] p-10 lg:p-16 text-white relative overflow-hidden">
-               <div className="absolute -right-40 -bottom-40 w-[600px] h-[600px] bg-primary/10 rounded-full blur-[120px]" />
+          {/* Footer Trust Shield - Refined for Professional Aesthetic */}
+          <section className="flex justify-center">
+            <div className="w-full max-w-5xl bg-slate-900 rounded-[2.5rem] p-8 lg:p-12 text-white relative overflow-hidden ring-1 ring-white/10 shadow-2xl">
+               <div className="absolute -right-40 -bottom-40 w-96 h-96 bg-primary/20 rounded-full blur-[100px]" />
                
-               <div className="max-w-2xl relative z-10 space-y-6">
-                  <div className="w-14 h-14 bg-white/10 backdrop-blur-md rounded-2xl flex items-center justify-center border border-white/20 shadow-2xl">
-                     <Lock className="w-6 h-6 text-primary" />
+               <div className="flex flex-col md:flex-row items-center justify-between gap-10 relative z-10">
+                  <div className="space-y-4 max-w-xl text-center md:text-left">
+                    <div className="flex items-center justify-center md:justify-start gap-3 text-primary">
+                       <Lock className="w-5 h-5" />
+                       <span className="text-[10px] font-black uppercase tracking-[0.3em]">Institutional Grade Security</span>
+                    </div>
+                    <h2 className="text-2xl lg:text-4xl font-black leading-none tracking-tighter uppercase">Shop with total <span className="text-primary italic">Confidence.</span></h2>
+                    <p className="text-sm lg:text-base text-white/50 font-medium leading-relaxed">
+                      Every trade is protected by biometric verification and our proprietary secure escrow protocol. We've eliminated the risk so you can focus on the deal.
+                    </p>
                   </div>
-                  <h2 className="text-3xl lg:text-5xl font-black leading-[0.95] tracking-tighter uppercase">Shop with total <br /><span className="text-primary italic">Confidence.</span></h2>
-                  <p className="text-lg text-white/60 font-medium leading-relaxed max-w-xl">
-                    Every trade is protected by our biometric verification and secure escrow protocol. We've eliminated the risk so you can focus on the deal.
-                  </p>
-                  <div className="flex flex-wrap gap-4 pt-4">
-                     <Link href="/verify">
-                       <Button className="h-14 px-8 rounded-2xl bg-primary text-white font-black text-base shadow-xl hover:scale-105 active:scale-95 transition-all uppercase tracking-tighter">
-                         Get Verified Badge
+                  
+                  <div className="flex flex-col sm:flex-row gap-4 w-full md:w-auto">
+                     <Link href="/verify" className="w-full sm:w-auto">
+                       <Button className="w-full sm:w-auto h-14 px-8 rounded-2xl bg-primary text-white font-black text-xs shadow-xl hover:scale-105 active:scale-95 transition-all uppercase tracking-widest">
+                         Get Verified
                        </Button>
                      </Link>
-                     <Link href="/legal">
-                       <Button variant="ghost" className="h-14 px-8 rounded-2xl text-white/80 hover:text-white hover:bg-white/5 font-black uppercase tracking-widest text-[10px] border border-white/10 backdrop-blur-md">
-                         Safety Center
+                     <Link href="/legal" className="w-full sm:w-auto">
+                       <Button variant="ghost" className="w-full sm:w-auto h-14 px-8 rounded-2xl text-white/60 hover:text-white hover:bg-white/5 font-black uppercase tracking-widest text-[9px] border border-white/10 backdrop-blur-md">
+                         Safety Protocol
                        </Button>
                      </Link>
                   </div>
