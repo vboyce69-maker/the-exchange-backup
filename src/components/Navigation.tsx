@@ -21,7 +21,8 @@ import {
   LayoutDashboard,
   Fingerprint,
   TrendingUp,
-  LayoutGrid
+  LayoutGrid,
+  ShieldAlert
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
@@ -69,8 +70,10 @@ export function Navigation() {
 
   const handleSignOut = async () => {
     try {
-      await signOut(auth);
-      router.push("/");
+      if (auth) {
+        await signOut(auth);
+        router.push("/");
+      }
     } catch (error) {
       console.error("Sign out error", error);
     }
@@ -107,6 +110,14 @@ export function Navigation() {
       icon: Gift, 
       color: "text-pink-600", 
       bg: "bg-pink-50" 
+    },
+    { 
+      title: "Report Incident", 
+      desc: "Disputes & Safety", 
+      href: "/report", 
+      icon: ShieldAlert, 
+      color: "text-red-600", 
+      bg: "bg-red-50" 
     },
     { 
       title: "Biometric KYC", 
