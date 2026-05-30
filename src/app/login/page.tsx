@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { 
@@ -11,7 +11,7 @@ import {
   User
 } from "firebase/auth";
 import { auth, db } from "@/firebase";
-import { doc, getDoc, setDoc, updateDoc } from "firebase/firestore";
+import { doc, getDoc, setDoc, updateDoc, arrayUnion } from "firebase/firestore";
 import { Navigation } from "@/components/Navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -40,13 +40,13 @@ export default function LoginPage() {
   const [error, setError] = useState<string | null>(null);
   const [agreedToTerms, setAgreedToTerms] = useState(false);
 
-  // Email Auth State
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [isSignUp, setIsSignUp] = useState(false);
 
   const redirectPath = searchParams.get('redirect') || '/';
+  const referralCode = searchParams.get('ref');
 
   const ensureUserProfile = async (user: User) => {
     if (!db) return;
@@ -54,35 +54,39 @@ export default function LoginPage() {
     const profileSnap = await getDoc(profileRef);
 
     if (!profileSnap.exists()) {
-      // PERSISTENCE: Initialize permanent profile record
       await setDoc(profileRef, {
         id: user.uid,
-        firstName: user.displayName?.split(' ')[0] || "",
-        lastName: user.displayName?.split(' ').slice(1).join(' ') || "",
-        username: email.split('@')[0] || `user_${user.uid.substring(0, 5)}`,
-        bio: "New member of The Exchange community.",
+        username: email.split('@')[0] || `trader_${user.uid.substring(0, 5)}`,
         registrationDate: new Date().toISOString(),
-        isIdVerified: false,
         kycStatus: 'unverified',
+        isIdVerified: false,
         reliabilityScore: MARKET_CONFIG.BASE_TRUST_SCORE,
         transactionsCompleted: 0,
         disputeCount: 0,
-        isFoundingMember: true, // Assign to early adopters
-        profileImageUrl: user.photoURL || `https://picsum.photos/seed/${user.uid}/200/200`,
+        referredBy: referralCode || null,
         lastLogin: new Date().toISOString()
       });
+
+      // Handle Referral Tracking
+      if (referralCode) {
+        // Find the referrer by code
+        const refQ = doc(db, "referrals", referralCode); 
+        // Note: For actual production, searching by referralCode field is better
+        // but for this prototype we assume ID = Code
+        await updateDoc(doc(db, "referrals", referralCode), {
+          invites: arrayUnion({ userId: user.uid, date: new Date().toISOString() }),
+          credits: arrayUnion({ amount: 50, source: 'referral_bonus' })
+        }).catch(() => console.warn("Referrer document not found for reward award."));
+      }
     } else {
-      // PERSISTENCE: Simply update last login to keep data fresh without overwriting
-      await updateDoc(profileRef, {
-        lastLogin: new Date().toISOString()
-      }).catch(() => {});
+      await updateDoc(profileRef, { lastLogin: new Date().toISOString() });
     }
   };
 
   const handleEmailAuth = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!agreedToTerms) {
-      toast({ variant: "destructive", title: "Consent Required", description: "Please agree to the Terms of Service." });
+      toast({ variant: "destructive", title: "Consent Required", description: "Agreement to marketplace terms is mandatory." });
       return;
     }
     setLoading(true);
@@ -92,7 +96,7 @@ export default function LoginPage() {
         const userCred = await createUserWithEmailAndPassword(auth, email, password);
         await ensureUserProfile(userCred.user);
         await sendEmailVerification(userCred.user);
-        toast({ title: "Account Created", description: "Verification link sent to your email." });
+        toast({ title: "Account Initialized", description: "Verify your email to enter the market." });
         router.push("/verify-email");
       } else {
         const userCred = await signInWithEmailAndPassword(auth, email, password);
@@ -110,7 +114,6 @@ export default function LoginPage() {
     if (auth.currentUser) {
       await ensureUserProfile(auth.currentUser);
     }
-    toast({ title: "Welcome Back", description: "Identity sync complete." });
     router.push(redirectPath);
   };
 
@@ -121,23 +124,24 @@ export default function LoginPage() {
         <div className="w-full max-w-md space-y-6">
           
           {error && (
-            <Alert variant="destructive" className="rounded-2xl border-none shadow-lg animate-in fade-in slide-in-from-top-2">
+            <Alert variant="destructive" className="rounded-2xl border-none shadow-lg">
               <AlertCircle className="h-4 w-4" />
-              <AlertTitle className="font-black text-[10px] uppercase tracking-widest">Auth Error</AlertTitle>
+              <AlertTitle className="font-black text-[10px] uppercase">Auth Sync Error</AlertTitle>
               <AlertDescription className="text-xs font-medium">{error}</AlertDescription>
             </Alert>
           )}
 
-          <Card className="rounded-[3rem] border-none shadow-2xl bg-white overflow-hidden ring-1 ring-[#225BC3]/5">
+          <Card className="rounded-[3rem] border-none shadow-2xl bg-white overflow-hidden">
             <CardHeader className="p-10 text-center pb-6">
                <h1 className="text-3xl font-black text-[#225BC3] uppercase tracking-tighter leading-none">THE <span className="text-[#34CBED]">EXCHANGE</span></h1>
-               <p className="text-slate-500 font-bold text-[10px] uppercase tracking-widest mt-3 opacity-60">Persistent Marketplace Identity</p>
+               <p className="text-slate-500 font-bold text-[10px] uppercase tracking-widest mt-3">Persistent Marketplace Identity</p>
+               {referralCode && <Badge className="mt-4 bg-pink-100 text-pink-700 border-none px-4 py-1 uppercase text-[8px] font-black">Joining via Referral</Badge>}
             </CardHeader>
 
             <Tabs defaultValue="phone" className="w-full">
               <TabsList className="flex bg-slate-50 mx-10 rounded-2xl p-1 mb-6">
-                <TabsTrigger value="phone" className="flex-1 rounded-xl py-2 font-black uppercase text-[10px] tracking-widest data-[state=active]:bg-white data-[state=active]:shadow-sm transition-all">Phone</TabsTrigger>
-                <TabsTrigger value="email" className="flex-1 rounded-xl py-2 font-black uppercase text-[10px] tracking-widest data-[state=active]:bg-white data-[state=active]:shadow-sm transition-all">Email</TabsTrigger>
+                <TabsTrigger value="phone" className="flex-1 rounded-xl py-2 font-black uppercase text-[10px]">Phone</TabsTrigger>
+                <TabsTrigger value="email" className="flex-1 rounded-xl py-2 font-black uppercase text-[10px]">Email</TabsTrigger>
               </TabsList>
 
               <CardContent className="px-10 pb-10">
@@ -152,61 +156,35 @@ export default function LoginPage() {
                 <TabsContent value="email" className="mt-0 outline-none">
                   <form onSubmit={handleEmailAuth} className="space-y-4">
                     <div className="space-y-2">
-                      <Label className="font-black text-[10px] uppercase tracking-widest text-[#225BC3] ml-2">Email Address</Label>
-                      <div className="relative group">
-                        <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-300 group-focus-within:text-[#225BC3] transition-colors" />
-                        <Input 
-                          type="email"
-                          placeholder="name@example.co.za" 
-                          className="h-14 pl-12 rounded-2xl bg-slate-50 border-none font-bold" 
-                          value={email}
-                          onChange={(e) => setEmail(e.target.value)}
-                        />
+                      <Label className="font-black text-[10px] uppercase text-[#225BC3]">Email Address</Label>
+                      <div className="relative">
+                        <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-300" />
+                        <Input type="email" placeholder="name@domain.co.za" className="h-14 pl-12 rounded-2xl bg-slate-50 border-none font-bold" value={email} onChange={(e) => setEmail(e.target.value)} />
                       </div>
                     </div>
                     <div className="space-y-2">
-                      <Label className="font-black text-[10px] uppercase tracking-widest text-[#225BC3] ml-2">Password</Label>
-                      <div className="relative group">
-                        <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-300 group-focus-within:text-[#225BC3] transition-colors" />
-                        <Input 
-                          type={showPassword ? "text" : "password"}
-                          placeholder="••••••••" 
-                          className="h-14 pl-12 pr-12 rounded-2xl bg-slate-50 border-none font-bold" 
-                          value={password}
-                          onChange={(e) => setPassword(e.target.value)}
-                        />
-                        <button
-                          type="button"
-                          className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-300 hover:text-[#225BC3] transition-colors"
-                          onClick={() => setShowPassword(!showPassword)}
-                        >
-                          {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                      <Label className="font-black text-[10px] uppercase text-[#225BC3]">Secure Password</Label>
+                      <div className="relative">
+                        <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-300" />
+                        <Input type={showPassword ? "text" : "password"} className="h-14 pl-12 rounded-2xl bg-slate-50 border-none font-bold" value={password} onChange={(e) => setPassword(e.target.value)} />
+                        <button type="button" className="absolute right-4 top-1/2 -translate-y-1/2" onClick={() => setShowPassword(!showPassword)}>
+                          {showPassword ? <EyeOff className="w-5 h-5 text-slate-300" /> : <Eye className="w-5 h-5 text-slate-300" />}
                         </button>
                       </div>
                     </div>
-                    <Button className="w-full h-16 rounded-2xl bg-[#225BC3] text-white font-black text-lg shadow-xl shadow-blue-500/20 hover:scale-[1.02] active:scale-95 transition-all mt-4" disabled={loading}>
-                      {loading ? <Loader2 className="w-6 h-6 animate-spin" /> : (isSignUp ? "Create Account" : "Secure Login")}
+                    <Button className="w-full h-16 rounded-2xl bg-[#225BC3] text-white font-black text-lg shadow-xl" disabled={loading}>
+                      {loading ? <Loader2 className="w-6 h-6 animate-spin" /> : (isSignUp ? "Create Identity" : "Authorize Session")}
                     </Button>
-                    <Button 
-                      type="button" 
-                      variant="ghost" 
-                      className="w-full text-[10px] font-black uppercase text-slate-400 hover:text-[#225BC3] mt-2"
-                      onClick={() => setIsSignUp(!isSignUp)}
-                    >
-                      {isSignUp ? "Already have an account? Login" : "New here? Join The Exchange"}
+                    <Button type="button" variant="ghost" className="w-full text-[10px] font-black uppercase text-slate-400" onClick={() => setIsSignUp(!isSignUp)}>
+                      {isSignUp ? "Account exists? Login" : "Join the Verified Market"}
                     </Button>
                   </form>
                 </TabsContent>
 
                 <div className="mt-8 flex items-start space-x-3 p-4 bg-slate-50/50 rounded-2xl border border-slate-100">
-                  <Checkbox 
-                    id="terms" 
-                    checked={agreedToTerms} 
-                    onCheckedChange={(c) => setAgreedToTerms(c === true)} 
-                    className="mt-0.5 border-slate-300 data-[state=checked]:bg-[#225BC3] data-[state=checked]:border-[#225BC3]"
-                  />
+                  <Checkbox id="terms" checked={agreedToTerms} onCheckedChange={(c) => setAgreedToTerms(c === true)} />
                   <label htmlFor="terms" className="text-[9px] font-bold text-slate-500 leading-relaxed uppercase">
-                    I agree to the <Link href="/legal" className="text-[#225BC3] underline">Terms of Service</Link> and understand my data is persisted for platform integrity (POPIA Compliant).
+                    I agree to the Terms of Service. My data will be processed according to South African POPIA regulations.
                   </label>
                 </div>
               </CardContent>

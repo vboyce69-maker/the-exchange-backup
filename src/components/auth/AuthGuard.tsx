@@ -12,8 +12,7 @@ interface AuthGuardProps {
 
 /**
  * Higher-Order Component to protect routes requiring authentication.
- * Enhanced: Redirects unverified users to verify-email, EXCEPT for specific safety routes.
- * Persistent: Once user.emailVerified is true, the pillar check is permanently passed.
+ * Enhanced: Redirects unverified users to verify-email before marketplace access.
  */
 export function AuthGuard({ children }: AuthGuardProps) {
   const { user, isUserLoading } = useUser();
@@ -27,10 +26,9 @@ export function AuthGuard({ children }: AuthGuardProps) {
         searchParams.set('redirect', pathname);
         router.push(`/login?${searchParams.toString()}`);
       } else {
-        // Redirection Pillar: Forces email activation before marketplace access
-        // Bypass for /verify-email to avoid loops, and /report for safety accessibility
+        // Verification Pillar: Enforce email verification
         const isVerified = user.emailVerified;
-        const isExcludedPath = pathname === '/verify-email' || pathname === '/report';
+        const isExcludedPath = pathname === '/verify-email' || pathname === '/report' || pathname === '/verify';
         
         if (!isVerified && !isExcludedPath) {
           router.push('/verify-email');
@@ -60,8 +58,8 @@ export function AuthGuard({ children }: AuthGuardProps) {
     );
   }
 
-  // Safety Pillar: Prevent rendering if email isn't verified (except for specific allowed routes)
-  if (!user.emailVerified && pathname !== '/verify-email' && pathname !== '/report') {
+  // Prevent rendering for unverified users on marketplace pages
+  if (!user.emailVerified && pathname !== '/verify-email' && pathname !== '/report' && pathname !== '/verify') {
     return null;
   }
 
