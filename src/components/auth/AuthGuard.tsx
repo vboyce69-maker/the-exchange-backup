@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useEffect, ReactNode } from 'react';
@@ -12,7 +11,7 @@ interface AuthGuardProps {
 
 /**
  * Higher-Order Component to protect routes requiring authentication.
- * Enhanced: Redirects unverified users to verify-email.
+ * Enhanced: Redirects unverified users to verify-email, EXCEPT for the report page.
  */
 export function AuthGuard({ children }: AuthGuardProps) {
   const { user, isUserLoading } = useUser();
@@ -25,8 +24,9 @@ export function AuthGuard({ children }: AuthGuardProps) {
         const searchParams = new URLSearchParams();
         searchParams.set('redirect', pathname);
         router.push(`/login?${searchParams.toString()}`);
-      } else if (!user.emailVerified && pathname !== '/verify-email') {
+      } else if (!user.emailVerified && pathname !== '/verify-email' && pathname !== '/report') {
         // Redirection Pillar: Forces email activation before marketplace access
+        // Bypass added for /report to allow unverified users to flag security issues
         router.push('/verify-email');
       }
     }
@@ -52,8 +52,8 @@ export function AuthGuard({ children }: AuthGuardProps) {
     );
   }
 
-  // Safety Pillar: Prevent rendering if email isn't verified (except for the verification page itself)
-  if (!user.emailVerified && pathname !== '/verify-email') {
+  // Safety Pillar: Prevent rendering if email isn't verified (except for specific allowed routes)
+  if (!user.emailVerified && pathname !== '/verify-email' && pathname !== '/report') {
     return null;
   }
 
