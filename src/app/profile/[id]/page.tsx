@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useMemo, useState, useRef } from "react";
@@ -11,10 +10,10 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { 
-  Star, 
-  ShieldCheck, 
-  MessageSquare, 
+import {
+  Star,
+  ShieldCheck,
+  MessageSquare,
   Loader2,
   Package,
   Quote,
@@ -28,12 +27,29 @@ import {
   Zap,
   Fingerprint,
   Camera,
-  Award
+  Award,
 } from "lucide-react";
 import { VerifiedBadge } from "@/components/VerifiedBadge";
 import { SellerTierBadge, SellerTier } from "@/components/SellerTierBadge";
-import { useDoc, useCollection, useFirestore, useMemoFirebase, useUser, useStorage } from "@/firebase";
-import { doc, collection, query, where, orderBy, updateDoc, addDoc, serverTimestamp, getDocs } from "firebase/firestore";
+import {
+  useDoc,
+  useCollection,
+  useFirestore,
+  useMemoFirebase,
+  useUser,
+  useStorage,
+} from "@/firebase";
+import {
+  doc,
+  collection,
+  query,
+  where,
+  orderBy,
+  updateDoc,
+  addDoc,
+  serverTimestamp,
+  getDocs,
+} from "firebase/firestore";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { updateProfile } from "firebase/auth";
 import { cn } from "@/lib/utils";
@@ -46,7 +62,7 @@ export default function UserProfilePage() {
   const storage = useStorage();
   const { user: authUser } = useUser();
   const fileInputRef = useRef<HTMLInputElement>(null);
-  
+
   const [isUploading, setIsUploading] = useState(false);
   const [activeTab, setActiveTab] = useState("active");
   const [rating, setRating] = useState(5);
@@ -63,17 +79,26 @@ export default function UserProfilePage() {
 
   const userListingsQuery = useMemoFirebase(() => {
     if (!db || !id) return null;
-    return query(collection(db, "publicListings"), where("sellerId", "==", id), orderBy("postedDate", "desc"));
+    return query(
+      collection(db, "publicListings"),
+      where("sellerId", "==", id),
+      orderBy("postedDate", "desc"),
+    );
   }, [db, id]);
 
-  const { data: listings, isLoading: isListingsLoading } = useCollection(userListingsQuery);
+  const { data: listings, isLoading: isListingsLoading } =
+    useCollection(userListingsQuery);
 
   const reviewsQuery = useMemoFirebase(() => {
     if (!db || !id) return null;
-    return query(collection(db, "userProfiles", id as string, "reviews"), orderBy("createdAt", "desc"));
+    return query(
+      collection(db, "userProfiles", id as string, "reviews"),
+      orderBy("createdAt", "desc"),
+    );
   }, [db, id]);
 
-  const { data: reviews, isLoading: isReviewsLoading } = useCollection(reviewsQuery);
+  const { data: reviews, isLoading: isReviewsLoading } =
+    useCollection(reviewsQuery);
 
   const isOwner = authUser?.uid === id;
 
@@ -88,11 +113,20 @@ export default function UserProfilePage() {
       const downloadURL = await getDownloadURL(storageRef);
 
       await updateProfile(authUser, { photoURL: downloadURL });
-      await updateDoc(doc(db, "userProfiles", authUser.uid), { profileImageUrl: downloadURL });
+      await updateDoc(doc(db, "userProfiles", authUser.uid), {
+        profileImageUrl: downloadURL,
+      });
 
-      toast({ title: "Avatar Updated", description: "Identity persistence complete." });
+      toast({
+        title: "Avatar Updated",
+        description: "Identity persistence complete.",
+      });
     } catch (err: any) {
-      toast({ variant: "destructive", title: "Upload Failed", description: err.message });
+      toast({
+        variant: "destructive",
+        title: "Upload Failed",
+        description: err.message,
+      });
     } finally {
       setIsUploading(false);
     }
@@ -105,11 +139,18 @@ export default function UserProfilePage() {
       const listingRef = doc(db, "publicListings", listingId);
       await updateDoc(listingRef, {
         isBoosted: true,
-        boostedAt: new Date().toISOString()
+        boostedAt: new Date().toISOString(),
       });
-      toast({ title: "Visibility Maxed!", description: "Item pushed to the top of the market." });
+      toast({
+        title: "Visibility Maxed!",
+        description: "Item pushed to the top of the market.",
+      });
     } catch (err) {
-      toast({ variant: "destructive", title: "Boost Failed", description: "Platform sync delay. Try again." });
+      toast({
+        variant: "destructive",
+        title: "Boost Failed",
+        description: "Platform sync delay. Try again.",
+      });
     } finally {
       setIsBoostingId(null);
     }
@@ -123,21 +164,31 @@ export default function UserProfilePage() {
         reviewerId: authUser.uid,
         rating,
         comment: reviewComment,
-        createdAt: serverTimestamp()
+        createdAt: serverTimestamp(),
       });
 
       // Recalculate Trust Score (Simulation of server logic)
       const currentScore = profile?.reliabilityScore || 50;
-      const newScore = Math.min(100, Math.max(0, currentScore + (rating >= 4 ? 2 : -10)));
+      const newScore = Math.min(
+        100,
+        Math.max(0, currentScore + (rating >= 4 ? 2 : -10)),
+      );
       await updateDoc(doc(db, "userProfiles", id as string), {
         reliabilityScore: newScore,
-        transactionsCompleted: (profile?.transactionsCompleted || 0) + 1
+        transactionsCompleted: (profile?.transactionsCompleted || 0) + 1,
       });
 
       setReviewComment("");
-      toast({ title: "Review Published", description: "Your feedback has updated the seller's trust score." });
+      toast({
+        title: "Review Published",
+        description: "Your feedback has updated the seller's trust score.",
+      });
     } catch (err) {
-      toast({ variant: "destructive", title: "Error", description: "Could not publish review." });
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Could not publish review.",
+      });
     } finally {
       setIsSubmittingReview(false);
     }
@@ -151,8 +202,18 @@ export default function UserProfilePage() {
     );
   }
 
-  const user = profile || { firstName: "Verified", lastName: "Trader", reliabilityScore: 50, transactionsCompleted: 0 };
-  const sellerTier = (user.transactionsCompleted || 0) >= 50 ? 'pro' : (user.transactionsCompleted || 0) >= 10 ? 'trusted' : 'beginner';
+  const user = profile || {
+    firstName: "Verified",
+    lastName: "Trader",
+    reliabilityScore: 50,
+    transactionsCompleted: 0,
+  };
+  const sellerTier =
+    (user.transactionsCompleted || 0) >= 50
+      ? "pro"
+      : (user.transactionsCompleted || 0) >= 10
+        ? "trusted"
+        : "beginner";
 
   return (
     <div className="min-h-screen bg-[#EEF1F3]">
@@ -172,106 +233,229 @@ export default function UserProfilePage() {
                       </AvatarFallback>
                     </Avatar>
                     {isOwner && (
-                      <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-all flex items-center justify-center cursor-pointer backdrop-blur-sm" onClick={() => fileInputRef.current?.click()}>
-                        {isUploading ? <Loader2 className="w-10 h-10 animate-spin text-white" /> : <Camera className="w-10 h-10 text-white" />}
+                      <div
+                        className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-all flex items-center justify-center cursor-pointer backdrop-blur-sm"
+                        onClick={() => fileInputRef.current?.click()}
+                      >
+                        {isUploading ? (
+                          <Loader2 className="w-10 h-10 animate-spin text-white" />
+                        ) : (
+                          <Camera className="w-10 h-10 text-white" />
+                        )}
                       </div>
                     )}
                   </div>
-                  {isOwner && <input type="file" ref={fileInputRef} className="hidden" accept="image/*" onChange={handleImageUpload} />}
+                  {isOwner && (
+                    <input
+                      type="file"
+                      ref={fileInputRef}
+                      className="hidden"
+                      accept="image/*"
+                      onChange={handleImageUpload}
+                    />
+                  )}
                 </div>
-                
-                <h1 className="text-2xl font-black text-[#225BC3] uppercase tracking-tighter mb-2">{user.firstName} {user.lastName}</h1>
+
+                <h1 className="text-2xl font-black text-[#225BC3] uppercase tracking-tighter mb-2">
+                  {user.firstName} {user.lastName}
+                </h1>
                 <div className="flex flex-col items-center gap-3 mb-8">
-                   <VerifiedBadge />
-                   <SellerTierBadge level={sellerTier} />
+                  <VerifiedBadge />
+                  <SellerTierBadge level={sellerTier} />
                 </div>
 
                 <div className="w-full p-6 bg-slate-50 rounded-3xl space-y-4 text-left">
-                   <div className="flex justify-between items-center">
-                      <p className="text-[10px] font-black uppercase text-slate-400">Trust Gauge</p>
-                      <span className="text-xl font-black text-[#225BC3]">{user.reliabilityScore}%</span>
-                   </div>
-                   <div className="h-2 bg-white rounded-full overflow-hidden border border-slate-100">
-                      <div className="h-full bg-[#225BC3] transition-all" style={{ width: `${user.reliabilityScore}%` }} />
-                   </div>
+                  <div className="flex justify-between items-center">
+                    <p className="text-[10px] font-black uppercase text-slate-400">
+                      Trust Gauge
+                    </p>
+                    <span className="text-xl font-black text-[#225BC3]">
+                      {user.reliabilityScore}%
+                    </span>
+                  </div>
+                  <div className="h-2 bg-white rounded-full overflow-hidden border border-slate-100">
+                    <div
+                      className="h-full bg-[#225BC3] transition-all"
+                      style={{ width: `${user.reliabilityScore}%` }}
+                    />
+                  </div>
                 </div>
               </div>
             </Card>
 
             <Card className="rounded-[2.5rem] border-none shadow-xl bg-white p-8 space-y-6">
               <div className="flex justify-between items-center px-2">
-                 <button onClick={() => setActiveTab('active')} className={cn("text-[10px] font-black uppercase tracking-widest flex items-center gap-2", activeTab === 'active' ? 'text-[#225BC3]' : 'text-slate-400')}><TrendingUp className="w-4 h-4" /> Performance</button>
-                 <button onClick={() => setActiveTab('reviews')} className={cn("text-[10px] font-black uppercase tracking-widest flex items-center gap-2", activeTab === 'reviews' ? 'text-[#FF8C00]' : 'text-slate-400')}><Star className="w-4 h-4" /> Reviews</button>
+                <button
+                  onClick={() => setActiveTab("active")}
+                  className={cn(
+                    "text-[10px] font-black uppercase tracking-widest flex items-center gap-2",
+                    activeTab === "active"
+                      ? "text-[#225BC3]"
+                      : "text-slate-400",
+                  )}
+                >
+                  <TrendingUp className="w-4 h-4" /> Performance
+                </button>
+                <button
+                  onClick={() => setActiveTab("reviews")}
+                  className={cn(
+                    "text-[10px] font-black uppercase tracking-widest flex items-center gap-2",
+                    activeTab === "reviews"
+                      ? "text-[#FF8C00]"
+                      : "text-slate-400",
+                  )}
+                >
+                  <Star className="w-4 h-4" /> Reviews
+                </button>
               </div>
               <div className="grid grid-cols-2 gap-4">
-                  <div className="p-4 bg-slate-50 rounded-2xl text-center space-y-1">
-                    <p className="text-[8px] font-black text-slate-400 uppercase">Trades</p>
-                    <p className="text-2xl font-black text-slate-900">{user.transactionsCompleted || 0}</p>
-                  </div>
-                  <div className="p-4 bg-slate-50 rounded-2xl text-center space-y-1">
-                    <p className="text-[8px] font-black text-slate-400 uppercase">Disputes</p>
-                    <p className="text-2xl font-black text-red-600">{user.disputeCount || 0}</p>
-                  </div>
+                <div className="p-4 bg-slate-50 rounded-2xl text-center space-y-1">
+                  <p className="text-[8px] font-black text-slate-400 uppercase">
+                    Trades
+                  </p>
+                  <p className="text-2xl font-black text-slate-900">
+                    {user.transactionsCompleted || 0}
+                  </p>
+                </div>
+                <div className="p-4 bg-slate-50 rounded-2xl text-center space-y-1">
+                  <p className="text-[8px] font-black text-slate-400 uppercase">
+                    Disputes
+                  </p>
+                  <p className="text-2xl font-black text-red-600">
+                    {user.disputeCount || 0}
+                  </p>
+                </div>
               </div>
             </Card>
           </div>
 
           {/* Main Content */}
           <div className="lg:col-span-2">
-            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+            <Tabs
+              value={activeTab}
+              onValueChange={setActiveTab}
+              className="w-full"
+            >
               <TabsList className="bg-white rounded-3xl p-1.5 h-16 w-full lg:w-fit shadow-xl">
-                <TabsTrigger value="active" className="rounded-2xl px-10 h-full font-black uppercase text-xs">Market Inventory</TabsTrigger>
-                <TabsTrigger value="reviews" className="rounded-2xl px-10 h-full font-black uppercase text-xs">Verified Feedback</TabsTrigger>
+                <TabsTrigger
+                  value="active"
+                  className="rounded-2xl px-10 h-full font-black uppercase text-xs"
+                >
+                  Market Inventory
+                </TabsTrigger>
+                <TabsTrigger
+                  value="reviews"
+                  className="rounded-2xl px-10 h-full font-black uppercase text-xs"
+                >
+                  Verified Feedback
+                </TabsTrigger>
               </TabsList>
-              
+
               <TabsContent value="active" className="mt-10">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                  {listings?.map(listing => (
-                    <ListingCard 
-                      key={listing.id} 
-                      {...listing} 
-                      sellerName={`${user.firstName}`} 
-                      isVerified={true} 
+                  {listings?.map((listing) => (
+                    <ListingCard
+                      key={listing.id}
+                      {...listing}
+                      sellerName={`${user.firstName}`}
+                      isVerified={true}
                       isOwner={isOwner}
                       onBoost={() => handleBoostListing(listing.id)}
                     />
                   ))}
-                  {(isListingsLoading) && <div className="col-span-2 py-20 flex justify-center"><Loader2 className="w-8 h-8 animate-spin text-slate-200" /></div>}
-                  {listings?.length === 0 && !isListingsLoading && <div className="col-span-2 py-32 text-center opacity-30"><Package className="w-16 h-16 mx-auto mb-4" /><p className="font-black uppercase text-xs tracking-widest">No listings found</p></div>}
+                  {isListingsLoading && (
+                    <div className="col-span-2 py-20 flex justify-center">
+                      <Loader2 className="w-8 h-8 animate-spin text-slate-200" />
+                    </div>
+                  )}
+                  {listings?.length === 0 && !isListingsLoading && (
+                    <div className="col-span-2 py-32 text-center opacity-30">
+                      <Package className="w-16 h-16 mx-auto mb-4" />
+                      <p className="font-black uppercase text-xs tracking-widest">
+                        No listings found
+                      </p>
+                    </div>
+                  )}
                 </div>
               </TabsContent>
 
               <TabsContent value="reviews" className="mt-10 space-y-8">
                 {!isOwner && (
                   <Card className="rounded-[2.5rem] border-none shadow-xl bg-white p-8 space-y-6 ring-2 ring-[#225BC3]/5">
-                     <h3 className="text-xl font-black text-[#225BC3] uppercase tracking-tighter">Submit Verified Feedback</h3>
-                     <div className="space-y-4">
-                        <div className="flex gap-2">
-                           {[1,2,3,4,5].map(s => (
-                             <button key={s} onClick={() => setRating(s)} className={cn("w-10 h-10 rounded-xl flex items-center justify-center transition-all", rating >= s ? "bg-[#FF8C00] text-white shadow-lg" : "bg-slate-100 text-slate-300")}>
-                               <Star className={cn("w-5 h-5", rating >= s && "fill-current")} />
-                             </button>
-                           ))}
-                        </div>
-                        <Textarea placeholder="Share your trade experience..." className="rounded-2xl bg-slate-50 border-none min-h-[100px]" value={reviewComment} onChange={(e) => setReviewComment(e.target.value)} />
-                        <Button className="w-full bg-[#225BC3] text-white font-black h-14 rounded-2xl shadow-xl" onClick={handleSubmitReview} disabled={isSubmittingReview || !reviewComment}>
-                           {isSubmittingReview ? <Loader2 className="w-6 h-6 animate-spin" /> : "Publish Feedback"}
-                        </Button>
-                     </div>
+                    <h3 className="text-xl font-black text-[#225BC3] uppercase tracking-tighter">
+                      Submit Verified Feedback
+                    </h3>
+                    <div className="space-y-4">
+                      <div className="flex gap-2">
+                        {[1, 2, 3, 4, 5].map((s) => (
+                          <button
+                            key={s}
+                            onClick={() => setRating(s)}
+                            className={cn(
+                              "w-10 h-10 rounded-xl flex items-center justify-center transition-all",
+                              rating >= s
+                                ? "bg-[#FF8C00] text-white shadow-lg"
+                                : "bg-slate-100 text-slate-300",
+                            )}
+                          >
+                            <Star
+                              className={cn(
+                                "w-5 h-5",
+                                rating >= s && "fill-current",
+                              )}
+                            />
+                          </button>
+                        ))}
+                      </div>
+                      <Textarea
+                        placeholder="Share your trade experience..."
+                        className="rounded-2xl bg-slate-50 border-none min-h-[100px]"
+                        value={reviewComment}
+                        onChange={(e) => setReviewComment(e.target.value)}
+                      />
+                      <Button
+                        className="w-full bg-[#225BC3] text-white font-black h-14 rounded-2xl shadow-xl"
+                        onClick={handleSubmitReview}
+                        disabled={isSubmittingReview || !reviewComment}
+                      >
+                        {isSubmittingReview ? (
+                          <Loader2 className="w-6 h-6 animate-spin" />
+                        ) : (
+                          "Publish Feedback"
+                        )}
+                      </Button>
+                    </div>
                   </Card>
                 )}
 
                 {reviews?.map((review) => (
-                  <Card key={review.id} className="rounded-[2.5rem] border-none shadow-xl bg-white p-8">
+                  <Card
+                    key={review.id}
+                    className="rounded-[2.5rem] border-none shadow-xl bg-white p-8"
+                  >
                     <div className="flex items-center justify-between mb-4">
-                       <div className="flex gap-1">
-                          {[...Array(5)].map((_, i) => (
-                            <Star key={i} className={cn("w-4 h-4", i < review.rating ? "text-[#FF8C00] fill-current" : "text-slate-100")} />
-                          ))}
-                       </div>
-                       <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{new Date(review.createdAt?.seconds * 1000).toLocaleDateString()}</span>
+                      <div className="flex gap-1">
+                        {[...Array(5)].map((_, i) => (
+                          <Star
+                            key={i}
+                            className={cn(
+                              "w-4 h-4",
+                              i < review.rating
+                                ? "text-[#FF8C00] fill-current"
+                                : "text-slate-100",
+                            )}
+                          />
+                        ))}
+                      </div>
+                      <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                        {new Date(
+                          review.createdAt?.seconds * 1000,
+                        ).toLocaleDateString()}
+                      </span>
                     </div>
-                    <p className="text-slate-700 font-medium italic text-lg leading-relaxed">"{review.comment}"</p>
+                    <p className="text-slate-700 font-medium italic text-lg leading-relaxed">
+                      "{review.comment}"
+                    </p>
                   </Card>
                 ))}
               </TabsContent>

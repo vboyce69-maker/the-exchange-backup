@@ -1,11 +1,19 @@
-'use client';
+"use client";
 
-import React, { DependencyList, createContext, useContext, ReactNode, useMemo, useState, useEffect } from 'react';
-import { FirebaseApp } from 'firebase/app';
-import { Firestore } from 'firebase/firestore';
-import { Auth, User, onAuthStateChanged } from 'firebase/auth';
-import { FirebaseStorage } from 'firebase/storage';
-import { FirebaseErrorListener } from '@/components/FirebaseErrorListener'
+import React, {
+  DependencyList,
+  createContext,
+  useContext,
+  ReactNode,
+  useMemo,
+  useState,
+  useEffect,
+} from "react";
+import { FirebaseApp } from "firebase/app";
+import { Firestore } from "firebase/firestore";
+import { Auth, User, onAuthStateChanged } from "firebase/auth";
+import { FirebaseStorage } from "firebase/storage";
+import { FirebaseErrorListener } from "@/components/FirebaseErrorListener";
 
 interface FirebaseProviderProps {
   children: ReactNode;
@@ -48,7 +56,9 @@ export interface UserHookResult {
   userError: Error | null;
 }
 
-export const FirebaseContext = createContext<FirebaseContextState | undefined>(undefined);
+export const FirebaseContext = createContext<FirebaseContextState | undefined>(
+  undefined,
+);
 
 export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
   children,
@@ -72,12 +82,20 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
     const unsubscribe = onAuthStateChanged(
       auth,
       (firebaseUser) => {
-        setUserAuthState({ user: firebaseUser, isUserLoading: false, userError: null });
+        setUserAuthState({
+          user: firebaseUser,
+          isUserLoading: false,
+          userError: null,
+        });
       },
       (error) => {
         console.error("FirebaseProvider: onAuthStateChanged error:", error);
-        setUserAuthState({ user: null, isUserLoading: false, userError: error });
-      }
+        setUserAuthState({
+          user: null,
+          isUserLoading: false,
+          userError: error,
+        });
+      },
     );
     return () => unsubscribe();
   }, [auth]);
@@ -108,7 +126,7 @@ export const useFirebase = (): FirebaseServicesAndUser => {
   const context = useContext(FirebaseContext);
 
   if (context === undefined) {
-    throw new Error('useFirebase must be used within a FirebaseProvider.');
+    throw new Error("useFirebase must be used within a FirebaseProvider.");
   }
 
   // No longer throwing if services are null to support SSR.
@@ -144,11 +162,14 @@ export const useFirebaseApp = (): FirebaseApp | null => {
   return firebaseApp;
 };
 
-type MemoFirebase <T> = T & {__memo?: boolean};
+type MemoFirebase<T> = T & { __memo?: boolean };
 
-export function useMemoFirebase<T>(factory: () => T, deps: DependencyList): T | (MemoFirebase<T>) {
+export function useMemoFirebase<T>(
+  factory: () => T,
+  deps: DependencyList,
+): T | MemoFirebase<T> {
   const memoized = useMemo(factory, deps);
-  if(typeof memoized !== 'object' || memoized === null) return memoized;
+  if (typeof memoized !== "object" || memoized === null) return memoized;
   (memoized as MemoFirebase<T>).__memo = true;
   return memoized;
 }
