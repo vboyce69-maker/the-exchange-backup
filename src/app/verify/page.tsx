@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useRef, useEffect } from "react";
@@ -8,18 +7,18 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { 
+import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { 
-  ShieldCheck, 
-  CheckCircle2, 
-  Loader2, 
-  Camera, 
+import {
+  ShieldCheck,
+  CheckCircle2,
+  Loader2,
+  Camera,
   ScanFace,
   RefreshCw,
   UserCheck,
@@ -31,7 +30,7 @@ import {
   FileCheck,
   CreditCard,
   MapPin,
-  Lock
+  Lock,
 } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "@/hooks/use-toast";
@@ -54,27 +53,29 @@ function OnboardingContent() {
   const { user: authUser } = useUser();
   const db = useFirestore();
   const storage = useStorage();
-  
-  const [sellerType, setSellerType] = useState<'individual' | 'business' | null>(null);
-  const [step, setStep] = useState(0); 
+
+  const [sellerType, setSellerType] = useState<
+    "individual" | "business" | null
+  >(null);
+  const [step, setStep] = useState(0);
   const [isProcessing, setIsProcessing] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
-  
+
   const [idPhoto, setIdPhoto] = useState<string | null>(null);
   const [selfie, setSelfie] = useState<string | null>(null);
   const [idScanActive, setIdScanActive] = useState(false);
-  
+
   const [fullName, setFullName] = useState("");
   const [idNumber, setIdNumber] = useState("");
   const [businessName, setBusinessName] = useState("");
   const [registrationNumber, setRegistrationNumber] = useState("");
   const [address, setAddress] = useState("");
-  
+
   const [bankName, setBankName] = useState("");
   const [accountNumber, setAccountNumber] = useState("");
   const [accountType, setAccountNumberType] = useState("");
   const [popiaConsent, setPopiaConsent] = useState(false);
-  
+
   const videoRef = useRef<HTMLVideoElement>(null);
   const idVideoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -82,17 +83,21 @@ function OnboardingContent() {
   useEffect(() => {
     return () => {
       if (videoRef.current?.srcObject) {
-        (videoRef.current.srcObject as MediaStream).getTracks().forEach(t => t.stop());
+        (videoRef.current.srcObject as MediaStream)
+          .getTracks()
+          .forEach((t) => t.stop());
       }
       if (idVideoRef.current?.srcObject) {
-        (idVideoRef.current.srcObject as MediaStream).getTracks().forEach(t => t.stop());
+        (idVideoRef.current.srcObject as MediaStream)
+          .getTracks()
+          .forEach((t) => t.stop());
       }
     };
   }, []);
 
   const validateRSAID = (id: string) => {
     if (!/^\d{13}$/.test(id)) return false;
-    
+
     // Luhn Algorithm Check
     let sum = 0;
     for (let i = 0; i < id.length; i++) {
@@ -111,12 +116,16 @@ function OnboardingContent() {
     setIsUploading(true);
     try {
       const storageRef = ref(storage, `kyc/${authUser.uid}/${path}`);
-      await uploadString(storageRef, dataUri, 'data_url');
+      await uploadString(storageRef, dataUri, "data_url");
       const url = await getDownloadURL(storageRef);
       return url;
     } catch (err) {
       console.error("Storage upload error:", err);
-      toast({ variant: "destructive", title: "Storage Error", description: "Failed to persist document secure scan." });
+      toast({
+        variant: "destructive",
+        title: "Storage Error",
+        description: "Failed to persist document secure scan.",
+      });
       return null;
     } finally {
       setIsUploading(false);
@@ -125,20 +134,32 @@ function OnboardingContent() {
 
   const startSelfieCamera = async () => {
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } });
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: "user" },
+      });
       if (videoRef.current) videoRef.current.srcObject = stream;
     } catch (error) {
-      toast({ variant: 'destructive', title: 'Camera Required', description: 'Enable camera to complete facial verification.' });
+      toast({
+        variant: "destructive",
+        title: "Camera Required",
+        description: "Enable camera to complete facial verification.",
+      });
     }
   };
 
   const startIdCamera = async () => {
     setIdScanActive(true);
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: "environment" },
+      });
       if (idVideoRef.current) idVideoRef.current.srcObject = stream;
     } catch (error) {
-      toast({ variant: 'destructive', title: 'Camera Error', description: 'Could not access rear camera.' });
+      toast({
+        variant: "destructive",
+        title: "Camera Error",
+        description: "Could not access rear camera.",
+      });
       setIdScanActive(false);
     }
   };
@@ -148,14 +169,19 @@ function OnboardingContent() {
       const canvas = canvasRef.current;
       canvas.width = videoRef.current.videoWidth;
       canvas.height = videoRef.current.videoHeight;
-      canvas.getContext('2d')?.drawImage(videoRef.current, 0, 0);
-      const dataUri = canvas.toDataURL('image/jpeg');
-      
-      const storageUrl = await uploadToStorage(dataUri, 'selfie.jpg');
+      canvas.getContext("2d")?.drawImage(videoRef.current, 0, 0);
+      const dataUri = canvas.toDataURL("image/jpeg");
+
+      const storageUrl = await uploadToStorage(dataUri, "selfie.jpg");
       if (storageUrl) {
         setSelfie(storageUrl);
-        (videoRef.current.srcObject as MediaStream).getTracks().forEach(t => t.stop());
-        toast({ title: "Selfie Secured", description: "Biometric match ready." });
+        (videoRef.current.srcObject as MediaStream)
+          .getTracks()
+          .forEach((t) => t.stop());
+        toast({
+          title: "Selfie Secured",
+          description: "Biometric match ready.",
+        });
       }
     }
   };
@@ -165,47 +191,57 @@ function OnboardingContent() {
       const canvas = canvasRef.current;
       canvas.width = idVideoRef.current.videoWidth;
       canvas.height = idVideoRef.current.videoHeight;
-      canvas.getContext('2d')?.drawImage(idVideoRef.current, 0, 0);
-      const dataUri = canvas.toDataURL('image/jpeg');
-      
-      const storageUrl = await uploadToStorage(dataUri, 'id_doc.jpg');
+      canvas.getContext("2d")?.drawImage(idVideoRef.current, 0, 0);
+      const dataUri = canvas.toDataURL("image/jpeg");
+
+      const storageUrl = await uploadToStorage(dataUri, "id_doc.jpg");
       if (storageUrl) {
         setIdPhoto(storageUrl);
         if (idVideoRef.current.srcObject) {
-          (idVideoRef.current.srcObject as MediaStream).getTracks().forEach(t => t.stop());
+          (idVideoRef.current.srcObject as MediaStream)
+            .getTracks()
+            .forEach((t) => t.stop());
         }
         setIdScanActive(false);
-        toast({ title: "ID Persistence Complete", description: "Document secured in storage." });
+        toast({
+          title: "ID Persistence Complete",
+          description: "Document secured in storage.",
+        });
       }
     }
   };
 
   const finalizeOnboarding = async () => {
     if (!popiaConsent || !authUser || !db) return;
-    
-    if (sellerType === 'individual' && !validateRSAID(idNumber)) {
-      toast({ variant: "destructive", title: "Invalid ID", description: "RSA ID failed verification. Please enter a valid 13-digit number." });
+
+    if (sellerType === "individual" && !validateRSAID(idNumber)) {
+      toast({
+        variant: "destructive",
+        title: "Invalid ID",
+        description:
+          "RSA ID failed verification. Please enter a valid 13-digit number.",
+      });
       return;
     }
 
     setIsProcessing(true);
-    
+
     try {
       // Secure Masking Protocol
       const maskedAccountNumber = `****${accountNumber.slice(-4)}`;
-      
-      const trustScore = calculateTrustScore({ 
-        phoneVerified: true, 
-        kycStatus: 'verified',
+
+      const trustScore = calculateTrustScore({
+        phoneVerified: true,
+        kycStatus: "verified",
         sellerType: sellerType,
-        isIdVerified: true
+        isIdVerified: true,
       });
-      
+
       const profileRef = doc(db, "userProfiles", authUser.uid);
       const updateData: any = {
         id: authUser.uid,
         sellerType,
-        kycStatus: 'verified',
+        kycStatus: "verified",
         trustScore,
         onboardedAt: new Date().toISOString(),
         isIdVerified: true,
@@ -217,13 +253,13 @@ function OnboardingContent() {
           bankName,
           accountNumberMasked: maskedAccountNumber,
           accountType,
-          registeredAt: new Date().toISOString()
-        }
+          registeredAt: new Date().toISOString(),
+        },
       };
 
-      if (sellerType === 'individual') {
-        updateData.firstName = fullName.split(' ')[0] || "";
-        updateData.lastName = fullName.split(' ').slice(1).join(' ') || "";
+      if (sellerType === "individual") {
+        updateData.firstName = fullName.split(" ")[0] || "";
+        updateData.lastName = fullName.split(" ").slice(1).join(" ") || "";
         updateData.idNumberMasked = `*******${idNumber.slice(-4)}`;
         updateData.idPhotoUrl = idPhoto;
         updateData.selfieUrl = selfie;
@@ -238,7 +274,11 @@ function OnboardingContent() {
       setStep(4);
     } catch (error: any) {
       console.error("Onboarding error:", error);
-      toast({ variant: "destructive", title: "Registry Error", description: "Could not finalize profile sync." });
+      toast({
+        variant: "destructive",
+        title: "Registry Error",
+        description: "Could not finalize profile sync.",
+      });
     } finally {
       setIsProcessing(false);
     }
@@ -248,43 +288,63 @@ function OnboardingContent() {
     <div className="min-h-screen bg-[#F8FAFC]">
       <Navigation />
       <canvas ref={canvasRef} className="hidden" aria-hidden="true" />
-      
+
       <main className="container mx-auto px-4 py-12 flex justify-center">
         <div className="max-w-xl w-full">
-          
           <div className="text-center mb-8">
             <div className="inline-flex items-center justify-center w-16 h-16 bg-[#225BC3]/10 rounded-3xl mb-4">
               <ShieldCheck className="w-8 h-8 text-[#225BC3]" />
             </div>
-            <h1 className="text-3xl font-black text-[#225BC3] uppercase tracking-tighter">Identity Activation</h1>
-            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-1">RSA FICA & POPIA COMPLIANT</p>
+            <h1 className="text-3xl font-black text-[#225BC3] uppercase tracking-tighter">
+              Identity Activation
+            </h1>
+            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-1">
+              RSA FICA & POPIA COMPLIANT
+            </p>
           </div>
 
           <Card className="rounded-[3rem] shadow-2xl border-none bg-white overflow-hidden ring-1 ring-slate-100">
             <CardContent className="p-10">
-              
               {step === 0 && (
                 <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4">
                   <div className="text-center space-y-2">
-                    <h2 className="text-xl font-black text-slate-900 uppercase">Select Profile Tier</h2>
-                    <p className="text-sm text-muted-foreground font-medium">Verify your identity to unlock trading.</p>
+                    <h2 className="text-xl font-black text-slate-900 uppercase">
+                      Select Profile Tier
+                    </h2>
+                    <p className="text-sm text-muted-foreground font-medium">
+                      Verify your identity to unlock trading.
+                    </p>
                   </div>
                   <div className="grid grid-cols-1 gap-4">
-                    <button 
-                      onClick={() => { setSellerType('individual'); setStep(1); }}
+                    <button
+                      onClick={() => {
+                        setSellerType("individual");
+                        setStep(1);
+                      }}
                       className="p-6 rounded-[2rem] border-2 border-slate-100 hover:border-[#225BC3] hover:bg-[#225BC3]/5 transition-all text-left group"
                     >
                       <User className="w-10 h-10 text-[#225BC3] mb-4 group-hover:scale-110" />
-                      <h3 className="font-black text-lg text-slate-900">Individual Trader</h3>
-                      <p className="text-xs text-slate-500 font-medium">Verify via ID document and biometric match.</p>
+                      <h3 className="font-black text-lg text-slate-900">
+                        Individual Trader
+                      </h3>
+                      <p className="text-xs text-slate-500 font-medium">
+                        Verify via ID document and biometric match.
+                      </p>
                     </button>
-                    <button 
-                      onClick={() => { setSellerType('business'); setStep(1); }}
+                    <button
+                      onClick={() => {
+                        setSellerType("business");
+                        setStep(1);
+                      }}
                       className="p-6 rounded-[2rem] border-2 border-slate-100 hover:border-[#FF8C00] hover:bg-[#FF8C00]/5 transition-all text-left group"
                     >
                       <Building2 className="w-10 h-10 text-[#FF8C00] mb-4 group-hover:scale-110" />
-                      <h3 className="font-black text-lg text-slate-900">Registered Business</h3>
-                      <p className="text-xs text-slate-500 font-medium">FICA verification for professional accounts.</p>
+                      <h3 className="font-black text-lg text-slate-900">
+                        Registered Business
+                      </h3>
+                      <p className="text-xs text-slate-500 font-medium">
+                        FICA verification for professional accounts.
+                      </p>
                     </button>
                   </div>
                 </div>
@@ -293,47 +353,90 @@ function OnboardingContent() {
               {step === 1 && (
                 <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4">
                   <div className="space-y-1">
-                    <h2 className="text-xl font-black text-slate-900 uppercase">Step 1: Identity</h2>
-                    <p className="text-xs text-muted-foreground font-bold uppercase tracking-widest">Legal Name & Registry</p>
+                    <h2 className="text-xl font-black text-slate-900 uppercase">
+                      Step 1: Identity
+                    </h2>
+                    <p className="text-xs text-muted-foreground font-bold uppercase tracking-widest">
+                      Legal Name & Registry
+                    </p>
                   </div>
                   <div className="space-y-4">
                     <div className="space-y-2">
-                      <Label className="text-[10px] font-black uppercase text-[#225BC3]">Full Legal Name</Label>
-                      <Input placeholder="As per official ID" className="h-14 rounded-2xl bg-slate-50 border-none font-bold" value={fullName} onChange={(e) => setFullName(e.target.value)} />
+                      <Label className="text-[10px] font-black uppercase text-[#225BC3]">
+                        Full Legal Name
+                      </Label>
+                      <Input
+                        placeholder="As per official ID"
+                        className="h-14 rounded-2xl bg-slate-50 border-none font-bold"
+                        value={fullName}
+                        onChange={(e) => setFullName(e.target.value)}
+                      />
                     </div>
-                    {sellerType === 'business' ? (
+                    {sellerType === "business" ? (
                       <>
                         <div className="space-y-2">
-                          <Label className="text-[10px] font-black uppercase text-[#225BC3]">Business Name</Label>
-                          <Input placeholder="Trading Name" className="h-14 rounded-2xl bg-slate-50 border-none font-bold" value={businessName} onChange={(e) => setBusinessName(e.target.value)} />
+                          <Label className="text-[10px] font-black uppercase text-[#225BC3]">
+                            Business Name
+                          </Label>
+                          <Input
+                            placeholder="Trading Name"
+                            className="h-14 rounded-2xl bg-slate-50 border-none font-bold"
+                            value={businessName}
+                            onChange={(e) => setBusinessName(e.target.value)}
+                          />
                         </div>
                         <div className="space-y-2">
-                          <Label className="text-[10px] font-black uppercase text-[#225BC3]">CIPC Number</Label>
-                          <Input placeholder="K2024/..." className="h-14 rounded-2xl bg-slate-50 border-none font-bold" value={registrationNumber} onChange={(e) => setRegistrationNumber(e.target.value)} />
+                          <Label className="text-[10px] font-black uppercase text-[#225BC3]">
+                            CIPC Number
+                          </Label>
+                          <Input
+                            placeholder="K2024/..."
+                            className="h-14 rounded-2xl bg-slate-50 border-none font-bold"
+                            value={registrationNumber}
+                            onChange={(e) =>
+                              setRegistrationNumber(e.target.value)
+                            }
+                          />
                         </div>
                       </>
                     ) : (
                       <div className="space-y-2">
-                        <Label className="text-[10px] font-black uppercase text-[#225BC3]">RSA ID Number</Label>
-                        <Input 
-                          placeholder="13 Digits (Checksum Verified)" 
+                        <Label className="text-[10px] font-black uppercase text-[#225BC3]">
+                          RSA ID Number
+                        </Label>
+                        <Input
+                          placeholder="13 Digits (Checksum Verified)"
                           maxLength={13}
-                          className="h-14 rounded-2xl bg-slate-50 border-none font-black text-lg" 
-                          value={idNumber} 
-                          onChange={(e) => setIdNumber(e.target.value.replace(/\D/g, ''))} 
+                          className="h-14 rounded-2xl bg-slate-50 border-none font-black text-lg"
+                          value={idNumber}
+                          onChange={(e) =>
+                            setIdNumber(e.target.value.replace(/\D/g, ""))
+                          }
                         />
                         {idNumber.length > 0 && !validateRSAID(idNumber) && (
-                          <p className="text-[9px] font-black text-red-500 uppercase tracking-widest animate-pulse">Invalid ID sequence</p>
+                          <p className="text-[9px] font-black text-red-500 uppercase tracking-widest animate-pulse">
+                            Invalid ID sequence
+                          </p>
                         )}
                       </div>
                     )}
                   </div>
                   <div className="flex gap-3">
-                    <Button variant="outline" className="flex-1 h-16 rounded-2xl font-black uppercase text-[10px]" onClick={() => setStep(0)}>Back</Button>
-                    <Button 
-                      className="flex-[2] bg-[#225BC3] h-16 rounded-2xl font-black text-white disabled:opacity-50" 
+                    <Button
+                      variant="outline"
+                      className="flex-1 h-16 rounded-2xl font-black uppercase text-[10px]"
+                      onClick={() => setStep(0)}
+                    >
+                      Back
+                    </Button>
+                    <Button
+                      className="flex-[2] bg-[#225BC3] h-16 rounded-2xl font-black text-white disabled:opacity-50"
                       onClick={() => setStep(2)}
-                      disabled={sellerType === 'individual' ? (!validateRSAID(idNumber) || !fullName) : (!businessName || !registrationNumber || !fullName)}
+                      disabled={
+                        sellerType === "individual"
+                          ? !validateRSAID(idNumber) || !fullName
+                          : !businessName || !registrationNumber || !fullName
+                      }
                     >
                       Next Pillar <ArrowRight className="w-4 h-4 ml-2" />
                     </Button>
@@ -344,71 +447,154 @@ function OnboardingContent() {
               {step === 2 && (
                 <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4">
                   <div className="text-center space-y-2">
-                    <h2 className="text-xl font-black text-slate-900 uppercase">Step 2: Biometrics</h2>
-                    <p className="text-sm text-slate-500 font-bold uppercase tracking-widest">Document Scan & Match</p>
+                    <h2 className="text-xl font-black text-slate-900 uppercase">
+                      Step 2: Biometrics
+                    </h2>
+                    <p className="text-sm text-slate-500 font-bold uppercase tracking-widest">
+                      Document Scan & Match
+                    </p>
                   </div>
 
-                  {sellerType === 'individual' ? (
+                  {sellerType === "individual" ? (
                     <div className="space-y-10">
                       <div className="space-y-4">
                         <div className="flex items-center justify-between">
-                           <Label className="text-[10px] font-black uppercase text-[#225BC3]">ID Scanner</Label>
-                           {idPhoto && <CheckCircle2 className="w-4 h-4 text-green-500" />}
+                          <Label className="text-[10px] font-black uppercase text-[#225BC3]">
+                            ID Scanner
+                          </Label>
+                          {idPhoto && (
+                            <CheckCircle2 className="w-4 h-4 text-green-500" />
+                          )}
                         </div>
                         <div className="relative aspect-video rounded-3xl overflow-hidden bg-slate-900 border-4 border-white shadow-2xl flex items-center justify-center">
                           {idPhoto ? (
                             <>
-                              <Image src={idPhoto} alt="ID" fill className="object-cover" />
+                              <Image
+                                src={idPhoto}
+                                alt="ID"
+                                fill
+                                className="object-cover"
+                              />
                               <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
-                                 <button onClick={() => setIdPhoto(null)} className="bg-white text-[#225BC3] p-4 rounded-full"><RefreshCw className="w-8 h-8" /></button>
+                                <button
+                                  onClick={() => setIdPhoto(null)}
+                                  className="bg-white text-[#225BC3] p-4 rounded-full"
+                                >
+                                  <RefreshCw className="w-8 h-8" />
+                                </button>
                               </div>
                             </>
                           ) : idScanActive ? (
-                            <video ref={idVideoRef} autoPlay muted playsInline className="w-full h-full object-cover" />
+                            <video
+                              ref={idVideoRef}
+                              autoPlay
+                              muted
+                              playsInline
+                              className="w-full h-full object-cover"
+                            />
                           ) : (
-                            <Button onClick={startIdCamera} className="bg-[#225BC3]">Enable Document Scanner</Button>
+                            <Button
+                              onClick={startIdCamera}
+                              className="bg-[#225BC3]"
+                            >
+                              Enable Document Scanner
+                            </Button>
                           )}
                         </div>
                         {idScanActive && !idPhoto && (
-                          <Button onClick={captureId} className="w-full bg-[#225BC3] h-14 rounded-2xl font-black" disabled={isUploading}>
-                            {isUploading ? <Loader2 className="w-5 h-5 animate-spin" /> : <Camera className="w-5 h-5 mr-2" />} Secure Capture
+                          <Button
+                            onClick={captureId}
+                            className="w-full bg-[#225BC3] h-14 rounded-2xl font-black"
+                            disabled={isUploading}
+                          >
+                            {isUploading ? (
+                              <Loader2 className="w-5 h-5 animate-spin" />
+                            ) : (
+                              <Camera className="w-5 h-5 mr-2" />
+                            )}{" "}
+                            Secure Capture
                           </Button>
                         )}
                       </div>
 
                       <div className="space-y-4">
-                         <div className="flex items-center justify-between">
-                            <Label className="text-[10px] font-black uppercase text-[#225BC3]">Liveness Scan</Label>
-                            {selfie && <CheckCircle2 className="w-4 h-4 text-green-500" />}
-                         </div>
-                         <div className="relative aspect-square max-w-[280px] mx-auto rounded-full overflow-hidden bg-slate-900 border-4 border-white shadow-2xl">
-                            {selfie ? (
-                              <Image src={selfie} alt="Selfie" fill className="object-cover" />
+                        <div className="flex items-center justify-between">
+                          <Label className="text-[10px] font-black uppercase text-[#225BC3]">
+                            Liveness Scan
+                          </Label>
+                          {selfie && (
+                            <CheckCircle2 className="w-4 h-4 text-green-500" />
+                          )}
+                        </div>
+                        <div className="relative aspect-square max-w-[280px] mx-auto rounded-full overflow-hidden bg-slate-900 border-4 border-white shadow-2xl">
+                          {selfie ? (
+                            <Image
+                              src={selfie}
+                              alt="Selfie"
+                              fill
+                              className="object-cover"
+                            />
+                          ) : (
+                            <video
+                              ref={videoRef}
+                              autoPlay
+                              muted
+                              playsInline
+                              className="w-full h-full object-cover grayscale"
+                            />
+                          )}
+                        </div>
+                        {!selfie && (
+                          <Button
+                            onClick={() => {
+                              if (!videoRef.current?.srcObject)
+                                startSelfieCamera();
+                              else captureSelfie();
+                            }}
+                            className="w-full bg-[#34CBED] h-14 rounded-2xl font-black"
+                            disabled={isUploading}
+                          >
+                            {isUploading ? (
+                              <Loader2 className="w-5 h-5 animate-spin" />
                             ) : (
-                              <video ref={videoRef} autoPlay muted playsInline className="w-full h-full object-cover grayscale" />
+                              <>
+                                <ScanFace className="w-5 h-5 mr-2" /> Match
+                                Biometrics
+                              </>
                             )}
-                         </div>
-                         {!selfie && (
-                           <Button 
-                             onClick={() => { if (!videoRef.current?.srcObject) startSelfieCamera(); else captureSelfie(); }}
-                             className="w-full bg-[#34CBED] h-14 rounded-2xl font-black"
-                             disabled={isUploading}
-                           >
-                             {isUploading ? <Loader2 className="w-5 h-5 animate-spin" /> : <><ScanFace className="w-5 h-5 mr-2" /> Match Biometrics</>}
-                           </Button>
-                         )}
+                          </Button>
+                        )}
                       </div>
                     </div>
                   ) : (
                     <div className="space-y-2">
-                       <Label className="text-[10px] font-black uppercase text-[#225BC3]">Business Physical Address</Label>
-                       <Input placeholder="Street, Building, City" className="h-14 rounded-2xl bg-slate-50 border-none font-bold" value={address} onChange={(e) => setAddress(e.target.value)} />
+                      <Label className="text-[10px] font-black uppercase text-[#225BC3]">
+                        Business Physical Address
+                      </Label>
+                      <Input
+                        placeholder="Street, Building, City"
+                        className="h-14 rounded-2xl bg-slate-50 border-none font-bold"
+                        value={address}
+                        onChange={(e) => setAddress(e.target.value)}
+                      />
                     </div>
                   )}
 
                   <div className="flex gap-3 pt-6">
-                    <Button variant="outline" className="flex-1 h-16 rounded-2xl font-black text-[10px]" onClick={() => setStep(1)}>Back</Button>
-                    <Button className="flex-[2] bg-[#225BC3] h-16 rounded-2xl font-black text-white" onClick={() => setStep(3)} disabled={sellerType === 'individual' && (!idPhoto || !selfie)}>
+                    <Button
+                      variant="outline"
+                      className="flex-1 h-16 rounded-2xl font-black text-[10px]"
+                      onClick={() => setStep(1)}
+                    >
+                      Back
+                    </Button>
+                    <Button
+                      className="flex-[2] bg-[#225BC3] h-16 rounded-2xl font-black text-white"
+                      onClick={() => setStep(3)}
+                      disabled={
+                        sellerType === "individual" && (!idPhoto || !selfie)
+                      }
+                    >
                       Next: Banking Sync
                     </Button>
                   </div>
@@ -418,45 +604,92 @@ function OnboardingContent() {
               {step === 3 && (
                 <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4">
                   <div className="text-center space-y-2">
-                    <h2 className="text-xl font-black text-slate-900 uppercase">Step 3: Payouts</h2>
-                    <p className="text-sm text-slate-500 font-bold uppercase tracking-widest">Encrypted Sync</p>
+                    <h2 className="text-xl font-black text-slate-900 uppercase">
+                      Step 3: Payouts
+                    </h2>
+                    <p className="text-sm text-slate-500 font-bold uppercase tracking-widest">
+                      Encrypted Sync
+                    </p>
                   </div>
 
                   <div className="space-y-4">
                     <div className="space-y-2">
-                      <Label className="text-[10px] font-black uppercase text-[#225BC3]">Bank</Label>
+                      <Label className="text-[10px] font-black uppercase text-[#225BC3]">
+                        Bank
+                      </Label>
                       <Select value={bankName} onValueChange={setBankName}>
                         <SelectTrigger className="h-14 rounded-2xl bg-slate-50 border-none font-bold">
                           <SelectValue placeholder="Select RSA Bank" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="capitec" className="font-bold">Capitec</SelectItem>
-                          <SelectItem value="fnb" className="font-bold">FNB</SelectItem>
-                          <SelectItem value="standard" className="font-bold">Standard Bank</SelectItem>
-                          <SelectItem value="abs" className="font-bold">ABSA</SelectItem>
-                          <SelectItem value="ned" className="font-bold">Nedbank</SelectItem>
+                          <SelectItem value="capitec" className="font-bold">
+                            Capitec
+                          </SelectItem>
+                          <SelectItem value="fnb" className="font-bold">
+                            FNB
+                          </SelectItem>
+                          <SelectItem value="standard" className="font-bold">
+                            Standard Bank
+                          </SelectItem>
+                          <SelectItem value="abs" className="font-bold">
+                            ABSA
+                          </SelectItem>
+                          <SelectItem value="ned" className="font-bold">
+                            Nedbank
+                          </SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
                     <div className="space-y-2">
-                      <Label className="text-[10px] font-black uppercase text-[#225BC3]">Account Number</Label>
-                      <Input placeholder="Secure Entry (Auto-Masked)" className="h-14 rounded-2xl bg-slate-50 border-none font-bold" value={accountNumber} onChange={(e) => setAccountNumber(e.target.value.replace(/\D/g, ''))} />
+                      <Label className="text-[10px] font-black uppercase text-[#225BC3]">
+                        Account Number
+                      </Label>
+                      <Input
+                        placeholder="Secure Entry (Auto-Masked)"
+                        className="h-14 rounded-2xl bg-slate-50 border-none font-bold"
+                        value={accountNumber}
+                        onChange={(e) =>
+                          setAccountNumber(e.target.value.replace(/\D/g, ""))
+                        }
+                      />
                     </div>
                   </div>
 
                   <div className="p-6 bg-slate-50 rounded-3xl space-y-4">
                     <div className="flex items-start gap-3">
-                      <Checkbox id="popia" checked={popiaConsent} onCheckedChange={(c) => setPopiaConsent(c === true)} />
-                      <Label htmlFor="popia" className="text-[10px] font-bold text-slate-500 leading-relaxed uppercase">
-                        I consent to biometric processing. Banking data is MASKED in Firestore for identity protection.
+                      <Checkbox
+                        id="popia"
+                        checked={popiaConsent}
+                        onCheckedChange={(c) => setPopiaConsent(c === true)}
+                      />
+                      <Label
+                        htmlFor="popia"
+                        className="text-[10px] font-bold text-slate-500 leading-relaxed uppercase"
+                      >
+                        I consent to biometric processing. Banking data is
+                        MASKED in Firestore for identity protection.
                       </Label>
                     </div>
                   </div>
 
                   <div className="flex gap-3">
-                    <Button variant="outline" className="flex-1 h-16 rounded-2xl font-black uppercase text-[10px]" onClick={() => setStep(2)}>Back</Button>
-                    <Button className="flex-[2] bg-[#225BC3] h-16 rounded-2xl font-black text-white shadow-xl shadow-blue-500/20" onClick={finalizeOnboarding} disabled={isProcessing || !popiaConsent || !accountNumber}>
-                      {isProcessing ? <Loader2 className="w-6 h-6 animate-spin" /> : "Verify Identity"}
+                    <Button
+                      variant="outline"
+                      className="flex-1 h-16 rounded-2xl font-black uppercase text-[10px]"
+                      onClick={() => setStep(2)}
+                    >
+                      Back
+                    </Button>
+                    <Button
+                      className="flex-[2] bg-[#225BC3] h-16 rounded-2xl font-black text-white shadow-xl shadow-blue-500/20"
+                      onClick={finalizeOnboarding}
+                      disabled={isProcessing || !popiaConsent || !accountNumber}
+                    >
+                      {isProcessing ? (
+                        <Loader2 className="w-6 h-6 animate-spin" />
+                      ) : (
+                        "Verify Identity"
+                      )}
                     </Button>
                   </div>
                 </div>
@@ -467,14 +700,20 @@ function OnboardingContent() {
                   <div className="w-24 h-24 bg-green-500 rounded-full flex items-center justify-center mx-auto shadow-2xl">
                     <UserCheck className="w-12 h-12 text-white" />
                   </div>
-                  <h2 className="text-3xl font-black text-slate-900 uppercase">Verified</h2>
-                  <p className="text-slate-500 font-medium">Identity Pillar activated. You are now authorized to trade.</p>
-                  <Button className="w-full bg-[#225BC3] h-16 rounded-2xl font-black shadow-xl" onClick={() => window.location.href = '/'}>
+                  <h2 className="text-3xl font-black text-slate-900 uppercase">
+                    Verified
+                  </h2>
+                  <p className="text-slate-500 font-medium">
+                    Identity Pillar activated. You are now authorized to trade.
+                  </p>
+                  <Button
+                    className="w-full bg-[#225BC3] h-16 rounded-2xl font-black shadow-xl"
+                    onClick={() => (window.location.href = "/")}
+                  >
                     Enter Market
                   </Button>
                 </div>
               )}
-
             </CardContent>
           </Card>
         </div>

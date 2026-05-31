@@ -1,31 +1,41 @@
-'use server';
+"use server";
 /**
  * @fileOverview ELITE QA & STRESS-TESTING AGENT for 'The Exchange'.
  * Performs aggressive audits for stability, scalability, and security under extreme conditions.
  */
 
-import { ai, runWithModelSafe } from '@/ai/genkit';
-import { z } from 'genkit';
-import { TEST_SUITES } from '@/lib/test-manifest';
+import { ai, runWithModelSafe } from "@/ai/genkit";
+import { z } from "genkit";
+import { TEST_SUITES } from "@/lib/test-manifest";
 
 const PerformanceMetricsSchema = z.object({
   avgResponseTimeMs: z.number(),
   peakLatencyMs: z.number(),
   failureRatePercent: z.number(),
   systemRecoveryTimeSeconds: z.number(),
-  throughputPerSecond: z.number().describe("Requests handled per second during burst."),
+  throughputPerSecond: z
+    .number()
+    .describe("Requests handled per second during burst."),
 });
 
 const SecurityReportSchema = z.object({
   vulnerabilitiesFound: z.array(z.string()),
   exploitableEndpoints: z.array(z.string()),
   scamDetectionEvasionRisk: z.number().min(0).max(100),
-  authBypassSusceptibility: z.enum(['low', 'medium', 'high', 'critical']),
+  authBypassSusceptibility: z.enum(["low", "medium", "high", "critical"]),
 });
 
 const SuiteReportSchema = z.object({
   suite: z.string(),
-  category: z.enum(['FUNCTIONAL', 'STRESS', 'SECURITY', 'PERFORMANCE', 'NETWORK', 'DATA_INTEGRITY', 'AUTHENTICATION']),
+  category: z.enum([
+    "FUNCTIONAL",
+    "STRESS",
+    "SECURITY",
+    "PERFORMANCE",
+    "NETWORK",
+    "DATA_INTEGRITY",
+    "AUTHENTICATION",
+  ]),
   total_tests: z.number(),
   passed: z.number(),
   failed: z.number(),
@@ -33,18 +43,21 @@ const SuiteReportSchema = z.object({
   regressions_detected: z.array(z.string()),
   performance: PerformanceMetricsSchema.optional(),
   security: SecurityReportSchema.optional(),
-  crash_risk_level: z.enum(['LOW', 'MEDIUM', 'HIGH', 'CRITICAL']),
+  crash_risk_level: z.enum(["LOW", "MEDIUM", "HIGH", "CRITICAL"]),
   recommended_fixes: z.array(z.string()),
 });
 
 const AutonomousTesterInputSchema = z.object({
-  targetSuiteId: z.string().optional().describe("Specific suite to run. If null, runs a full platform audit."),
-  intensity: z.enum(['NORMAL', 'HIGH', 'EXTREME']).default('NORMAL'),
+  targetSuiteId: z
+    .string()
+    .optional()
+    .describe("Specific suite to run. If null, runs a full platform audit."),
+  intensity: z.enum(["NORMAL", "HIGH", "EXTREME"]).default("NORMAL"),
   isSimulation: z.boolean().optional().default(true),
 });
 
 const AutonomousTesterOutputSchema = z.object({
-  overallStatus: z.enum(['healthy', 'unstable', 'critical']),
+  overallStatus: z.enum(["healthy", "unstable", "critical"]),
   executiveSummary: z.string(),
   reports: z.array(SuiteReportSchema),
   topFailurePoints: z.array(z.string()),
@@ -53,16 +66,18 @@ const AutonomousTesterOutputSchema = z.object({
   auditTimestamp: z.string(),
 });
 
-export type AutonomousTesterOutput = z.infer<typeof AutonomousTesterOutputSchema>;
+export type AutonomousTesterOutput = z.infer<
+  typeof AutonomousTesterOutputSchema
+>;
 
 const testerPrompt = ai.definePrompt({
-  name: 'autonomousTesterPrompt',
-  input: { 
+  name: "autonomousTesterPrompt",
+  input: {
     schema: z.object({
       targetSuiteId: z.string().optional(),
       intensity: z.string(),
       suitesJson: z.string(),
-    }) 
+    }),
   },
   output: { schema: AutonomousTesterOutputSchema },
   prompt: `You are the ELITE MOBILE QA & STRESS-TESTING AGENT for 'The Exchange' marketplace.
@@ -89,13 +104,18 @@ TASK:
 - Return structured JSON with top failure points and scalability ratings.`,
 });
 
-export async function runAutonomousTesting(input: z.infer<typeof AutonomousTesterInputSchema>): Promise<AutonomousTesterOutput> {
-  const safeResult = await runWithModelSafe((config) => 
-    testerPrompt({
-      targetSuiteId: input.targetSuiteId,
-      intensity: input.intensity,
-      suitesJson: JSON.stringify(TEST_SUITES),
-    }, config)
+export async function runAutonomousTesting(
+  input: z.infer<typeof AutonomousTesterInputSchema>,
+): Promise<AutonomousTesterOutput> {
+  const safeResult = await runWithModelSafe((config) =>
+    testerPrompt(
+      {
+        targetSuiteId: input.targetSuiteId,
+        intensity: input.intensity,
+        suitesJson: JSON.stringify(TEST_SUITES),
+      },
+      config,
+    ),
   );
 
   if (safeResult.ok && safeResult.output?.output) {
@@ -104,23 +124,24 @@ export async function runAutonomousTesting(input: z.infer<typeof AutonomousTeste
 
   // FAIL-SAFE: Return baseline data if AI infrastructure is under too much load
   return {
-    overallStatus: 'unstable',
-    executiveSummary: "Audit Engine encountered infrastructure latency. Using baseline security heuristics for report generation.",
+    overallStatus: "unstable",
+    executiveSummary:
+      "Audit Engine encountered infrastructure latency. Using baseline security heuristics for report generation.",
     reports: [],
     topFailurePoints: ["AI_MODEL_TIMEOUT", "LOAD_SIMULATION_INTERRUPT"],
     scalabilityRating: 5,
     mostUnstableFeature: "Core Diagnostic Pipeline",
-    auditTimestamp: new Date().toISOString()
+    auditTimestamp: new Date().toISOString(),
   };
 }
 
 const autonomousTesterFlow = ai.defineFlow(
   {
-    name: 'autonomousTesterFlow',
+    name: "autonomousTesterFlow",
     inputSchema: AutonomousTesterInputSchema,
     outputSchema: AutonomousTesterOutputSchema,
   },
   async (input) => {
     return runAutonomousTesting(input);
-  }
+  },
 );

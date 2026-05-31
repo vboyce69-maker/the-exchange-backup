@@ -1,37 +1,48 @@
-'use server';
+"use server";
 /**
  * @fileOverview Behavioral Risk AI Agent.
  */
 
-import { ai, runWithModelSafe } from '@/ai/genkit';
-import { z } from 'genkit';
+import { ai, runWithModelSafe } from "@/ai/genkit";
+import { z } from "genkit";
 
 const maxDuration = 120; // Internal constraint, not exported
 
 const BehavioralRiskInputSchema = z.object({
   userId: z.string(),
-  actionType: z.string().describe("Action being performed (e.g., login, create_listing, place_bid)"),
-  metadata: z.record(z.any()).optional().describe("Contextual data like IP, user agent, location, or payload"),
+  actionType: z
+    .string()
+    .describe(
+      "Action being performed (e.g., login, create_listing, place_bid)",
+    ),
+  metadata: z
+    .record(z.any())
+    .optional()
+    .describe("Contextual data like IP, user agent, location, or payload"),
   previousRiskScore: z.number().optional().default(0),
 });
 
 const BehavioralRiskOutputSchema = z.object({
-  riskLevel: z.enum(['safe', 'low', 'medium', 'high', 'critical']),
+  riskLevel: z.enum(["safe", "low", "medium", "high", "critical"]),
   confidence: z.number().min(0).max(100),
-  recommendation: z.enum(['allow', 'flag', 'mfa_challenge', 'block']),
+  recommendation: z.enum(["allow", "flag", "mfa_challenge", "block"]),
   reasoning: z.string(),
-  threatIndicators: z.array(z.string()).describe("Specific detected threats like 'VELOCITY_ANOMALY', 'IMPOSSIBLE_TRAVEL', or 'MALICIOUS_INPUT'"),
+  threatIndicators: z
+    .array(z.string())
+    .describe(
+      "Specific detected threats like 'VELOCITY_ANOMALY', 'IMPOSSIBLE_TRAVEL', or 'MALICIOUS_INPUT'",
+    ),
 });
 
 export type BehavioralRiskInput = z.infer<typeof BehavioralRiskInputSchema>;
 export type BehavioralRiskOutput = z.infer<typeof BehavioralRiskOutputSchema>;
 
 const riskPrompt = ai.definePrompt({
-  name: 'behavioralRiskPrompt',
-  input: { 
+  name: "behavioralRiskPrompt",
+  input: {
     schema: BehavioralRiskInputSchema.extend({
       metadataJson: z.string(),
-    }) 
+    }),
   },
   output: { schema: BehavioralRiskOutputSchema },
   prompt: `You are an AI Security Operations Center (SOC) Analyst for 'The Exchange'.
@@ -52,13 +63,18 @@ TASKS:
 Provide a clear security recommendation and threat indicators.`,
 });
 
-export async function analyzeBehavioralRisk(input: BehavioralRiskInput): Promise<BehavioralRiskOutput> {
+export async function analyzeBehavioralRisk(
+  input: BehavioralRiskInput,
+): Promise<BehavioralRiskOutput> {
   try {
-    const result = await runWithModelSafe((config) => 
-      riskPrompt({
-        ...input,
-        metadataJson: JSON.stringify(input.metadata || {}),
-      }, config)
+    const result = await runWithModelSafe((config) =>
+      riskPrompt(
+        {
+          ...input,
+          metadataJson: JSON.stringify(input.metadata || {}),
+        },
+        config,
+      ),
     );
 
     if (result.ok && result.output?.output) {
@@ -69,21 +85,22 @@ export async function analyzeBehavioralRisk(input: BehavioralRiskInput): Promise
   }
 
   return {
-    riskLevel: 'medium',
+    riskLevel: "medium",
     confidence: 0,
-    recommendation: 'flag',
-    reasoning: 'AI Security Engine is temporarily unavailable. Marking for manual review as a fail-safe.',
-    threatIndicators: ['AI_DIAGNOSTIC_INTERRUPT']
+    recommendation: "flag",
+    reasoning:
+      "AI Security Engine is temporarily unavailable. Marking for manual review as a fail-safe.",
+    threatIndicators: ["AI_DIAGNOSTIC_INTERRUPT"],
   };
 }
 
 const behavioralRiskFlow = ai.defineFlow(
   {
-    name: 'behavioralRiskFlow',
+    name: "behavioralRiskFlow",
     inputSchema: BehavioralRiskInputSchema,
     outputSchema: BehavioralRiskOutputSchema,
   },
   async (input) => {
     return analyzeBehavioralRisk(input);
-  }
+  },
 );

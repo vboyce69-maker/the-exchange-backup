@@ -7,11 +7,11 @@
 export const MARKET_CONFIG = {
   FOUNDING_LIMIT: 100,
   SIMULATED_FILLED_SLOTS: 0,
-  STANDARD_LISTING_FEE: 20.00,
-  FOUNDING_MEMBER_FEE: 0.00,
-  CURRENCY: 'ZAR',
+  STANDARD_LISTING_FEE: 20.0,
+  FOUNDING_MEMBER_FEE: 0.0,
+  CURRENCY: "ZAR",
   PROTECTED_HOLD_FEE_PERCENT: 5,
-  
+
   // LIMIT CONTROL RULES
   LIMITS: {
     UNVERIFIED: 3,
@@ -33,21 +33,21 @@ export const MARKET_CONFIG = {
   RISK_THRESHOLD: {
     BLOCK: 70,
     LIMIT: 40,
-  }
+  },
 };
 
 export function getListingLimit(profile: any): number {
   if (!profile) return MARKET_CONFIG.LIMITS.UNVERIFIED;
-  
+
   // Founding Members (verified early) unlock unlimited listings
-  if (profile.isFoundingMember && profile.kycStatus === 'verified') {
+  if (profile.isFoundingMember && profile.kycStatus === "verified") {
     return MARKET_CONFIG.LIMITS.VERIFIED_BUSINESS;
   }
 
-  if (profile.sellerType === 'business' && profile.kycStatus === 'verified') {
+  if (profile.sellerType === "business" && profile.kycStatus === "verified") {
     return MARKET_CONFIG.LIMITS.VERIFIED_BUSINESS;
   }
-  if (profile.kycStatus === 'verified') {
+  if (profile.kycStatus === "verified") {
     return MARKET_CONFIG.LIMITS.VERIFIED_INDIVIDUAL;
   }
   return MARKET_CONFIG.LIMITS.UNVERIFIED;
@@ -55,14 +55,16 @@ export function getListingLimit(profile: any): number {
 
 export function calculateTrustScore(profile: any): number {
   let trust = MARKET_CONFIG.BASE_TRUST_SCORE;
-  
+
   if (!profile) return trust;
 
-  if (profile.isIdVerified || profile.idVerified) trust += MARKET_CONFIG.WEIGHTS.ID_VERIFIED;
-  if (profile.phoneVerified || profile.phone) trust += MARKET_CONFIG.WEIGHTS.PHONE_VERIFIED;
-  
-  const isBusinessVerified = 
-    (profile.sellerType === 'business' && profile.kycStatus === 'verified') || 
+  if (profile.isIdVerified || profile.idVerified)
+    trust += MARKET_CONFIG.WEIGHTS.ID_VERIFIED;
+  if (profile.phoneVerified || profile.phone)
+    trust += MARKET_CONFIG.WEIGHTS.PHONE_VERIFIED;
+
+  const isBusinessVerified =
+    (profile.sellerType === "business" && profile.kycStatus === "verified") ||
     profile.businessVerified;
 
   if (isBusinessVerified) {
@@ -70,7 +72,7 @@ export function calculateTrustScore(profile: any): number {
   }
 
   if (profile.riskScore > 50) trust -= 40;
-  
+
   return Math.max(0, Math.min(100, trust));
 }
 

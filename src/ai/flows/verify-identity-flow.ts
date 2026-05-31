@@ -1,34 +1,57 @@
-'use server';
+"use server";
 /**
  * @fileOverview AI Identity Verification Flow.
  * Matches live biometric selfies against uploaded ID documents.
  */
 
-import { ai, runWithModelSafe } from '@/ai/genkit';
-import { z } from 'genkit';
+import { ai, runWithModelSafe } from "@/ai/genkit";
+import { z } from "genkit";
 
 const maxDuration = 120; // Internal constraint, not exported
 
 const VerifyIdentityInputSchema = z.object({
-  idPhotoDataUri: z.string().describe("Data URI of the ID document photo. Must be base64."),
-  selfieDataUri: z.string().describe("Data URI of the live selfie captured via camera. Must be base64."),
-  fullName: z.string().describe("The user's full name as provided in the verification form."),
+  idPhotoDataUri: z
+    .string()
+    .describe("Data URI of the ID document photo. Must be base64."),
+  selfieDataUri: z
+    .string()
+    .describe(
+      "Data URI of the live selfie captured via camera. Must be base64.",
+    ),
+  fullName: z
+    .string()
+    .describe("The user's full name as provided in the verification form."),
 });
 export type VerifyIdentityInput = z.infer<typeof VerifyIdentityInputSchema>;
 
 const VerifyIdentityOutputSchema = z.object({
-  isVerified: z.boolean().describe("Whether the identity is successfully verified based on facial matching."),
-  confidenceScore: z.number().describe("Confidence score of the biometric match (0-100)."),
-  reason: z.string().describe("Human-readable explanation for approval or rejection."),
-  extractedDetails: z.object({
-    nameMatch: z.boolean().describe("Whether the name on the ID matches the provided name."),
-    idNumber: z.string().optional().describe("The ID number extracted from the document."),
-  }).optional(),
+  isVerified: z
+    .boolean()
+    .describe(
+      "Whether the identity is successfully verified based on facial matching.",
+    ),
+  confidenceScore: z
+    .number()
+    .describe("Confidence score of the biometric match (0-100)."),
+  reason: z
+    .string()
+    .describe("Human-readable explanation for approval or rejection."),
+  extractedDetails: z
+    .object({
+      nameMatch: z
+        .boolean()
+        .describe("Whether the name on the ID matches the provided name."),
+      idNumber: z
+        .string()
+        .optional()
+        .describe("The ID number extracted from the document."),
+    })
+    .optional(),
 });
 export type VerifyIdentityOutput = z.infer<typeof VerifyIdentityOutputSchema>;
 
 const verifyIdentityPrompt = ai.definePrompt({
-  name: 'verifyIdentityPrompt',
+  name: "verifyIdentityPrompt",
   input: { schema: VerifyIdentityInputSchema },
   output: { schema: VerifyIdentityOutputSchema },
   prompt: `You are a Senior AI Security Officer for 'The Exchange' marketplace.
@@ -52,8 +75,12 @@ SCORING CRITERIA:
 REJECTION RULE: If the faces do not match, set isVerified to false regardless of other factors.`,
 });
 
-export async function verifyIdentity(input: VerifyIdentityInput): Promise<VerifyIdentityOutput> {
-  const result = await runWithModelSafe((config) => verifyIdentityPrompt(input, config));
+export async function verifyIdentity(
+  input: VerifyIdentityInput,
+): Promise<VerifyIdentityOutput> {
+  const result = await runWithModelSafe((config) =>
+    verifyIdentityPrompt(input, config),
+  );
 
   if (result.ok && result.output?.output) {
     return result.output.output;
@@ -63,17 +90,18 @@ export async function verifyIdentity(input: VerifyIdentityInput): Promise<Verify
   return {
     isVerified: false,
     confidenceScore: 0,
-    reason: "The Identity Verification engine is currently experiencing a temporary delay. Please ensure you are in a well-lit area and retry in 60 seconds.",
+    reason:
+      "The Identity Verification engine is currently experiencing a temporary delay. Please ensure you are in a well-lit area and retry in 60 seconds.",
   };
 }
 
 const verifyIdentityFlow = ai.defineFlow(
   {
-    name: 'verifyIdentityFlow',
+    name: "verifyIdentityFlow",
     inputSchema: VerifyIdentityInputSchema,
     outputSchema: VerifyIdentityOutputSchema,
   },
   async (input) => {
     return verifyIdentity(input);
-  }
+  },
 );

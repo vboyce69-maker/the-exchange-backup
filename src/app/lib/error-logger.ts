@@ -1,8 +1,8 @@
-'use client';
+"use client";
 
-import { collection } from 'firebase/firestore';
-import { addDocumentNonBlocking } from '@/firebase/non-blocking-updates';
-import { Firestore } from 'firebase/firestore';
+import { collection } from "firebase/firestore";
+import { addDocumentNonBlocking } from "@/firebase/non-blocking-updates";
+import { Firestore } from "firebase/firestore";
 
 /**
  * Logs a system error to Firestore for AI analysis and admin review.
@@ -10,25 +10,26 @@ import { Firestore } from 'firebase/firestore';
 export function logSystemError(
   db: Firestore,
   error: Error & { digest?: string },
-  context?: { componentStack?: string; userId?: string }
+  context?: { componentStack?: string; userId?: string },
 ) {
   const errorData = {
     message: error.message,
     stack: error.stack,
     digest: error.digest,
     componentStack: context?.componentStack,
-    userId: context?.userId || 'anonymous',
+    userId: context?.userId || "anonymous",
     timestamp: new Date().toISOString(),
-    status: 'new',
+    status: "new",
     resolved: false,
-    severity: 'unclassified',
-    userAgent: typeof window !== 'undefined' ? window.navigator.userAgent : 'server',
+    severity: "unclassified",
+    userAgent:
+      typeof window !== "undefined" ? window.navigator.userAgent : "server",
   };
 
   try {
-    const errorCol = collection(db, 'systemErrors');
+    const errorCol = collection(db, "systemErrors");
     addDocumentNonBlocking(errorCol, errorData);
   } catch (e) {
-    console.error('Failed to log system error:', e);
+    console.error("Failed to log system error:", e);
   }
 }
