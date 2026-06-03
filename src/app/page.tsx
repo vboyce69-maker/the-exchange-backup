@@ -132,18 +132,18 @@ export default function LandingPage() {
       <Navigation />
 
       <main className="container mx-auto px-4 py-8 lg:py-12">
-        <div className="space-y-24">
+        <div className="space-y-16 lg:space-y-24">
           {/* Hero Section */}
-          <section className="grid lg:grid-cols-2 gap-16 items-start pt-8">
-            <div className="space-y-10 animate-fade-up">
-              <div className="inline-flex items-center gap-3 bg-white px-6 py-2.5 rounded-full border border-slate-100 shadow-sm">
+          <section className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-start pt-4 lg:pt-8">
+            <div className="space-y-8 lg:space-y-10 animate-fade-up">
+              <div className="inline-flex items-center gap-3 bg-white px-5 py-2 rounded-full border border-slate-100 shadow-sm">
                 <ShieldCheck className="w-4 h-4 text-primary" />
-                <span className="text-[10px] font-black uppercase tracking-widest text-primary">
+                <span className="text-[9px] lg:text-[10px] font-black uppercase tracking-widest text-primary">
                   South Africa's High-Trust Market
                 </span>
               </div>
 
-              <h1 className="text-6xl lg:text-[5.5rem] font-black text-slate-900 leading-[0.9] tracking-tighter">
+              <h1 className="text-4xl sm:text-5xl lg:text-[5.5rem] font-black text-slate-900 leading-[1.1] lg:leading-[0.9] tracking-tighter">
                 Trade with <br />
                 <span className="text-primary italic font-serif">
                   Absolute
@@ -152,25 +152,25 @@ export default function LandingPage() {
                 Confidence.
               </h1>
 
-              <p className="text-xl text-slate-500 font-medium max-w-lg leading-relaxed">
-                Every seller is verified. Every payment is protected. <br />
+              <p className="text-lg lg:text-xl text-slate-500 font-medium max-w-lg leading-relaxed">
+                Every seller is verified. Every payment is protected. <br className="hidden sm:block" />
                 No scams, just legitimate deals in the local community.
               </p>
 
-              <div className="flex flex-wrap gap-5 pt-4">
-                <Link href="/search">
+              <div className="flex flex-wrap gap-4 lg:gap-5 pt-2">
+                <Link href="/search" className="w-full sm:w-auto">
                   <Button
                     size="lg"
-                    className="h-[72px] px-12 rounded-[1.5rem] bg-primary text-white font-black text-xl shadow-2xl shadow-primary/20 hover:scale-105 active:scale-95 transition-all"
+                    className="w-full sm:w-auto h-16 lg:h-[72px] px-10 lg:px-12 rounded-[1.2rem] lg:rounded-[1.5rem] bg-primary text-white font-black text-lg lg:text-xl shadow-2xl shadow-primary/20 hover:scale-105 active:scale-95 transition-all"
                   >
                     Browse Market
                   </Button>
                 </Link>
-                <Link href={isVerified ? "/create" : "/verify"}>
+                <Link href={isVerified ? "/create" : "/verify"} className="w-full sm:w-auto">
                   <Button
                     size="lg"
                     variant="outline"
-                    className="h-[72px] px-10 rounded-[1.5rem] border-slate-200 bg-white font-black text-slate-600 shadow-lg hover:bg-slate-50 transition-all text-xl"
+                    className="w-full sm:w-auto h-16 lg:h-[72px] px-8 lg:px-10 rounded-[1.2rem] lg:rounded-[1.5rem] border-slate-200 bg-white font-black text-slate-600 shadow-lg hover:bg-slate-50 transition-all text-lg lg:text-xl"
                   >
                     {isVerified ? "Post an Item" : "Seller Verification"}
                   </Button>
@@ -344,7 +344,7 @@ export default function LandingPage() {
           </section>
 
           {/* Categories Section */}
-          <section className="space-y-12">
+          <section className="space-y-8 lg:space-y-12">
             <div className="flex flex-col items-center text-center space-y-3">
               <Badge
                 variant="outline"
@@ -352,30 +352,30 @@ export default function LandingPage() {
               >
                 Discovery Core
               </Badge>
-              <h2 className="text-4xl font-black text-slate-900 uppercase tracking-tighter">
+              <h2 className="text-3xl lg:text-4xl font-black text-slate-900 uppercase tracking-tighter">
                 Market Segments
               </h2>
             </div>
-            <div className="grid grid-cols-2 md:grid-cols-5 gap-10">
+            <div className="flex md:grid md:grid-cols-5 gap-6 lg:gap-10 overflow-x-auto pb-4 scrollbar-hide -mx-4 px-4 md:mx-0 md:px-0">
               {CATEGORIES.map((cat) => {
                 const Icon = cat.icon;
                 return (
                   <Link
                     key={cat.name}
                     href={`/search?category=${cat.name.toLowerCase()}`}
-                    className="group text-center space-y-5"
+                    className="group text-center space-y-4 lg:space-y-5 flex-shrink-0 w-24 md:w-auto"
                   >
-                    <div className="w-[88px] h-[88px] mx-auto bg-white rounded-[2rem] shadow-xl border border-slate-100 flex items-center justify-center group-hover:scale-110 group-hover:shadow-2xl transition-all duration-500">
+                    <div className="w-20 h-20 lg:w-[88px] lg:h-[88px] mx-auto bg-white rounded-[1.5rem] lg:rounded-[2rem] shadow-xl border border-slate-100 flex items-center justify-center group-hover:scale-110 group-hover:shadow-2xl transition-all duration-500">
                       <div
                         className={cn(
-                          "w-14 h-14 rounded-2xl flex items-center justify-center shadow-lg bg-gradient-to-br",
+                          "w-12 h-12 lg:w-14 lg:h-14 rounded-[1rem] lg:rounded-2xl flex items-center justify-center shadow-lg bg-gradient-to-br",
                           cat.bg,
                         )}
                       >
-                        <Icon className="w-7 h-7 text-white" />
+                        <Icon className="w-6 h-6 lg:w-7 lg:h-7 text-white" />
                       </div>
                     </div>
-                    <span className="block text-[11px] font-black uppercase text-slate-600 tracking-widest transition-colors group-hover:text-primary">
+                    <span className="block text-[10px] lg:text-[11px] font-black uppercase text-slate-600 tracking-widest transition-colors group-hover:text-primary">
                       {cat.name}
                     </span>
                   </Link>
@@ -385,20 +385,20 @@ export default function LandingPage() {
           </section>
 
           {/* Trending Deals */}
-          <section className="space-y-12">
-            <div className="flex items-center justify-between">
+          <section className="space-y-10 lg:space-y-12">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div className="space-y-1">
-                <h2 className="text-4xl font-black text-slate-900 tracking-tighter uppercase leading-none">
+                <h2 className="text-3xl lg:text-4xl font-black text-slate-900 tracking-tighter uppercase leading-none">
                   Hottest Listings
                 </h2>
-                <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mt-2">
+                <p className="text-[9px] lg:text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mt-2">
                   Active Trading Velocity
                 </p>
               </div>
               <Link href="/search">
                 <Button
                   variant="ghost"
-                  className="h-12 rounded-2xl font-black text-primary gap-2 group uppercase text-[10px] tracking-widest hover:bg-slate-50"
+                  className="h-10 lg:h-12 rounded-2xl font-black text-primary gap-2 group uppercase text-[10px] tracking-widest hover:bg-slate-50 w-fit"
                 >
                   Browse Everything{" "}
                   <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
@@ -407,11 +407,11 @@ export default function LandingPage() {
             </div>
 
             {!hasMounted || isLoading ? (
-              <div className="flex justify-center py-32">
-                <Loader2 className="w-16 h-16 animate-spin text-primary opacity-20" />
+              <div className="flex justify-center py-24 lg:py-32">
+                <Loader2 className="w-12 lg:w-16 h-12 lg:h-16 animate-spin text-primary opacity-20" />
               </div>
             ) : trendingListings.length > 0 ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-12">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-12">
                 {trendingListings.map((listing) => (
                   <ListingCard
                     key={listing.id}
@@ -432,18 +432,18 @@ export default function LandingPage() {
                 ))}
               </div>
             ) : (
-              <div className="text-center py-32 bg-white rounded-[3rem] border-2 border-dashed border-slate-200">
-                <Package className="w-16 h-16 text-slate-100 mx-auto mb-6" />
-                <p className="font-black text-slate-400 uppercase tracking-[0.3em] text-xs">
+              <div className="text-center py-24 lg:py-32 bg-white rounded-[2.5rem] lg:rounded-[3rem] border-2 border-dashed border-slate-200">
+                <Package className="w-12 lg:w-16 h-12 lg:h-16 text-slate-100 mx-auto mb-6" />
+                <p className="font-black text-slate-400 uppercase tracking-[0.3em] text-[10px] lg:text-xs">
                   Registry Empty
                 </p>
               </div>
             )}
           </section>
 
-          {/* Footer Trust Shield - Refined for Professional Aesthetic */}
+          {/* Footer Trust Shield */}
           <section className="flex justify-center">
-            <div className="w-full max-w-5xl bg-slate-900 rounded-[2.5rem] p-8 lg:p-12 text-white relative overflow-hidden ring-1 ring-white/10 shadow-2xl">
+            <div className="w-full max-w-5xl bg-slate-900 rounded-[2rem] lg:rounded-[2.5rem] p-8 lg:p-12 text-white relative overflow-hidden ring-1 ring-white/10 shadow-2xl">
               <div className="absolute -right-40 -bottom-40 w-96 h-96 bg-primary/20 rounded-full blur-[100px]" />
 
               <div className="flex flex-col md:flex-row items-center justify-between gap-10 relative z-10">
@@ -455,10 +455,10 @@ export default function LandingPage() {
                     </span>
                   </div>
                   <h2 className="text-2xl lg:text-4xl font-black leading-none tracking-tighter uppercase">
-                    Shop with total{" "}
+                    Shop with total <br className="lg:hidden" />
                     <span className="text-primary italic">Confidence.</span>
                   </h2>
-                  <p className="text-sm lg:text-base text-white/50 font-medium leading-relaxed">
+                  <p className="text-xs lg:text-base text-white/50 font-medium leading-relaxed">
                     Every trade is protected by biometric verification and our
                     proprietary secure escrow protocol. We've eliminated the
                     risk so you can focus on the deal.
@@ -485,8 +485,8 @@ export default function LandingPage() {
           </section>
         </div>
 
-        <div className="py-20 text-center opacity-30 group hover:opacity-100 transition-opacity duration-700">
-          <p className="text-[10px] font-black uppercase tracking-[0.4em] text-slate-500">
+        <div className="py-16 lg:py-20 text-center opacity-30 group hover:opacity-100 transition-opacity duration-700">
+          <p className="text-[9px] lg:text-[10px] font-black uppercase tracking-[0.4em] text-slate-500">
             The Exchange Marketplace &copy; 2026
           </p>
         </div>
