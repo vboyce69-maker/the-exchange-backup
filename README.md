@@ -1,10 +1,18 @@
-
 # The Exchange | Premium Verified Marketplace
 
 This is a high-trust, local peer-to-peer and professional marketplace built with Next.js, Firebase, and Genkit.
 
 ## Repository
 **Main Backup:** [https://github.com/vboyce69-maker/the-exchange-backup.git](https://github.com/vboyce69-maker/the-exchange-backup.git)
+
+## How to Preview on Mobile (APK Alternative)
+The Exchange is configured as a **Progressive Web App (PWA)**, which is the web alternative to an APK. You can install it on your phone now:
+1. **Get the URL**: Copy the preview URL from the address bar of the internal browser in this workspace.
+2. **Open on Phone**: Open your mobile browser (Safari on iOS, Chrome on Android) and paste the URL.
+3. **Install**:
+   - **Android**: Tap the three dots menu and select **"Install App"**.
+   - **iOS**: Tap the "Share" button and select **"Add to Home Screen"**.
+The app will now appear on your home screen with its own icon and run without the browser interface.
 
 ## Infrastructure
 The application is built on **Firebase**, leveraging Google Cloud's high-performance infrastructure. This choice was made to ensure:
@@ -33,19 +41,6 @@ npm run firebase:login  # Log in to your Firebase account
 npm run firebase:init   # Connect this code to your Firebase project
 npm run firebase:deploy # Deploy rules, indexes, and hosting
 ```
-
-## Troubleshooting: Email Verification
-If verification emails are not arriving:
-1. **Authorized Domains**: Add your app domain to the "Authorized domains" list in the Firebase Console (Authentication > Settings).
-2. **Spam Folder**: Check your spam/junk folder as automated links are often filtered.
-3. **Sender Domain**: Verify that the "Custom Sender Domain" in Firebase is correctly configured if you are using a branded email address.
-4. **Email Templates**: Ensure the "Email address verification" template is enabled in the Firebase Console (Authentication > Templates).
-
-## How to Preview on Mobile
-The Exchange is a **Mobile-Responsive Web App**. You can view the full mobile experience on your physical device:
-1. **Get the URL**: Copy the preview URL from the address bar of the internal browser in this workspace.
-2. **Open on Phone**: Open your mobile browser (Safari/Chrome) and paste the URL.
-3. **Add to Home Screen**: For the best experience, use the "Add to Home Screen" feature in your mobile browser.
 
 ## Founding 100 Program
 The first 100 verified sellers receive R0 listing fees and a lifetime "Founding Member" badge.
