@@ -167,17 +167,17 @@ export function Navigation() {
 
   return (
     <div className="w-full z-50 sticky top-0">
-      <nav className="h-[72px] lg:h-[88px] bg-white/70 backdrop-blur-xl border-b border-white/20 flex items-center px-4 lg:px-8 shadow-sm">
-        <div className="container mx-auto flex items-center justify-between gap-4 lg:gap-12">
-          <Link href="/" className="flex items-center gap-3 shrink-0 group">
-            <div className="w-10 h-10 lg:w-11 lg:h-11 bg-primary rounded-xl lg:rounded-2xl flex items-center justify-center text-white shadow-xl shadow-primary/20 group-hover:scale-105 transition-all duration-500 ring-4 ring-primary/5">
-              <ShieldCheck className="w-6 h-6 lg:w-7 lg:h-7" />
+      <nav className="h-[72px] lg:h-[88px] bg-white/70 backdrop-blur-xl border-b border-white/20 flex items-center px-2 sm:px-4 lg:px-8 shadow-sm">
+        <div className="container mx-auto flex items-center justify-between gap-2 sm:gap-4 lg:gap-12">
+          <Link href="/" className="flex items-center gap-2 sm:gap-3 shrink-0 group">
+            <div className="w-9 h-9 lg:w-11 lg:h-11 bg-primary rounded-xl lg:rounded-2xl flex items-center justify-center text-white shadow-xl shadow-primary/20 group-hover:scale-105 transition-all duration-500 ring-4 ring-primary/5">
+              <ShieldCheck className="w-5 h-5 lg:w-7 lg:h-7" />
             </div>
             <div className="flex flex-col">
-              <span className="font-black text-lg lg:text-xl text-slate-900 tracking-tight leading-none uppercase">
+              <span className="font-black text-sm sm:text-lg lg:text-xl text-slate-900 tracking-tight leading-none uppercase">
                 The Exchange
               </span>
-              <span className="text-[7px] font-black text-primary tracking-[0.4em] uppercase mt-1">
+              <span className="text-[6px] lg:text-[7px] font-black text-primary tracking-[0.3em] lg:tracking-[0.4em] uppercase mt-0.5 lg:mt-1">
                 Verified Layer
               </span>
             </div>
@@ -199,15 +199,15 @@ export function Navigation() {
             </div>
           </form>
 
-          <div className="flex items-center gap-2 lg:gap-4">
-            <div className="flex items-center gap-1.5 lg:gap-2 mr-2">
+          <div className="flex items-center gap-1.5 sm:gap-2 lg:gap-4">
+            <div className="flex items-center gap-1 lg:gap-2 sm:mr-2">
               <Link
                 href="/notifications"
                 className="relative group"
               >
                 <div
                   className={cn(
-                    "h-9 w-9 lg:h-11 lg:w-11 rounded-xl lg:rounded-2xl flex items-center justify-center transition-all bg-white/50 border border-slate-100 hover:bg-white hover:shadow-lg hover:border-primary/10",
+                    "h-8 w-8 sm:h-9 sm:w-9 lg:h-11 lg:w-11 rounded-lg sm:rounded-xl lg:rounded-2xl flex items-center justify-center transition-all bg-white/50 border border-slate-100 hover:bg-white hover:shadow-lg hover:border-primary/10",
                     (unreadNotifications?.length || 0) > 0 && "animate-pulse",
                   )}
                 >
@@ -220,7 +220,7 @@ export function Navigation() {
                     )}
                   />
                   {(unreadNotifications?.length || 0) > 0 && (
-                    <span className="absolute -top-1 -right-1 bg-red-600 text-white text-[7px] lg:text-[8px] font-black w-4 h-4 lg:w-5 lg:h-5 rounded-full flex items-center justify-center border-2 border-white shadow-lg">
+                    <span className="absolute -top-1 -right-1 bg-red-600 text-white text-[6px] lg:text-[8px] font-black w-3.5 h-3.5 lg:w-5 lg:h-5 rounded-full flex items-center justify-center border-2 border-white shadow-lg">
                       {unreadNotifications?.length}
                     </span>
                   )}
@@ -231,7 +231,7 @@ export function Navigation() {
                 href="/messages"
                 className="group"
               >
-                <div className="h-9 w-9 lg:h-11 lg:w-11 rounded-xl lg:rounded-2xl flex items-center justify-center bg-white/50 border border-slate-100 transition-all text-slate-400 group-hover:text-primary hover:bg-white hover:shadow-lg hover:border-primary/10">
+                <div className="h-8 w-8 sm:h-9 sm:w-9 lg:h-11 lg:w-11 rounded-lg sm:rounded-xl lg:rounded-2xl flex items-center justify-center bg-white/50 border border-slate-100 transition-all text-slate-400 group-hover:text-primary hover:bg-white hover:shadow-lg hover:border-primary/10">
                   <Inbox className="w-4 h-4 lg:w-5 lg:h-5" />
                 </div>
               </Link>
@@ -241,9 +241,10 @@ export function Navigation() {
               <DropdownMenuTrigger asChild>
                 <Button
                   variant="ghost"
-                  className="h-9 lg:h-11 rounded-xl lg:rounded-2xl px-3 lg:px-5 gap-2 font-black uppercase text-[9px] lg:text-[10px] tracking-widest text-slate-600 hover:bg-white hover:shadow-md transition-all border border-transparent hover:border-slate-100"
+                  className="h-8 w-8 sm:h-9 sm:w-auto sm:h-11 rounded-lg sm:rounded-xl lg:rounded-2xl px-0 sm:px-3 lg:px-5 gap-1.5 sm:gap-2 font-black uppercase text-[9px] lg:text-[10px] tracking-widest text-slate-600 hover:bg-white hover:shadow-md transition-all border border-transparent hover:border-slate-100 flex items-center justify-center"
                 >
-                  <span className="hidden sm:inline">Explore</span> <ChevronDown className="w-3 h-3 lg:w-4 lg:h-4 opacity-50" />
+                  <LayoutGrid className="w-4 h-4 sm:hidden" />
+                  <span className="hidden sm:inline">Explore</span> <ChevronDown className="w-3 h-3 lg:w-4 lg:h-4 opacity-50 hidden sm:inline" />
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent className="w-72 sm:w-80 rounded-[2.5rem] p-4 shadow-[0_30px_60px_rgba(0,0,0,0.15)] border-none ring-1 ring-slate-100 mt-4 backdrop-blur-3xl bg-white/90">
@@ -309,7 +310,7 @@ export function Navigation() {
               </DropdownMenuContent>
             </DropdownMenu>
 
-            <div className="h-8 w-px bg-slate-200/50 mx-1 hidden sm:block" />
+            <div className="h-6 sm:h-8 w-px bg-slate-200/50 mx-0.5 sm:mx-1" />
 
             {user ? (
               <DropdownMenu>
@@ -317,7 +318,7 @@ export function Navigation() {
                   <Button
                     size="icon"
                     variant="ghost"
-                    className="rounded-xl lg:rounded-2xl h-10 w-10 lg:h-[48px] lg:w-[48px] bg-white border-2 border-white shadow-xl overflow-hidden hover:scale-105 active:scale-95 transition-all ring-1 ring-slate-100"
+                    className="rounded-lg sm:rounded-xl lg:rounded-2xl h-8 w-8 sm:h-9 sm:w-9 lg:h-[48px] lg:w-[48px] bg-white border-2 border-white shadow-xl overflow-hidden hover:scale-105 active:scale-95 transition-all ring-1 ring-slate-100"
                   >
                     <img
                       src={
@@ -398,7 +399,7 @@ export function Navigation() {
               </DropdownMenu>
             ) : (
               <Link href="/login">
-                <Button className="h-10 lg:h-12 px-6 lg:px-8 rounded-xl lg:rounded-2xl bg-slate-900 text-white font-black uppercase text-[9px] lg:text-[10px] tracking-[0.2em] shadow-xl hover:scale-105 active:scale-95 transition-all">
+                <Button className="h-8 sm:h-10 lg:h-12 px-3 sm:px-6 lg:px-8 rounded-lg sm:rounded-xl lg:rounded-2xl bg-slate-900 text-white font-black uppercase text-[8px] sm:text-[9px] lg:text-[10px] tracking-[0.15em] sm:tracking-[0.2em] shadow-xl hover:scale-105 active:scale-95 transition-all">
                   Sign In
                 </Button>
               </Link>
