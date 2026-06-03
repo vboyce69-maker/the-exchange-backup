@@ -6,7 +6,6 @@ import { Navigation } from "@/components/Navigation";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   MapPin,
   ShieldCheck,
@@ -17,9 +16,7 @@ import {
   SmartphoneNfc,
   Lock,
   Gavel,
-  FileText,
   ArrowLeft,
-  ShieldAlert,
   Clock,
   Loader2,
   Zap,
@@ -27,7 +24,6 @@ import {
   BellOff,
   Tag,
   HandCoins,
-  Flag,
 } from "lucide-react";
 import Image from "next/image";
 import { VerifiedBadge } from "@/components/VerifiedBadge";
@@ -43,15 +39,7 @@ import {
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
-import {
-  Carousel,
-  CarouselContent,
-  CarouselItem,
-  CarouselNext,
-  CarouselPrevious,
-} from "@/components/ui/carousel";
 import {
   useDoc,
   useFirestore,
@@ -71,7 +59,6 @@ import {
   deleteDoc,
   writeBatch,
 } from "firebase/firestore";
-import { updateDocumentNonBlocking } from "@/firebase/non-blocking-updates";
 
 const PAYMENT_METHODS = [
   {
@@ -107,14 +94,13 @@ export default function ListingDetailPage() {
   const [paymentMethod, setPaymentMethod] = useState("card");
   const [isPaying, setIsPaying] = useState(false);
   const [bidAmount, setBidAmount] = useState("");
-  const [offerAmount, setOfferAmount] = useState("");
   const [newPrice, setNewPrice] = useState("");
   const [isBidding, setIsBidding] = useState(false);
-  const [isSendingOffer, setIsSendingOffer] = useState(false);
   const [isUpdatingPrice, setIsUpdatingPrice] = useState(false);
   const [isFollowing, setIsFollowing] = useState(false);
   const [isFollowLoading, setIsFollowLoading] = useState(false);
   const [now, setNow] = useState<Date | null>(null);
+  const [mounted, setMounted] = useState(false);
 
   const listingRef = useMemoFirebase(() => {
     if (!db || !id) return null;
@@ -135,14 +121,15 @@ export default function ListingDetailPage() {
   const { data: followDocs } = useCollection(followQuery);
 
   useEffect(() => {
-    setIsFollowing(!!followDocs && followDocs.length > 0);
-  }, [followDocs]);
-
-  useEffect(() => {
+    setMounted(true);
     setNow(new Date());
     const timer = setInterval(() => setNow(new Date()), 10000);
     return () => clearInterval(timer);
   }, []);
+
+  useEffect(() => {
+    setIsFollowing(!!followDocs && followDocs.length > 0);
+  }, [followDocs]);
 
   const isSeller = user?.uid === listing?.sellerId;
   const isAuctionEnded = useMemo(() => {
@@ -213,7 +200,6 @@ export default function ListingDetailPage() {
       await updateDoc(listingDocRef, { price: updatedPrice });
 
       if (isPriceDrop) {
-        // Find followers to notify
         const followsQ = query(
           collection(db, "follows"),
           where("listingId", "==", id),
@@ -288,7 +274,7 @@ export default function ListingDetailPage() {
     }
   };
 
-  if (isLoading)
+  if (isLoading || !mounted)
     return (
       <div className="min-h-screen bg-white flex items-center justify-center">
         <Loader2 className="w-10 h-10 animate-spin text-[#225BC3]" />
@@ -526,7 +512,6 @@ export default function ListingDetailPage() {
         </div>
       </main>
 
-      {/* Edit Price Dialog */}
       <Dialog open={isEditPriceOpen} onOpenChange={setIsEditPriceOpen}>
         <DialogContent className="rounded-[2.5rem] p-10 max-w-md border-none shadow-2xl">
           <DialogHeader className="space-y-2">

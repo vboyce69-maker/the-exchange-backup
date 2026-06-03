@@ -1,4 +1,4 @@
-# Technical Specification & Requirements
+# Technical Specification & Reqauirements
 **Project:** The Exchange | Premium Verified Marketplace
 **Version:** 1.1.0 (Storage & Cost Optimized)
 
