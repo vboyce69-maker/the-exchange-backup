@@ -1,3 +1,4 @@
+
 "use client";
 
 import Link from "next/link";
@@ -76,7 +77,7 @@ export function Navigation() {
       where("userId", "==", user.uid),
       where("isRead", "==", false),
     );
-  }, [db, user]);
+  }, [db, user?.uid]); // Use user.uid for stable memoization
 
   const { data: unreadNotifications } = useCollection(notificationsQuery);
 
@@ -328,6 +329,7 @@ export function Navigation() {
                         `https://picsum.photos/seed/${user.uid}/200/200`
                       }
                       className="w-full h-full object-cover"
+                      alt="Avatar"
                     />
                   </Button>
                 </DropdownMenuTrigger>
@@ -343,6 +345,7 @@ export function Navigation() {
                           `https://picsum.photos/seed/${user.uid}/200/200`
                         }
                         className="w-full h-full object-cover"
+                        alt="Avatar"
                       />
                     </div>
                     <div>
