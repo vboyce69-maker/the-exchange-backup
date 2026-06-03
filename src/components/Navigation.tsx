@@ -173,11 +173,11 @@ export function Navigation() {
             <div className="bg-primary p-2 rounded-lg lg:p-2.5 lg:rounded-xl shadow-lg group-hover:rotate-3 transition-all">
               <ShieldCheck className="w-5 h-5 lg:w-6 lg:h-6 text-white" />
             </div>
-            <div className="flex flex-col">
+            <div className="flex flex-col items-start">
               <span className="font-black text-base lg:text-xl text-slate-900 tracking-tighter uppercase leading-none">
                 THE <span className="text-primary">EXCHANGE</span>
               </span>
-              <span className="text-[6px] lg:text-[7px] font-black text-slate-400 tracking-[0.4em] uppercase mt-0.5 lg:mt-1">
+              <span className="text-[6px] lg:text-[7px] font-black text-slate-400 tracking-[0.2em] lg:tracking-[0.4em] uppercase mt-0.5 lg:mt-1">
                 Verified Layer
               </span>
             </div>
