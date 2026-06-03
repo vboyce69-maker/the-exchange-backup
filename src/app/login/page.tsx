@@ -1,4 +1,3 @@
-
 "use client";
 
 import { Suspense, useState } from "react";
@@ -62,19 +61,25 @@ function LoginPageContent() {
     const profileSnap = await getDoc(profileRef);
 
     if (!profileSnap.exists()) {
-      await setDoc(profileRef, {
+      // Create new profile with robust defaults for persistence
+      const newProfile = {
         id: user.uid,
-        username: email.split("@")[0] || `trader_${user.uid.substring(0, 5)}`,
+        username: user.email?.split("@")[0] || user.phoneNumber || `trader_${user.uid.substring(0, 5)}`,
         registrationDate: new Date().toISOString(),
         kycStatus: "unverified",
         isIdVerified: false,
         reliabilityScore: MARKET_CONFIG.BASE_TRUST_SCORE,
+        trustScore: MARKET_CONFIG.BASE_TRUST_SCORE,
         transactionsCompleted: 0,
         disputeCount: 0,
         referredBy: referralCode || null,
         lastLogin: new Date().toISOString(),
         profileImageUrl: user.photoURL || `https://picsum.photos/seed/${user.uid}/200/200`,
-      });
+        phoneNumber: user.phoneNumber || null,
+        email: user.email || null,
+      };
+      
+      await setDoc(profileRef, newProfile);
 
       // Handle Referral Tracking by Code
       if (referralCode) {
@@ -84,21 +89,23 @@ function LoginPageContent() {
           const querySnap = await getDocs(q);
           
           if (!querySnap.empty) {
-            const referrerDoc = querySnap.docs[0];
-            // Profile setup for the referral happens here
             toast({
               title: "Referral Applied",
-              description: "You've successfully joined via invite.",
+              description: "Invite perks will activate after your first trade.",
             });
           }
         } catch (err) {
-          console.warn("Referral award failed:", err);
+          console.warn("Referral tracking error:", err);
         }
       }
     } else {
+      // Sync existing profile with session metadata
+      const existingData = profileSnap.data();
       await updateDoc(profileRef, { 
         lastLogin: new Date().toISOString(),
-        profileImageUrl: user.photoURL || profileSnap.data().profileImageUrl || `https://picsum.photos/seed/${user.uid}/200/200`,
+        profileImageUrl: user.photoURL || existingData.profileImageUrl || `https://picsum.photos/seed/${user.uid}/200/200`,
+        phoneNumber: user.phoneNumber || existingData.phoneNumber,
+        email: user.email || existingData.email,
       });
     }
   };
@@ -125,7 +132,7 @@ function LoginPageContent() {
         await ensureUserProfile(userCred.user);
         await sendEmailVerification(userCred.user);
         toast({
-          title: "Account Initialized",
+          title: "Identity Created",
           description: "Verify your email to enter the market.",
         });
         router.push("/verify-email");
@@ -182,7 +189,7 @@ function LoginPageContent() {
               </p>
               {referralCode && (
                 <Badge className="mt-4 bg-pink-100 text-pink-700 border-none px-4 py-1 uppercase text-[8px] font-black">
-                  Joining via Referral
+                  Referral Active
                 </Badge>
               )}
             </CardHeader>
@@ -261,9 +268,9 @@ function LoginPageContent() {
                       {loading ? (
                         <Loader2 className="w-6 h-6 animate-spin" />
                       ) : isSignUp ? (
-                        "Create Identity"
+                        "Create Account"
                       ) : (
-                        "Authorize Session"
+                        "Sign In"
                       )}
                     </Button>
                     <Button
@@ -273,8 +280,8 @@ function LoginPageContent() {
                       onClick={() => setIsSignUp(!isSignUp)}
                     >
                       {isSignUp
-                        ? "Account exists? Login"
-                        : "Join the Verified Market"}
+                        ? "Already have an account? Login"
+                        : "Join the Marketplace"}
                     </Button>
                   </form>
                 </TabsContent>
@@ -289,8 +296,7 @@ function LoginPageContent() {
                     htmlFor="terms"
                     className="text-[9px] font-bold text-slate-500 leading-relaxed uppercase"
                   >
-                    I agree to the Terms of Service. My data will be processed
-                    according to South African POPIA regulations.
+                    I agree to the Terms of Service. My identity and trade logs will be secured per South African POPIA laws.
                   </label>
                 </div>
               </CardContent>

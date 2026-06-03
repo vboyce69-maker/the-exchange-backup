@@ -84,20 +84,23 @@ function SettingsContent() {
       await uploadBytes(storageRef, file);
       const downloadURL = await getDownloadURL(storageRef);
 
+      // Update Auth Profile for faster header display
       await updateProfile(user, { photoURL: downloadURL });
+      
+      // Update Firestore for identity persistence
       if (db) {
         const userRef = doc(db, "userProfiles", user.uid);
         await updateDoc(userRef, { profileImageUrl: downloadURL });
       }
 
       toast({
-        title: "Avatar Updated",
-        description: "Your live photo is now active.",
+        title: "Avatar Saved",
+        description: "Your new profile picture is synced to the cloud.",
       });
     } catch (err: any) {
       toast({
         variant: "destructive",
-        title: "Capture Failed",
+        title: "Sync Failed",
         description: err.message,
       });
     } finally {
@@ -117,31 +120,22 @@ function SettingsContent() {
         bio,
         locationName,
         updatedAt: new Date().toISOString(),
+        email: user.email,
+        phoneNumber: user.phoneNumber,
       };
 
       const profileDocRef = doc(db, "userProfiles", user.uid);
-      if (!profile) {
-        await setDoc(profileDocRef, {
-          ...data,
-          id: user.uid,
-          registrationDate: new Date().toISOString(),
-          isIdVerified: false,
-          reliabilityScore: 50,
-          transactionsCompleted: 0,
-          disputeCount: 0,
-        });
-      } else {
-        await updateDoc(profileDocRef, data);
-      }
+      // Use setDoc with merge to ensure profile exists if login sync failed
+      await setDoc(profileDocRef, data, { merge: true });
 
       toast({
-        title: "Profile Updated",
-        description: "Your details have been saved.",
+        title: "Persistence Confirmed",
+        description: "Your profile details are securely saved.",
       });
     } catch (err: any) {
       toast({
         variant: "destructive",
-        title: "Error Saving",
+        title: "Sync Error",
         description: err.message,
       });
     } finally {
@@ -149,7 +143,7 @@ function SettingsContent() {
     }
   };
 
-  if (!user) return null;
+  if (isUserLoading || !user) return null;
 
   return (
     <div className="min-h-screen bg-[#F8FAFC]">
@@ -159,11 +153,10 @@ function SettingsContent() {
           <div className="flex items-center justify-between">
             <div className="space-y-1">
               <h1 className="text-4xl font-black text-[#225BC3] uppercase tracking-tighter">
-                Account Hub
+                Identity Settings
               </h1>
               <p className="text-muted-foreground font-black text-[10px] uppercase tracking-widest flex items-center gap-2">
-                <Settings className="w-3 h-3 text-[#34CBED]" /> Manage Identity
-                & Security
+                <Settings className="w-3 h-3 text-[#34CBED]" /> Cloud Sync Enabled
               </p>
             </div>
           </div>
@@ -176,14 +169,13 @@ function SettingsContent() {
                     <Avatar className="w-24 h-24 border-4 border-white shadow-xl rounded-[2rem]">
                       <AvatarImage
                         src={
+                          profile?.profileImageUrl ||
                           user.photoURL ||
                           `https://picsum.photos/seed/${user.uid}/200/200`
                         }
                       />
                       <AvatarFallback className="bg-[#225BC3] text-white font-black text-xl">
-                        {user.displayName?.[0]?.toUpperCase() ||
-                          user.email?.[0]?.toUpperCase() ||
-                          "U"}
+                        {firstName?.[0] || "U"}
                       </AvatarFallback>
                     </Avatar>
                     <input
@@ -207,31 +199,29 @@ function SettingsContent() {
                     </button>
                   </div>
                   <h3 className="text-xl font-black text-slate-900 leading-tight">
-                    {firstName || "Anonymous"} {lastName}
+                    {firstName || "Market"} {lastName || "Trader"}
                   </h3>
                   <div className="mt-2 flex items-center gap-2">
-                    <Badge className="bg-green-100 text-green-700 font-black text-[9px] uppercase border-none">
-                      {profile?.isIdVerified
-                        ? "Verified User"
-                        : "Account Setup"}
+                    <Badge className={cn(
+                      "font-black text-[9px] uppercase border-none",
+                      profile?.kycStatus === 'verified' ? "bg-green-100 text-green-700" : "bg-orange-100 text-orange-600"
+                    )}>
+                      {profile?.kycStatus === 'verified' ? "Verified Pro" : "Unverified"}
                     </Badge>
                   </div>
-                  <p className="mt-4 text-[8px] font-black text-slate-400 uppercase tracking-widest">
-                    In-App Camera Only
-                  </p>
                 </div>
               </Card>
 
               <Card className="rounded-[2.5rem] border-none shadow-xl bg-white p-6 space-y-4 ring-1 ring-slate-100">
                 <h4 className="font-black text-[10px] uppercase tracking-[0.2em] text-[#225BC3]">
-                  Security Status
+                  Security Pillar Status
                 </h4>
                 <div className="space-y-3">
                   <div className="flex items-center justify-between p-3 bg-slate-50 rounded-xl">
                     <div className="flex items-center gap-2">
                       <Smartphone className="w-4 h-4 text-slate-400" />
                       <span className="text-[11px] font-bold text-slate-600">
-                        Phone Verified
+                        Phone Bonded
                       </span>
                     </div>
                     <CheckCircle2 className="w-4 h-4 text-green-500" />
@@ -239,76 +229,22 @@ function SettingsContent() {
 
                   <div
                     className={cn(
-                      "flex items-center justify-between p-3 bg-slate-50 rounded-xl transition-all group",
-                      !user.emailVerified &&
-                        "cursor-pointer hover:bg-[#FF8C00]/5 hover:ring-1 hover:ring-[#FF8C00]/20",
+                      "flex items-center justify-between p-3 bg-slate-50 rounded-xl transition-all",
+                      !user.emailVerified && "cursor-pointer hover:bg-orange-50"
                     )}
-                    onClick={() =>
-                      !user.emailVerified && router.push("/verify-email")
-                    }
+                    onClick={() => !user.emailVerified && router.push("/verify-email")}
                   >
                     <div className="flex items-center gap-2">
-                      <Mail
-                        className={cn(
-                          "w-4 h-4",
-                          user.emailVerified
-                            ? "text-green-500"
-                            : "text-slate-400 group-hover:text-[#FF8C00]",
-                        )}
-                      />
+                      <Mail className={cn("w-4 h-4", user.emailVerified ? "text-green-500" : "text-slate-400")} />
                       <span className="text-[11px] font-bold text-slate-600">
-                        Email Verified
+                        Email Bonded
                       </span>
                     </div>
-                    <div className="flex items-center gap-2">
-                      {user.emailVerified ? (
-                        <CheckCircle2 className="w-4 h-4 text-green-500" />
-                      ) : (
-                        <>
-                          <Badge className="bg-orange-100 text-orange-600 border-none text-[8px] font-black uppercase">
-                            Pending
-                          </Badge>
-                          <ChevronRight className="w-3 h-3 text-orange-300" />
-                        </>
-                      )}
-                    </div>
-                  </div>
-
-                  <div
-                    className={cn(
-                      "flex items-center justify-between p-3 bg-slate-50 rounded-xl transition-all group",
-                      !profile?.isIdVerified &&
-                        "cursor-pointer hover:bg-[#225BC3]/5 hover:ring-1 hover:ring-[#225BC3]/20",
+                    {user.emailVerified ? (
+                      <CheckCircle2 className="w-4 h-4 text-green-500" />
+                    ) : (
+                      <Badge className="bg-orange-100 text-orange-600 border-none text-[8px] font-black uppercase">Pending</Badge>
                     )}
-                    onClick={() =>
-                      !profile?.isIdVerified && router.push("/verify")
-                    }
-                  >
-                    <div className="flex items-center gap-2">
-                      <ShieldCheck
-                        className={cn(
-                          "w-4 h-4",
-                          profile?.isIdVerified
-                            ? "text-green-500"
-                            : "text-slate-400 group-hover:text-[#225BC3]",
-                        )}
-                      />
-                      <span className="text-[11px] font-bold text-slate-600">
-                        ID Verification
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      {profile?.isIdVerified ? (
-                        <CheckCircle2 className="w-4 h-4 text-green-500" />
-                      ) : (
-                        <>
-                          <Badge className="bg-slate-200 text-slate-500 border-none text-[8px] font-black uppercase">
-                            Not Started
-                          </Badge>
-                          <ChevronRight className="w-3 h-3 text-slate-300" />
-                        </>
-                      )}
-                    </div>
                   </div>
                 </div>
               </Card>
@@ -319,9 +255,7 @@ function SettingsContent() {
                 <form onSubmit={handleSave} className="space-y-8">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="space-y-2">
-                      <Label className="font-black text-[10px] uppercase tracking-widest text-[#225BC3]">
-                        First Name
-                      </Label>
+                      <Label className="font-black text-[10px] uppercase tracking-widest text-[#225BC3]">First Name</Label>
                       <Input
                         className="h-14 rounded-2xl bg-slate-50 border-none font-bold"
                         value={firstName}
@@ -329,9 +263,7 @@ function SettingsContent() {
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label className="font-black text-[10px] uppercase tracking-widest text-[#225BC3]">
-                        Last Name
-                      </Label>
+                      <Label className="font-black text-[10px] uppercase tracking-widest text-[#225BC3]">Last Name</Label>
                       <Input
                         className="h-14 rounded-2xl bg-slate-50 border-none font-bold"
                         value={lastName}
@@ -341,44 +273,34 @@ function SettingsContent() {
                   </div>
 
                   <div className="space-y-2">
-                    <Label className="font-black text-[10px] uppercase tracking-widest text-[#225BC3]">
-                      Marketplace Bio
-                    </Label>
+                    <Label className="font-black text-[10px] uppercase tracking-widest text-[#225BC3]">Market Bio</Label>
                     <Textarea
-                      className="min-h-[120px] rounded-2xl bg-slate-50 border-none font-medium text-sm leading-relaxed"
-                      placeholder="Tell us about your trade history..."
+                      className="min-h-[120px] rounded-2xl bg-slate-50 border-none font-medium text-sm"
+                      placeholder="Share your trade specialty..."
                       value={bio}
                       onChange={(e) => setBio(e.target.value)}
                     />
                   </div>
 
                   <div className="space-y-2">
-                    <Label className="font-black text-[10px] uppercase tracking-widest text-[#225BC3]">
-                      Primary Trade Location
-                    </Label>
+                    <Label className="font-black text-[10px] uppercase tracking-widest text-[#225BC3]">Primary Region</Label>
                     <div className="relative">
                       <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                       <Input
                         className="h-14 pl-12 rounded-2xl bg-slate-50 border-none font-bold"
                         value={locationName}
                         onChange={(e) => setLocationName(e.target.value)}
-                        placeholder="e.g. Johannesburg, Sandton"
+                        placeholder="e.g. Gauteng, Johannesburg"
                       />
                     </div>
                   </div>
 
                   <Button
                     type="submit"
-                    className="w-full h-18 bg-[#225BC3] text-white font-black rounded-3xl text-lg shadow-2xl shadow-[#225BC3]/20 hover:scale-[1.01] transition-transform"
+                    className="w-full h-18 bg-[#225BC3] text-white font-black rounded-3xl text-lg shadow-2xl"
                     disabled={isSaving}
                   >
-                    {isSaving ? (
-                      <Loader2 className="w-6 h-6 animate-spin" />
-                    ) : (
-                      <span className="flex items-center gap-2">
-                        <Save className="w-5 h-5" /> Save Profile Details
-                      </span>
-                    )}
+                    {isSaving ? <Loader2 className="w-6 h-6 animate-spin" /> : "Verify & Save Persistence"}
                   </Button>
                 </form>
               </Card>
