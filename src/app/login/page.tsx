@@ -27,7 +27,6 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import Image from "next/image";
 import {
   Mail,
   Lock,
@@ -35,12 +34,12 @@ import {
   AlertCircle,
   Eye,
   EyeOff,
+  ShieldCheck,
 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { PhoneAuth } from "@/components/auth/PhoneAuth";
 import { MARKET_CONFIG } from "@/app/lib/market-config";
-import { PlaceHolderImages } from "@/lib/placeholder-images";
 
 function LoginPageContent() {
   const router = useRouter();
@@ -56,7 +55,6 @@ function LoginPageContent() {
 
   const redirectPath = searchParams.get("redirect") || "/";
   const referralCode = searchParams.get("ref");
-  const logoData = PlaceHolderImages.find(img => img.id === "app-logo");
 
   const ensureUserProfile = async (user: User) => {
     if (!db) return;
@@ -184,17 +182,12 @@ function LoginPageContent() {
 
           <Card className="rounded-[3rem] border-none shadow-2xl bg-white overflow-hidden">
             <CardHeader className="p-10 text-center pb-6 space-y-6">
-              <div className="relative w-16 h-16 mx-auto">
-                <Image
-                  src={logoData?.imageUrl || "https://picsum.photos/seed/exchange-logo/200/200"}
-                  alt="The Exchange Logo"
-                  fill
-                  className="object-contain"
-                />
+              <div className="w-16 h-16 bg-primary/10 rounded-2xl flex items-center justify-center text-primary mx-auto">
+                <ShieldCheck className="w-10 h-10" />
               </div>
               <div className="space-y-1">
                 <h1 className="text-3xl font-black text-slate-900 uppercase tracking-tighter leading-none">
-                  The Exchange
+                  THE EXCHANGE
                 </h1>
                 <p className="text-slate-500 font-bold text-[10px] uppercase tracking-[0.3em] mt-3">
                   Persistent Marketplace Identity

@@ -134,12 +134,9 @@ export default function LandingPage() {
                 </span>
               </div>
 
-              <h1 className="text-4xl sm:text-5xl lg:text-[5.5rem] font-black text-slate-900 leading-[1.1] lg:leading-[0.9] tracking-tighter">
-                Trade <span className="font-bold text-slate-400">with</span> <br />
-                <span className="text-primary italic font-serif">
-                  Absolute
-                </span>{" "}
-                <br />
+              <h1 className="text-4xl sm:text-5xl lg:text-7xl font-black text-slate-900 leading-[1.1] tracking-tighter">
+                Trade with <br />
+                <span className="text-primary italic">Absolute</span> <br />
                 Confidence.
               </h1>
 
@@ -152,7 +149,7 @@ export default function LandingPage() {
                 <Link href="/search" className="w-full sm:w-auto">
                   <Button
                     size="lg"
-                    className="w-full sm:w-auto h-14 lg:h-[72px] px-10 lg:px-12 rounded-[1.2rem] lg:rounded-[1.5rem] bg-primary text-white font-black text-base lg:text-xl shadow-2xl shadow-primary/20 hover:scale-105 active:scale-95 transition-all"
+                    className="w-full sm:w-auto h-14 lg:h-18 px-10 lg:px-12 rounded-[1.2rem] lg:rounded-[1.5rem] bg-primary text-white font-black text-base lg:text-lg shadow-2xl shadow-primary/20 hover:scale-105 active:scale-95 transition-all"
                   >
                     Browse Market
                   </Button>
@@ -161,7 +158,7 @@ export default function LandingPage() {
                   <Button
                     size="lg"
                     variant="outline"
-                    className="w-full sm:w-auto h-14 lg:h-[72px] px-8 lg:px-10 rounded-[1.2rem] lg:rounded-[1.5rem] border-white/30 bg-white/30 backdrop-blur-md font-black text-slate-600 shadow-lg hover:bg-white/50 transition-all text-base lg:text-xl"
+                    className="w-full sm:w-auto h-14 lg:h-18 px-8 lg:px-10 rounded-[1.2rem] lg:rounded-[1.5rem] border-white/30 bg-white/30 backdrop-blur-md font-black text-slate-600 shadow-lg hover:bg-white/50 transition-all text-base lg:text-lg"
                   >
                     {isVerified ? "Post an Item" : "Seller Verification"}
                   </Button>
