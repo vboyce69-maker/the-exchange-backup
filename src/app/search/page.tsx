@@ -98,46 +98,46 @@ function SearchContent() {
   return (
     <div className="min-h-screen bg-[#F8FAFC]">
       <Navigation />
-      <main className="container mx-auto px-4 py-12">
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12">
+      <main className="container mx-auto px-4 py-8 lg:py-12">
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-8 lg:mb-12">
           <div>
             <div className="flex items-center gap-3 mb-4">
-              <Badge className="bg-[#225BC3] text-white font-black px-4 py-1 border-none rounded-full uppercase tracking-widest text-[10px]">
+              <Badge className="bg-[#225BC3] text-white font-black px-4 py-1 border-none rounded-full uppercase tracking-widest text-[9px] lg:text-[10px]">
                 Marketplace
               </Badge>
               {(categoryFilter || searchQuery || activeCondition) && (
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="h-7 rounded-full bg-white text-[#225BC3] font-black text-[9px] uppercase tracking-widest border border-[#225BC3]/10 hover:bg-slate-50"
+                  className="h-7 rounded-full bg-white text-[#225BC3] font-black text-[8px] lg:text-[9px] uppercase tracking-widest border border-[#225BC3]/10 hover:bg-slate-50"
                   onClick={clearFilters}
                 >
-                  <X className="w-3 h-3 mr-1" /> Clear Filters
+                  <X className="w-3 h-3 mr-1" /> Clear
                 </Button>
               )}
             </div>
 
-            <h1 className="text-4xl font-black text-[#225BC3] tracking-tighter flex items-center gap-3">
-              <ShoppingBag className="w-10 h-10" />
+            <h1 className="text-3xl lg:text-4xl font-black text-[#225BC3] tracking-tighter flex items-center gap-3">
+              <ShoppingBag className="w-8 h-8 lg:w-10 lg:h-10" />
               {categoryFilter ? (
                 <span className="capitalize">{categoryFilter}</span>
               ) : searchQuery ? (
-                <span>"{searchQuery}" Results</span>
+                <span className="truncate max-w-[200px] sm:max-w-none">"{searchQuery}"</span>
               ) : (
                 "Browse All"
               )}
             </h1>
           </div>
 
-          <div className="flex flex-wrap items-center gap-3">
+          <div className="flex flex-wrap items-center gap-2 lg:gap-3">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button
                   variant="outline"
-                  className="rounded-2xl h-12 px-6 font-black uppercase text-[10px] tracking-widest border-none shadow-sm bg-white"
+                  className="rounded-xl lg:rounded-2xl h-10 lg:h-12 px-4 lg:px-6 font-black uppercase text-[9px] tracking-widest border-none shadow-sm bg-white"
                 >
-                  Condition: {activeCondition || "All"}{" "}
-                  <ChevronDown className="w-3 h-3 ml-2" />
+                  <span className="truncate max-w-[80px]">Condition: {activeCondition || "All"}</span>
+                  <ChevronDown className="w-3 h-3 ml-2 shrink-0" />
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent className="rounded-2xl border-none shadow-2xl p-2">
@@ -163,10 +163,10 @@ function SearchContent() {
               <DropdownMenuTrigger asChild>
                 <Button
                   variant="outline"
-                  className="rounded-2xl h-12 px-6 font-black uppercase text-[10px] tracking-widest border-none shadow-sm bg-white"
+                  className="rounded-xl lg:rounded-2xl h-10 lg:h-12 px-4 lg:px-6 font-black uppercase text-[9px] tracking-widest border-none shadow-sm bg-white"
                 >
-                  Price: R{priceRange[0]} - R{priceRange[1]}{" "}
-                  <ChevronDown className="w-3 h-3 ml-2" />
+                  Price Range
+                  <ChevronDown className="w-3 h-3 ml-2 shrink-0" />
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent className="w-64 rounded-3xl border-none shadow-2xl p-8 space-y-6">
@@ -209,21 +209,21 @@ function SearchContent() {
         <Tabs
           value={viewType}
           onValueChange={setViewType}
-          className="space-y-8"
+          className="space-y-6 lg:space-y-8"
         >
-          <div className="flex justify-center md:justify-start">
-            <TabsList className="bg-white rounded-2xl h-14 p-1.5 shadow-xl border border-slate-50">
+          <div className="flex justify-start">
+            <TabsList className="bg-white rounded-2xl h-12 lg:h-14 p-1 shadow-xl border border-slate-50">
               <TabsTrigger
                 value="grid"
-                className="rounded-xl h-full px-8 font-black uppercase text-[10px] tracking-widest gap-2 data-[state=active]:bg-primary data-[state=active]:text-white"
+                className="rounded-xl h-full px-4 lg:px-8 font-black uppercase text-[9px] lg:text-[10px] tracking-widest gap-2 data-[state=active]:bg-primary data-[state=active]:text-white"
               >
-                <LayoutGrid className="w-4 h-4" /> Grid View
+                <LayoutGrid className="w-3.5 h-3.5" /> <span className="hidden sm:inline">Grid View</span>
               </TabsTrigger>
               <TabsTrigger
                 value="map"
-                className="rounded-xl h-full px-8 font-black uppercase text-[10px] tracking-widest gap-2 data-[state=active]:bg-primary data-[state=active]:text-white"
+                className="rounded-xl h-full px-4 lg:px-8 font-black uppercase text-[9px] lg:text-[10px] tracking-widest gap-2 data-[state=active]:bg-primary data-[state=active]:text-white"
               >
-                <MapIcon className="w-4 h-4" /> Map View
+                <MapIcon className="w-3.5 h-3.5" /> <span className="hidden sm:inline">Map View</span>
               </TabsTrigger>
             </TabsList>
           </div>
@@ -232,12 +232,12 @@ function SearchContent() {
             {isLoading || !db ? (
               <div className="flex flex-col items-center justify-center py-24">
                 <Loader2 className="w-12 h-12 animate-spin text-[#225BC3] mb-4" />
-                <p className="text-muted-foreground font-black uppercase text-[10px] tracking-widest text-center">
+                <p className="text-muted-foreground font-black uppercase text-[10px] tracking-widest text-center px-4">
                   Fetching items for you...
                 </p>
               </div>
             ) : listings && listings.length > 0 ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 lg:gap-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
                 {listings.map((listing) => (
                   <ListingCard
                     key={listing.id}
@@ -258,12 +258,12 @@ function SearchContent() {
                 ))}
               </div>
             ) : (
-              <div className="text-center py-32 bg-white rounded-[4rem] shadow-sm border-2 border-dashed border-slate-100">
-                <X className="w-16 h-16 text-slate-100 mx-auto mb-6" />
-                <h3 className="font-black text-[#225BC3] text-xl uppercase tracking-widest mb-2">
+              <div className="text-center py-24 lg:py-32 bg-white rounded-[2rem] lg:rounded-[4rem] shadow-sm border-2 border-dashed border-slate-100">
+                <X className="w-12 lg:w-16 h-12 lg:h-16 text-slate-100 mx-auto mb-6" />
+                <h3 className="font-black text-[#225BC3] text-lg lg:text-xl uppercase tracking-widest mb-2 px-4">
                   No matching items
                 </h3>
-                <p className="text-muted-foreground text-sm font-medium">
+                <p className="text-muted-foreground text-sm font-medium px-4">
                   Try broadening your filters or search terms.
                 </p>
                 <Button
@@ -297,7 +297,7 @@ export default function SearchPage() {
           <Navigation />
           <div className="flex flex-col items-center justify-center py-32">
             <Loader2 className="w-12 h-12 text-[#225BC3] animate-spin mb-4" />
-            <p className="text-muted-foreground font-black uppercase text-[10px] tracking-widest">
+            <p className="text-muted-foreground font-black uppercase text-[10px] tracking-widest text-center px-4">
               Searching...
             </p>
           </div>

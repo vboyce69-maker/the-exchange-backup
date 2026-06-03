@@ -167,17 +167,17 @@ export function Navigation() {
 
   return (
     <div className="w-full z-50">
-      <nav className="h-[88px] bg-white border-b border-slate-100 flex items-center px-8">
-        <div className="container mx-auto flex items-center justify-between gap-12">
-          <Link href="/" className="flex items-center gap-3 shrink-0 group">
-            <div className="bg-primary p-2.5 rounded-xl shadow-lg group-hover:rotate-3 transition-all">
-              <ShieldCheck className="w-6 h-6 text-white" />
+      <nav className="h-[72px] lg:h-[88px] bg-white border-b border-slate-100 flex items-center px-4 lg:px-8">
+        <div className="container mx-auto flex items-center justify-between gap-4 lg:gap-12">
+          <Link href="/" className="flex items-center gap-2 lg:gap-3 shrink-0 group">
+            <div className="bg-primary p-2 rounded-lg lg:p-2.5 lg:rounded-xl shadow-lg group-hover:rotate-3 transition-all">
+              <ShieldCheck className="w-5 h-5 lg:w-6 lg:h-6 text-white" />
             </div>
             <div className="flex flex-col">
-              <span className="font-black text-xl text-slate-900 tracking-tighter uppercase leading-none">
+              <span className="font-black text-base lg:text-xl text-slate-900 tracking-tighter uppercase leading-none">
                 THE <span className="text-primary">EXCHANGE</span>
               </span>
-              <span className="text-[7px] font-black text-slate-400 tracking-[0.4em] uppercase mt-1">
+              <span className="text-[6px] lg:text-[7px] font-black text-slate-400 tracking-[0.4em] uppercase mt-0.5 lg:mt-1">
                 Verified Layer
               </span>
             </div>
@@ -199,32 +199,32 @@ export function Navigation() {
             </div>
           </form>
 
-          <div className="flex items-center gap-6">
+          <div className="flex items-center gap-2 lg:gap-6">
             <Link
               href="/notifications"
               className="relative group flex items-center gap-2"
             >
               <div
                 className={cn(
-                  "h-11 w-11 rounded-2xl flex items-center justify-center transition-all bg-slate-50 group-hover:bg-blue-50",
+                  "h-9 w-9 lg:h-11 lg:w-11 rounded-xl lg:rounded-2xl flex items-center justify-center transition-all bg-slate-50 group-hover:bg-blue-50",
                   (unreadNotifications?.length || 0) > 0 && "animate-pulse",
                 )}
               >
                 <Bell
                   className={cn(
-                    "w-5 h-5",
+                    "w-4 h-4 lg:w-5 lg:h-5",
                     (unreadNotifications?.length || 0) > 0
                       ? "text-[#FF8C00]"
                       : "text-slate-400 group-hover:text-primary",
                   )}
                 />
                 {(unreadNotifications?.length || 0) > 0 && (
-                  <span className="absolute -top-1 -right-1 bg-red-600 text-white text-[8px] font-black w-5 h-5 rounded-full flex items-center justify-center border-2 border-white shadow-lg">
+                  <span className="absolute -top-1 -right-1 bg-red-600 text-white text-[7px] lg:text-[8px] font-black w-4 h-4 lg:w-5 lg:h-5 rounded-full flex items-center justify-center border-2 border-white shadow-lg">
                     {unreadNotifications?.length}
                   </span>
                 )}
               </div>
-              <span className="hidden lg:block text-[10px] font-black uppercase tracking-widest text-slate-400 group-hover:text-primary transition-colors">
+              <span className="hidden xl:block text-[10px] font-black uppercase tracking-widest text-slate-400 group-hover:text-primary transition-colors">
                 Notifications
               </span>
             </Link>
@@ -233,10 +233,10 @@ export function Navigation() {
               href="/messages"
               className="hidden sm:flex items-center gap-2 group"
             >
-              <div className="h-11 w-11 rounded-2xl flex items-center justify-center bg-slate-50 group-hover:bg-blue-50 transition-all text-slate-400 group-hover:text-primary">
-                <Inbox className="w-5 h-5" />
+              <div className="h-9 w-9 lg:h-11 lg:w-11 rounded-xl lg:rounded-2xl flex items-center justify-center bg-slate-50 group-hover:bg-blue-50 transition-all text-slate-400 group-hover:text-primary">
+                <Inbox className="w-4 h-4 lg:w-5 lg:h-5" />
               </div>
-              <span className="hidden lg:block text-[10px] font-black uppercase tracking-widest text-slate-400 group-hover:text-primary transition-colors">
+              <span className="hidden xl:block text-[10px] font-black uppercase tracking-widest text-slate-400 group-hover:text-primary transition-colors">
                 Messages
               </span>
             </Link>
@@ -245,12 +245,12 @@ export function Navigation() {
               <DropdownMenuTrigger asChild>
                 <Button
                   variant="ghost"
-                  className="h-11 rounded-2xl px-6 gap-2 font-black uppercase text-[10px] tracking-widest text-slate-600 hover:bg-slate-50"
+                  className="h-9 lg:h-11 rounded-xl lg:rounded-2xl px-3 lg:px-6 gap-2 font-black uppercase text-[9px] lg:text-[10px] tracking-widest text-slate-600 hover:bg-slate-50"
                 >
-                  Explore <ChevronDown className="w-4 h-4" />
+                  <span className="hidden sm:inline">Explore</span> <ChevronDown className="w-3 h-3 lg:w-4 lg:h-4" />
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent className="w-80 rounded-[2.5rem] p-4 shadow-2xl border-none ring-1 ring-slate-100 mt-4">
+              <DropdownMenuContent className="w-72 sm:w-80 rounded-[2rem] p-4 shadow-2xl border-none ring-1 ring-slate-100 mt-4">
                 <DropdownMenuLabel className="font-black text-[10px] uppercase tracking-[0.2em] text-slate-400 px-3 pb-4">
                   Platform Hub
                 </DropdownMenuLabel>
@@ -320,7 +320,7 @@ export function Navigation() {
                   <Button
                     size="icon"
                     variant="ghost"
-                    className="rounded-2xl h-11 w-11 bg-slate-50 border-2 border-white shadow-xl overflow-hidden hover:scale-105 transition-all"
+                    className="rounded-xl lg:rounded-2xl h-9 w-9 lg:h-11 lg:w-11 bg-slate-50 border-2 border-white shadow-xl overflow-hidden hover:scale-105 transition-all"
                   >
                     <img
                       src={
@@ -333,10 +333,10 @@ export function Navigation() {
                 </DropdownMenuTrigger>
                 <DropdownMenuContent
                   align="end"
-                  className="w-72 rounded-[1.5rem] p-4 shadow-2xl border-none mt-4"
+                  className="w-64 lg:w-72 rounded-[1.5rem] p-4 shadow-2xl border-none mt-4"
                 >
                   <div className="flex items-center gap-3 pb-4 border-b border-slate-100 mb-3">
-                    <div className="w-12 h-12 rounded-full overflow-hidden border-2 border-white">
+                    <div className="w-10 h-10 lg:w-12 lg:h-12 rounded-full overflow-hidden border-2 border-white">
                       <img
                         src={
                           user.photoURL ||
@@ -346,12 +346,12 @@ export function Navigation() {
                       />
                     </div>
                     <div>
-                      <p className="font-black text-sm text-slate-900 uppercase truncate leading-none">
+                      <p className="font-black text-xs lg:text-sm text-slate-900 uppercase truncate leading-none">
                         {profile?.firstName || "Trader"}
                       </p>
                       <Badge
                         className={cn(
-                          "text-[7px] font-black uppercase tracking-widest mt-1.5",
+                          "text-[6px] lg:text-[7px] font-black uppercase tracking-widest mt-1.5",
                           profile?.isIdVerified
                             ? "bg-green-100 text-green-700"
                             : "bg-orange-100 text-orange-600",
@@ -388,7 +388,7 @@ export function Navigation() {
               </DropdownMenu>
             ) : (
               <Link href="/login">
-                <Button className="h-11 px-8 rounded-xl bg-slate-900 text-white font-black uppercase text-[10px] tracking-widest shadow-xl">
+                <Button className="h-9 lg:h-11 px-4 lg:px-8 rounded-xl bg-slate-900 text-white font-black uppercase text-[9px] lg:text-[10px] tracking-widest shadow-xl">
                   Sign In
                 </Button>
               </Link>
@@ -397,8 +397,8 @@ export function Navigation() {
         </div>
       </nav>
 
-      <div className="bg-primary text-white h-10 flex items-center justify-center">
-        <p className="text-[10px] font-black uppercase tracking-[0.2em]">
+      <div className="bg-primary text-white h-8 lg:h-10 flex items-center justify-center overflow-hidden whitespace-nowrap px-4">
+        <p className="text-[8px] lg:text-[10px] font-black uppercase tracking-[0.15em] lg:tracking-[0.2em] truncate">
           Founding 100 Sellers —{" "}
           <span className="text-secondary">{slotsLeft} Slots Available</span>
         </p>
@@ -406,4 +406,3 @@ export function Navigation() {
     </div>
   );
 }
-
