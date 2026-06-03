@@ -57,21 +57,13 @@ import {
   CarouselPrevious,
 } from "@/components/ui/carousel";
 
+// Standard Categories with RSA Market Context
 const CATEGORIES = [
   { name: "Vehicles", icon: Car, bg: "from-blue-500 to-blue-600" },
-  {
-    name: "Electronics",
-    icon: Smartphone,
-    bg: "from-purple-500 to-purple-600",
-  },
-  { name: "Real Estate", icon: Home, bg: "from-emerald-500 to-emerald-600" },
-  { name: "Clothing", icon: Shirt, bg: "from-pink-500 to-pink-600" },
-  { name: "Sneakers", icon: Footprints, bg: "from-orange-500 to-orange-600" },
-  { name: "Gaming", icon: Gamepad2, bg: "from-indigo-500 to-indigo-600" },
-  { name: "Art", icon: Palette, bg: "from-rose-500 to-rose-600" },
-  { name: "Jewelry", icon: Watch, bg: "from-amber-500 to-amber-600" },
-  { name: "Sports", icon: Bike, bg: "from-cyan-500 to-cyan-600" },
-  { name: "Photography", icon: Camera, bg: "from-red-500 to-red-600" },
+  { name: "Electronics", icon: Smartphone, bg: "from-cyan-400 to-cyan-500" },
+  { name: "Fashion", icon: Shirt, bg: "from-pink-500 to-pink-600" },
+  { name: "Property", icon: Home, bg: "from-indigo-500 to-indigo-600" },
+  { name: "Collectibles", icon: Star, bg: "from-orange-500 to-orange-600" },
 ];
 
 export default function LandingPage() {
@@ -144,12 +136,12 @@ export default function LandingPage() {
               </div>
 
               <h1 className="text-4xl sm:text-5xl lg:text-[5.5rem] font-black text-slate-900 leading-[1.1] lg:leading-[0.9] tracking-tighter">
-                Trade with <br />
+                <span className="text-red-600">Trade</span> with <br />
                 <span className="text-primary italic font-serif">
                   Absolute
                 </span>{" "}
                 <br />
-                Confidence.
+                <span className="text-red-600">Confidence.</span>
               </h1>
 
               <p className="text-lg lg:text-xl text-slate-500 font-medium max-w-lg leading-relaxed">
