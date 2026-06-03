@@ -39,7 +39,7 @@ export default function RootLayout({
           crossOrigin="anonymous"
         />
         <link
-          href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+          href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
           rel="stylesheet"
         />
         <link
@@ -49,7 +49,7 @@ export default function RootLayout({
       </head>
       <body
         className="antialiased selection:bg-primary/10 selection:text-primary overflow-x-hidden touch-pan-y"
-        style={{ fontFamily: "'Inter', sans-serif" }}
+        style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}
       >
         <FirebaseClientProvider>
           <NetworkStatus />

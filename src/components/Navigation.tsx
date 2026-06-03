@@ -1,10 +1,10 @@
-
 "use client";
 
 import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
+import Image from "next/image";
 import {
   PlusCircle,
   User,
@@ -54,6 +54,7 @@ import { signOut } from "firebase/auth";
 import { Badge } from "@/components/ui/badge";
 import { MARKET_CONFIG } from "@/app/lib/market-config";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { PlaceHolderImages } from "@/lib/placeholder-images";
 
 export function Navigation() {
   const router = useRouter();
@@ -63,6 +64,8 @@ export function Navigation() {
   const db = useFirestore();
   const [searchVal, setSearchVal] = useState("");
   const [slotsLeft, setSlotsLeft] = useState(MARKET_CONFIG.FOUNDING_LIMIT);
+
+  const logoData = PlaceHolderImages.find(img => img.id === "app-logo");
 
   const profileRef = useMemoFirebase(() => {
     return user ? doc(db, "userProfiles", user.uid) : null;
@@ -170,15 +173,21 @@ export function Navigation() {
     <div className="w-full z-50 sticky top-0">
       <nav className="h-[72px] lg:h-[88px] bg-white/70 backdrop-blur-xl border-b border-white/20 flex items-center px-4 lg:px-8 shadow-sm">
         <div className="container mx-auto flex items-center justify-between gap-4 lg:gap-12">
-          <Link href="/" className="flex items-center gap-2 lg:gap-3 shrink-0 group">
-            <div className="bg-primary p-2 rounded-lg lg:p-2.5 lg:rounded-2xl shadow-xl shadow-primary/20 group-hover:scale-110 transition-all duration-500">
-              <ShieldCheck className="w-5 h-5 lg:w-6 lg:h-6 text-white" />
+          <Link href="/" className="flex items-center gap-3 lg:gap-4 shrink-0 group">
+            <div className="relative w-8 h-8 lg:w-12 lg:h-12 group-hover:scale-110 transition-all duration-500">
+              <Image
+                src={logoData?.imageUrl || "https://picsum.photos/seed/exchange-logo/200/200"}
+                alt="The Exchange Logo"
+                fill
+                className="object-contain"
+                data-ai-hint="globe logo"
+              />
             </div>
             <div className="flex flex-col items-start">
-              <span className="font-black text-sm lg:text-xl text-slate-900 tracking-tighter uppercase leading-none">
-                THE <span className="text-primary italic">EXCHANGE</span>
+              <span className="font-black text-lg lg:text-3xl text-slate-900 tracking-tighter leading-none">
+                The Exchange
               </span>
-              <span className="text-[6px] lg:text-[7px] font-black text-slate-400 tracking-[0.3em] lg:tracking-[0.5em] uppercase mt-1">
+              <span className="text-[6px] lg:text-[7px] font-black text-slate-400 tracking-[0.4em] uppercase mt-0.5 lg:mt-1">
                 Verified Layer
               </span>
             </div>
