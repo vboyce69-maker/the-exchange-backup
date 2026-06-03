@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { Navigation } from "@/components/Navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -24,20 +25,21 @@ import { cn } from "@/lib/utils";
 
 export default function ReadinessDashboard() {
   const [mounted, setMounted] = useState(false);
+  const router = useRouter();
 
   useEffect(() => {
     setMounted(true);
   }, []);
 
   const readinessItems = [
-    { category: "Security", label: "Biometric KYC Flow", status: "ready", icon: ShieldCheck },
-    { category: "Security", label: "Firestore Permission Rules", status: "ready", icon: Lock },
-    { category: "Market", label: "Auction Engine Logic", status: "ready", icon: Rocket },
-    { category: "Market", label: "Real Payment Gateway", status: "pending", icon: CreditCard },
-    { category: "Legal", label: "POPIA Data Policy", status: "ready", icon: Scale },
-    { category: "Legal", label: "T&Cs Final Review", status: "pending", icon: AlertCircle },
-    { category: "Platform", label: "PWA Mobile Installation", status: "ready", icon: Smartphone },
-    { category: "Platform", label: "Custom Domain Sync", status: "pending", icon: Globe },
+    { category: "Security", label: "Biometric KYC Flow", status: "ready", icon: ShieldCheck, href: "/verify" },
+    { category: "Security", label: "Firestore Permission Rules", status: "ready", icon: Lock, href: "/legal" },
+    { category: "Market", label: "Auction Engine Logic", status: "ready", icon: Rocket, href: "/auctions" },
+    { category: "Market", label: "Real Payment Gateway", status: "pending", icon: CreditCard, href: "/verify" },
+    { category: "Legal", label: "POPIA Data Policy", status: "ready", icon: Scale, href: "/legal" },
+    { category: "Legal", label: "T&Cs Final Review", status: "pending", icon: AlertCircle, href: "/legal" },
+    { category: "Platform", label: "PWA Mobile Installation", status: "ready", icon: Smartphone, href: "/" },
+    { category: "Platform", label: "Custom Domain Sync", status: "pending", icon: Globe, href: "/settings" },
   ];
 
   const readyCount = readinessItems.filter(i => i.status === "ready").length;
@@ -93,16 +95,17 @@ export default function ReadinessDashboard() {
                 {readinessItems.map((item, idx) => (
                   <div 
                     key={idx}
+                    onClick={() => router.push(item.href)}
                     className={cn(
-                      "p-6 rounded-[2rem] border transition-all flex items-center justify-between group",
+                      "p-6 rounded-[2rem] border transition-all flex items-center justify-between group cursor-pointer",
                       item.status === "ready" 
-                        ? "bg-green-50 border-green-100" 
-                        : "bg-white border-slate-100 hover:border-[#225BC3]/20"
+                        ? "bg-green-50 border-green-100 hover:bg-green-100" 
+                        : "bg-white border-slate-100 hover:border-[#225BC3]/20 hover:bg-slate-50"
                     )}
                   >
                     <div className="flex items-center gap-4">
                       <div className={cn(
-                        "w-12 h-12 rounded-2xl flex items-center justify-center shadow-sm",
+                        "w-12 h-12 rounded-2xl flex items-center justify-center shadow-sm transition-transform group-hover:scale-110",
                         item.status === "ready" ? "bg-white text-green-600" : "bg-slate-50 text-slate-400"
                       )}>
                         <item.icon className="w-6 h-6" />
@@ -119,8 +122,8 @@ export default function ReadinessDashboard() {
                     {item.status === "ready" ? (
                       <CheckCircle2 className="w-6 h-6 text-green-500" />
                     ) : (
-                      <Badge variant="outline" className="text-[8px] font-black uppercase border-slate-200 text-slate-400">
-                        In Progress
+                      <Badge variant="outline" className="text-[8px] font-black uppercase border-slate-200 text-slate-400 group-hover:text-[#225BC3] group-hover:border-[#225BC3]/20">
+                        Input Required
                       </Badge>
                     )}
                   </div>
@@ -134,7 +137,10 @@ export default function ReadinessDashboard() {
                 <div className="flex gap-4">
                   <Button 
                     className="h-14 px-10 rounded-2xl bg-[#225BC3] text-white font-black uppercase text-xs tracking-widest shadow-xl shadow-blue-500/20"
-                    onClick={() => window.open('/docs/PUBLISH_READINESS.md', '_blank')}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      window.open('/docs/PUBLISH_READINESS.md', '_blank');
+                    }}
                   >
                     View Technical Roadmap <ArrowRight className="w-4 h-4 ml-2" />
                   </Button>
