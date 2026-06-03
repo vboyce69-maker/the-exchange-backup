@@ -182,15 +182,15 @@ function LoginPageContent() {
 
           <Card className="rounded-[3rem] border-none shadow-2xl bg-white overflow-hidden">
             <CardHeader className="p-10 text-center pb-6 space-y-6">
-              <div className="w-16 h-16 bg-primary/10 rounded-2xl flex items-center justify-center text-primary mx-auto">
+              <div className="w-16 h-16 bg-primary rounded-2xl flex items-center justify-center text-white mx-auto shadow-xl shadow-primary/20">
                 <ShieldCheck className="w-10 h-10" />
               </div>
               <div className="space-y-1">
-                <h1 className="text-3xl font-black text-slate-900 uppercase tracking-tighter leading-none">
-                  THE EXCHANGE
+                <h1 className="text-3xl font-black text-slate-900 uppercase tracking-tight leading-none">
+                  The Exchange
                 </h1>
-                <p className="text-slate-500 font-bold text-[10px] uppercase tracking-[0.3em] mt-3">
-                  Persistent Marketplace Identity
+                <p className="text-primary font-bold text-[10px] uppercase tracking-[0.4em] mt-3">
+                  Persistent Identity Layer
                 </p>
               </div>
               {referralCode && (
