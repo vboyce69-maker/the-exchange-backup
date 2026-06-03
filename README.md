@@ -2,8 +2,9 @@
 
 This is a high-trust, local peer-to-peer and professional marketplace built with Next.js, Firebase, and Genkit.
 
-## Repository
-**Main Backup:** [https://github.com/vboyce69-maker/the-exchange-backup.git](https://github.com/vboyce69-maker/the-exchange-backup.git)
+## 📄 Master Documentation
+For the full application specification, feature list, and technical architecture (including AI logic), please refer to:
+**[docs/FULL_APP_PORTFOLIO.md](./docs/FULL_APP_PORTFOLIO.md)**
 
 ## How to Preview on Mobile (APK Alternative)
 The Exchange is configured as a **Progressive Web App (PWA)**, which is the web alternative to an APK. You can install it on your phone now:
@@ -20,12 +21,6 @@ The application is built on **Firebase**, leveraging Google Cloud's high-perform
 2. **Secure Identity**: Using Firebase Phone Auth for sybil-attack prevention.
 3. **AI Integration**: Seamlessly running Genkit for biometric KYC and scam detection.
 
-## Business Strategy
-The Exchange positions itself as the "Trust Layer" for South African commerce. By integrating professional business verification (inspired by platforms like Globalfy) and AI-driven security (Genkit), we ensure a marketplace that is:
-1. **Scam-Proof**: Through Biometric KYC and Protected Payments.
-2. **Business-Ready**: Supporting Pty Ltd sellers with high-volume "Bulk Lot" trades.
-3. **CPA Compliant**: Enforcing Consumer Protection Act standards for all transactions.
-
 ## How to Sync & Deploy
 Since terminal commands cannot be executed directly by the AI, please use these scripts in your local terminal:
 
@@ -41,6 +36,3 @@ npm run firebase:login  # Log in to your Firebase account
 npm run firebase:init   # Connect this code to your Firebase project
 npm run firebase:deploy # Deploy rules, indexes, and hosting
 ```
-
-## Founding 100 Program
-The first 100 verified sellers receive R0 listing fees and a lifetime "Founding Member" badge.
