@@ -114,15 +114,20 @@ export default function LandingPage() {
   }, [rawListings]);
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC]">
+    <div className="min-h-screen bg-[#F0F7FF] relative overflow-hidden">
+      {/* Decorative Atmospheric Blobs for Glassmorphism */}
+      <div className="fixed top-[-10%] left-[-10%] w-[40%] h-[40%] bg-primary/10 rounded-full blur-[120px] pointer-events-none" />
+      <div className="fixed bottom-[-10%] right-[-10%] w-[50%] h-[50%] bg-secondary/15 rounded-full blur-[150px] pointer-events-none" />
+      <div className="fixed top-[40%] right-[10%] w-[30%] h-[30%] bg-[#FF8C00]/5 rounded-full blur-[100px] pointer-events-none" />
+
       <Navigation />
 
-      <main className="container mx-auto px-4 pt-4 pb-8 lg:pt-6 lg:pb-12">
-        <div className="space-y-12 lg:space-y-24">
+      <main className="container mx-auto px-4 pt-4 pb-8 lg:pt-6 lg:pb-12 relative z-10">
+        <div className="bg-white/40 backdrop-blur-3xl rounded-[2.5rem] lg:rounded-[4rem] border border-white/20 shadow-2xl p-6 lg:p-16 space-y-12 lg:space-y-24">
           {/* Hero Section */}
           <section className="grid lg:grid-cols-2 gap-10 lg:gap-16 items-start pt-0">
             <div className="space-y-6 lg:space-y-10 animate-fade-up">
-              <div className="inline-flex items-center gap-3 bg-white px-4 py-1.5 rounded-full border border-slate-100 shadow-sm">
+              <div className="inline-flex items-center gap-3 bg-white/60 backdrop-blur-md px-4 py-1.5 rounded-full border border-white/20 shadow-sm">
                 <ShieldCheck className="w-3.5 h-3.5 text-primary" />
                 <span className="text-[9px] font-black uppercase tracking-widest text-primary">
                   South Africa's High-Trust Market
@@ -156,7 +161,7 @@ export default function LandingPage() {
                   <Button
                     size="lg"
                     variant="outline"
-                    className="w-full sm:w-auto h-14 lg:h-[72px] px-8 lg:px-10 rounded-[1.2rem] lg:rounded-[1.5rem] border-slate-200 bg-white font-black text-slate-600 shadow-lg hover:bg-slate-50 transition-all text-base lg:text-xl"
+                    className="w-full sm:w-auto h-14 lg:h-[72px] px-8 lg:px-10 rounded-[1.2rem] lg:rounded-[1.5rem] border-white/30 bg-white/30 backdrop-blur-md font-black text-slate-600 shadow-lg hover:bg-white/50 transition-all text-base lg:text-xl"
                   >
                     {isVerified ? "Post an Item" : "Seller Verification"}
                   </Button>
@@ -171,13 +176,13 @@ export default function LandingPage() {
                   <CarouselContent>
                     {boostedListings.map((listing) => (
                       <CarouselItem key={listing.id}>
-                        <div className="bg-white p-5 lg:p-8 rounded-[2.2rem] lg:rounded-[3rem] shadow-[0_40px_80px_rgba(0,0,0,0.06)] border border-slate-50 relative z-20 transition-all">
+                        <div className="bg-white/60 backdrop-blur-md p-5 lg:p-8 rounded-[2.2rem] lg:rounded-[3rem] shadow-[0_40px_80px_rgba(0,0,0,0.06)] border border-white/30 relative z-20 transition-all">
                           <Link
                             href={`/profile/${listing.sellerId}`}
                             className="block mb-4 lg:mb-6 group/seller hover:opacity-100 transition-opacity"
                           >
                             <div className="flex items-center gap-3 lg:gap-4 mb-4 lg:mb-5">
-                              <div className="w-10 h-10 lg:w-16 lg:h-16 bg-slate-100 rounded-2xl lg:rounded-[1.2rem] overflow-hidden border-2 border-white shadow-md group-hover/seller:ring-2 group-hover/seller:ring-primary transition-all">
+                              <div className="w-10 h-10 lg:w-16 lg:h-16 bg-white rounded-2xl lg:rounded-[1.2rem] overflow-hidden border-2 border-white shadow-md group-hover/seller:ring-2 group-hover/seller:ring-primary transition-all">
                                 <img
                                   src={`https://picsum.photos/seed/${listing.sellerId}/200/200`}
                                   className="w-full h-full object-cover"
@@ -197,7 +202,7 @@ export default function LandingPage() {
                             </div>
 
                             <div className="grid grid-cols-2 gap-2 lg:gap-3 mb-4 lg:mb-5">
-                              <div className="p-2.5 lg:p-3 bg-slate-50 rounded-xl lg:rounded-2xl border border-slate-100 space-y-1">
+                              <div className="p-2.5 lg:p-3 bg-white/40 rounded-xl lg:rounded-2xl border border-white/20 space-y-1">
                                 <p className="text-[7px] lg:text-[8px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-1">
                                   <Star className="w-2 h-2 lg:w-2.5 lg:h-2.5 text-[#FF8C00] fill-current" />{" "}
                                   Rating
@@ -206,7 +211,7 @@ export default function LandingPage() {
                                   4.9 / 5.0
                                 </p>
                               </div>
-                              <div className="p-2.5 lg:p-3 bg-slate-50 rounded-xl lg:rounded-2xl border border-slate-100 space-y-1">
+                              <div className="p-2.5 lg:p-3 bg-white/40 rounded-xl lg:rounded-2xl border border-white/20 space-y-1">
                                 <p className="text-[7px] lg:text-[8px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-1">
                                   <TrendingUp className="w-2 h-2 lg:w-2.5 lg:h-2.5 text-primary" />{" "}
                                   Reliability
@@ -217,7 +222,7 @@ export default function LandingPage() {
                               </div>
                             </div>
 
-                            <div className="p-3 lg:p-4 bg-primary/5 rounded-2xl border border-primary/10 space-y-1.5 lg:space-y-2">
+                            <div className="p-3 lg:p-4 bg-primary/10 rounded-2xl border border-primary/20 space-y-1.5 lg:space-y-2">
                               <p className="text-[7px] lg:text-[8px] font-black text-primary uppercase tracking-widest flex items-center gap-1.5">
                                 <Fingerprint className="w-2.5 h-2.5 lg:w-3 lg:h-3" /> Trust Engine
                                 Analysis
@@ -277,14 +282,14 @@ export default function LandingPage() {
                     ))}
                   </CarouselContent>
                   <div className="flex justify-center gap-2 mt-4 lg:mt-6">
-                    <CarouselPrevious className="static translate-y-0 h-9 w-9 lg:h-10 lg:w-10 bg-white border-none shadow-md hover:bg-slate-50" />
-                    <CarouselNext className="static translate-y-0 h-9 w-9 lg:h-10 lg:w-10 bg-white border-none shadow-md hover:bg-slate-50" />
+                    <CarouselPrevious className="static translate-y-0 h-9 w-9 lg:h-10 lg:w-10 bg-white/60 backdrop-blur-md border-none shadow-md hover:bg-white" />
+                    <CarouselNext className="static translate-y-0 h-9 w-9 lg:h-10 lg:w-10 bg-white/60 backdrop-blur-md border-none shadow-md hover:bg-white" />
                   </div>
                 </Carousel>
               ) : (
                 /* Fallback if no items are boosted yet */
-                <div className="bg-white p-8 lg:p-12 rounded-[2.5rem] lg:rounded-[3rem] shadow-[0_40px_80px_rgba(0,0,0,0.06)] border border-slate-50 relative z-20 flex flex-col items-center text-center space-y-6">
-                  <div className="w-16 h-16 lg:w-24 lg:h-24 bg-blue-50 rounded-[1.5rem] lg:rounded-[2rem] flex items-center justify-center text-primary shadow-inner">
+                <div className="bg-white/60 backdrop-blur-md p-8 lg:p-12 rounded-[2.5rem] lg:rounded-[3rem] shadow-[0_40px_80px_rgba(0,0,0,0.06)] border border-white/30 relative z-20 flex flex-col items-center text-center space-y-6">
+                  <div className="w-16 h-16 lg:w-24 lg:h-24 bg-primary/5 rounded-[1.5rem] lg:rounded-[2rem] flex items-center justify-center text-primary shadow-inner">
                     <Zap className="w-8 h-8 lg:w-12 lg:h-12 animate-pulse fill-current" />
                   </div>
                   <div className="space-y-2">
@@ -334,7 +339,7 @@ export default function LandingPage() {
             <div className="flex flex-col items-center text-center space-y-2 lg:space-y-3">
               <Badge
                 variant="outline"
-                className="border-slate-200 text-slate-400 font-black uppercase tracking-[0.2em] lg:tracking-[0.3em] text-[8px] lg:text-[9px] px-3 lg:px-4 py-1"
+                className="border-white/30 text-slate-400 font-black uppercase tracking-[0.2em] lg:tracking-[0.3em] text-[8px] lg:text-[9px] px-3 lg:px-4 py-1"
               >
                 Discovery Core
               </Badge>
@@ -351,7 +356,7 @@ export default function LandingPage() {
                     href={`/search?category=${cat.name.toLowerCase()}`}
                     className="group text-center space-y-3 lg:space-y-5 flex-shrink-0 w-20 md:w-auto"
                   >
-                    <div className="w-16 h-16 lg:w-[88px] lg:h-[88px] mx-auto bg-white rounded-[1.2rem] lg:rounded-[2rem] shadow-lg lg:shadow-xl border border-slate-100 flex items-center justify-center group-hover:scale-110 group-hover:shadow-2xl transition-all duration-500">
+                    <div className="w-16 h-16 lg:w-[88px] lg:h-[88px] mx-auto bg-white/60 backdrop-blur-md rounded-[1.2rem] lg:rounded-[2rem] shadow-lg lg:shadow-xl border border-white/30 flex items-center justify-center group-hover:scale-110 group-hover:shadow-2xl transition-all duration-500">
                       <div
                         className={cn(
                           "w-10 h-10 lg:w-14 lg:h-14 rounded-xl lg:rounded-2xl flex items-center justify-center shadow-lg bg-gradient-to-br",
@@ -384,7 +389,7 @@ export default function LandingPage() {
               <Link href="/search">
                 <Button
                   variant="ghost"
-                  className="h-10 lg:h-12 rounded-xl lg:rounded-2xl font-black text-primary gap-2 group uppercase text-[9px] lg:text-[10px] tracking-widest hover:bg-slate-50 w-fit"
+                  className="h-10 lg:h-12 rounded-xl lg:rounded-2xl font-black text-primary gap-2 group uppercase text-[9px] lg:text-[10px] tracking-widest hover:bg-white/50 w-fit"
                 >
                   Browse Everything{" "}
                   <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
@@ -418,7 +423,7 @@ export default function LandingPage() {
                 ))}
               </div>
             ) : (
-              <div className="text-center py-20 lg:py-32 bg-white rounded-[2rem] lg:rounded-[3rem] border-2 border-dashed border-slate-200">
+              <div className="text-center py-20 lg:py-32 bg-white/40 backdrop-blur-md rounded-[2rem] lg:rounded-[3rem] border-2 border-dashed border-white/30">
                 <Package className="w-10 lg:w-16 h-10 lg:h-16 text-slate-100 mx-auto mb-4 lg:mb-6" />
                 <p className="font-black text-slate-400 uppercase tracking-[0.2em] text-[9px] lg:text-xs">
                   Registry Empty
