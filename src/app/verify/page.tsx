@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useRef, useEffect } from "react";
@@ -36,7 +37,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "@/hooks/use-toast";
 import Image from "next/image";
 import { useUser, useFirestore, useStorage } from "@/firebase";
-import { doc, setDoc } from "firebase/firestore";
+import { doc, setDoc, updateDoc } from "firebase/firestore";
 import { ref, uploadString, getDownloadURL } from "firebase/storage";
 import { cn } from "@/lib/utils";
 import { calculateTrustScore } from "@/app/lib/market-config";
@@ -272,6 +273,10 @@ function OnboardingContent() {
 
       await setDoc(profileRef, updateData, { merge: true });
       setStep(4);
+      toast({
+        title: "Persistence Confirmed",
+        description: "Your verified profile tier is now permanent.",
+      });
     } catch (error: any) {
       console.error("Onboarding error:", error);
       toast({

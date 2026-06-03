@@ -33,6 +33,7 @@
         "username": { "type": "string" },
         "firstName": { "type": "string" },
         "lastName": { "type": "string" },
+        "kycStatus": { "type": "string", "enum": ["unverified", "pending", "verified"] },
         "isIdVerified": { "type": "boolean" },
         "reliabilityScore": { "type": "number" },
         "transactionsCompleted": { "type": "number" },
@@ -40,9 +41,10 @@
         "registrationDate": { "type": "string", "format": "date-time" },
         "bio": { "type": "string" },
         "profileImageUrl": { "type": "string" },
-        "trustScore": { "type": "number" }
+        "trustScore": { "type": "number" },
+        "sellerType": { "type": "string", "enum": ["individual", "business"] }
       },
-      "required": ["id", "username", "isIdVerified", "reliabilityScore", "registrationDate"]
+      "required": ["id", "username", "kycStatus", "reliabilityScore", "registrationDate"]
     },
     "ProductListing": {
       "title": "ProductListing",
@@ -59,53 +61,12 @@
         "isBulk": { "type": "boolean" },
         "quantity": { "type": "number" },
         "auctionEndDate": { "type": "string", "format": "date-time" },
-        "isBoosted": { "type": "boolean", "description": "Whether the listing is currently prioritized." },
+        "imageUrls": { "type": "array", "items": { "type": "string" } },
+        "postedDate": { "type": "string", "format": "date-time" },
+        "isBoosted": { "type": "boolean" },
         "boostedAt": { "type": "string", "format": "date-time" }
       },
       "required": ["id", "sellerId", "title", "price", "status"]
-    },
-    "ListingFollow": {
-      "title": "ListingFollow",
-      "type": "object",
-      "properties": {
-        "userId": { "type": "string" },
-        "listingId": { "type": "string" },
-        "initialPrice": { "type": "number" },
-        "createdAt": { "type": "string", "format": "date-time" }
-      }
-    },
-    "Notification": {
-      "title": "Notification",
-      "type": "object",
-      "properties": {
-        "userId": { "type": "string" },
-        "title": { "type": "string" },
-        "message": { "type": "string" },
-        "timestamp": { "type": "string", "format": "date-time" },
-        "isRead": { "type": "boolean" },
-        "listingId": { "type": "string" },
-        "type": { "type": "string", "enum": ["price_drop", "system", "outbid"] }
-      }
-    },
-    "ChatThread": {
-      "title": "ChatThread",
-      "type": "object",
-      "properties": {
-        "id": { "type": "string" },
-        "listingId": { "type": "string" },
-        "participants": { "type": "array", "items": { "type": "string" } },
-        "lastMessage": { "type": "string" },
-        "updatedAt": { "type": "string", "format": "date-time" }
-      }
-    },
-    "ChatMessage": {
-      "title": "ChatMessage",
-      "type": "object",
-      "properties": {
-        "senderId": { "type": "string" },
-        "text": { "type": "string" },
-        "timestamp": { "type": "string", "format": "date-time" }
-      }
     }
   },
   "auth": {
@@ -113,14 +74,6 @@
   },
   "firestore": {
     "structure": [
-      {
-        "path": "/users/{userId}",
-        "definition": {
-          "entityName": "User",
-          "schema": { "$ref": "#/backend/entities/User" },
-          "description": "Private account data."
-        }
-      },
       {
         "path": "/userProfiles/{userId}",
         "definition": {
@@ -138,27 +91,10 @@
         }
       },
       {
-        "path": "/follows/{followId}",
-        "definition": {
-          "entityName": "ListingFollow",
-          "schema": { "$ref": "#/backend/entities/ListingFollow" },
-          "description": "Users following specific listings for price drops."
-        }
-      },
-      {
         "path": "/notifications/{notificationId}",
         "definition": {
           "entityName": "Notification",
-          "schema": { "$ref": "#/backend/entities/Notification" },
           "description": "User specific alerts and updates."
-        }
-      },
-      {
-        "path": "/chatThreads/{threadId}",
-        "definition": {
-          "entityName": "ChatThread",
-          "schema": { "$ref": "#/backend/entities/ChatThread" },
-          "description": "Messaging handshake metadata."
         }
       }
     ]
