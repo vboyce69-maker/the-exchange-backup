@@ -1,0 +1,64 @@
+{
+  "placeholderImages": [
+    {
+      "id": "app-logo",
+      "description": "The Exchange Globe Logo",
+      "imageUrl": "https://picsum.photos/seed/exchange-logo/200/200",
+      "imageHint": "globe tech logo"
+    },
+    {
+      "id": "hero-marketplace",
+      "description": "A modern marketplace showing community trade",
+      "imageUrl": "https://picsum.photos/seed/localbid-hero/1200/600",
+      "imageHint": "marketplace trade"
+    },
+    {
+      "id": "listing-bike",
+      "description": "A mountain bike for sale",
+      "imageUrl": "https://picsum.photos/seed/bike/600/400",
+      "imageHint": "mountain bike"
+    },
+    {
+      "id": "listing-camera",
+      "description": "A professional DSLR camera",
+      "imageUrl": "https://picsum.photos/seed/camera/600/400",
+      "imageHint": "dslr camera"
+    },
+    {
+      "id": "listing-watch",
+      "description": "A luxury wrist watch",
+      "imageUrl": "https://picsum.photos/seed/watch/600/400",
+      "imageHint": "luxury watch"
+    },
+    {
+      "id": "listing-laptop",
+      "description": "A modern slim laptop",
+      "imageUrl": "https://picsum.photos/seed/laptop/600/400",
+      "imageHint": "laptop computer"
+    },
+    {
+      "id": "listing-sofa",
+      "description": "A comfortable blue sofa",
+      "imageUrl": "https://picsum.photos/seed/sofa/600/400",
+      "imageHint": "modern sofa"
+    },
+    {
+      "id": "listing-headphones",
+      "description": "Wireless noise cancelling headphones",
+      "imageUrl": "https://picsum.photos/seed/headphones/600/400",
+      "imageHint": "wireless headphones"
+    },
+    {
+      "id": "user-avatar-1",
+      "description": "Seller profile picture",
+      "imageUrl": "https://picsum.photos/seed/user1/200/200",
+      "imageHint": "person portrait"
+    },
+    {
+      "id": "user-avatar-2",
+      "description": "Buyer profile picture",
+      "imageUrl": "https://picsum.photos/seed/user2/200/200",
+      "imageHint": "person portrait"
+    }
+  ]
+}
