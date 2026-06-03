@@ -18,18 +18,14 @@ import {
   TrendingUp,
   Clock,
   Shirt,
-  Footprints,
   ShieldCheck,
   Loader2,
   Package,
   Zap,
-  Gamepad2,
-  Palette,
   Lock,
   ChevronRight,
   Fingerprint,
   Star,
-  History,
 } from "lucide-react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
@@ -45,7 +41,6 @@ import {
   query,
   orderBy,
   limit,
-  where,
   doc,
 } from "firebase/firestore";
 import { VerifiedBadge } from "@/components/VerifiedBadge";
@@ -67,7 +62,6 @@ const CATEGORIES = [
 ];
 
 export default function LandingPage() {
-  const router = useRouter();
   const [hasMounted, setHasMounted] = useState(false);
   const db = useFirestore();
   const { user } = useUser();
@@ -136,7 +130,7 @@ export default function LandingPage() {
               </div>
 
               <h1 className="text-4xl sm:text-5xl lg:text-[5.5rem] font-black text-slate-900 leading-[1.1] lg:leading-[0.9] tracking-tighter">
-                <span className="text-red-600">Trade</span> <span className="text-slate-400">with</span> <br />
+                <span className="text-red-600">Trade</span> <span className="font-medium text-slate-400">with</span> <br />
                 <span className="text-primary italic font-serif">
                   Absolute
                 </span>{" "}
@@ -170,20 +164,20 @@ export default function LandingPage() {
               </div>
             </div>
 
-            {/* Hero Boosted Slideshow */}
-            <div className="hidden lg:block space-y-6">
+            {/* Hero Boosted Slideshow - Now visible on all screens */}
+            <div className="block space-y-6 mt-8 lg:mt-0">
               {boostedListings.length > 0 ? (
                 <Carousel className="w-full" opts={{ loop: true }}>
                   <CarouselContent>
                     {boostedListings.map((listing) => (
                       <CarouselItem key={listing.id}>
-                        <div className="bg-white p-8 rounded-[3rem] shadow-[0_40px_80px_rgba(0,0,0,0.06)] border border-slate-50 relative z-20 transition-all">
+                        <div className="bg-white p-6 lg:p-8 rounded-[3rem] shadow-[0_40px_80px_rgba(0,0,0,0.06)] border border-slate-50 relative z-20 transition-all">
                           <Link
                             href={`/profile/${listing.sellerId}`}
                             className="block mb-6 group/seller hover:opacity-100 transition-opacity"
                           >
                             <div className="flex items-center gap-4 mb-5">
-                              <div className="w-16 h-16 bg-slate-100 rounded-[1.2rem] overflow-hidden border-2 border-white shadow-md group-hover/seller:ring-2 group-hover/seller:ring-primary transition-all">
+                              <div className="w-12 h-12 lg:w-16 lg:h-16 bg-slate-100 rounded-[1.2rem] overflow-hidden border-2 border-white shadow-md group-hover/seller:ring-2 group-hover/seller:ring-primary transition-all">
                                 <img
                                   src={`https://picsum.photos/seed/${listing.sellerId}/200/200`}
                                   className="w-full h-full object-cover"
@@ -191,12 +185,12 @@ export default function LandingPage() {
                               </div>
                               <div>
                                 <div className="flex items-center gap-2">
-                                  <p className="font-black text-lg text-slate-900 uppercase tracking-tight group-hover/seller:text-primary transition-colors">
+                                  <p className="font-black text-base lg:text-lg text-slate-900 uppercase tracking-tight group-hover/seller:text-primary transition-colors">
                                     Verified Pro
                                   </p>
                                   <VerifiedBadge />
                                 </div>
-                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-1">
+                                <p className="text-[9px] lg:text-[10px] font-black text-slate-400 uppercase tracking-widest mt-1">
                                   Trust Verified Identity
                                 </p>
                               </div>
@@ -208,7 +202,7 @@ export default function LandingPage() {
                                   <Star className="w-2.5 h-2.5 text-[#FF8C00] fill-current" />{" "}
                                   Rating
                                 </p>
-                                <p className="text-sm font-black text-slate-900">
+                                <p className="text-xs lg:text-sm font-black text-slate-900">
                                   4.9 / 5.0
                                 </p>
                               </div>
@@ -217,7 +211,7 @@ export default function LandingPage() {
                                   <TrendingUp className="w-2.5 h-2.5 text-primary" />{" "}
                                   Reliability
                                 </p>
-                                <p className="text-sm font-black text-slate-900">
+                                <p className="text-xs lg:text-sm font-black text-slate-900">
                                   {listing.trustScore || 90}% Score
                                 </p>
                               </div>
@@ -249,7 +243,7 @@ export default function LandingPage() {
                             href={`/listings/${listing.id}`}
                             className="block group/product"
                           >
-                            <div className="relative aspect-[16/10] rounded-3xl overflow-hidden mb-8 shadow-2xl border-4 border-white group-hover/product:scale-[1.02] transition-transform duration-500">
+                            <div className="relative aspect-[16/10] rounded-3xl overflow-hidden mb-6 lg:mb-8 shadow-2xl border-4 border-white group-hover/product:scale-[1.02] transition-transform duration-500">
                               <img
                                 src={
                                   listing.imageUrls?.[0] ||
@@ -258,22 +252,22 @@ export default function LandingPage() {
                                 className="w-full h-full object-cover"
                               />
                               <div className="absolute top-4 left-4">
-                                <Badge className="bg-accent text-white border-none shadow-lg font-black text-[10px] uppercase px-4 py-1.5 rounded-xl animate-pulse">
+                                <Badge className="bg-accent text-white border-none shadow-lg font-black text-[8px] lg:text-[10px] uppercase px-3 lg:px-4 py-1.5 rounded-xl animate-pulse">
                                   <Zap className="w-3 h-3 mr-1.5 fill-current" />{" "}
-                                  Premium Boost
+                                  Featured
                                 </Badge>
                               </div>
                             </div>
                             <div className="flex justify-between items-end">
                               <div>
-                                <p className="font-black text-2xl text-slate-900 tracking-tight group-hover/product:text-primary transition-colors truncate max-w-[200px] uppercase">
+                                <p className="font-black text-xl lg:text-2xl text-slate-900 tracking-tight group-hover/product:text-primary transition-colors truncate max-w-[150px] lg:max-w-[200px] uppercase">
                                   {listing.title}
                                 </p>
-                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-1">
+                                <p className="text-[9px] lg:text-[10px] font-black text-slate-400 uppercase tracking-widest mt-1">
                                   {listing.isBulk ? "Bulk Lot" : "Premium Item"}
                                 </p>
                               </div>
-                              <p className="font-black text-4xl text-primary leading-none tracking-tighter">
+                              <p className="font-black text-3xl lg:text-4xl text-primary leading-none tracking-tighter">
                                 R {listing.price?.toLocaleString()}
                               </p>
                             </div>
@@ -289,21 +283,21 @@ export default function LandingPage() {
                 </Carousel>
               ) : (
                 /* Fallback if no items are boosted yet */
-                <div className="bg-white p-12 rounded-[3rem] shadow-[0_40px_80px_rgba(0,0,0,0.06)] border border-slate-50 relative z-20 flex flex-col items-center text-center space-y-6">
-                  <div className="w-24 h-24 bg-blue-50 rounded-[2rem] flex items-center justify-center text-primary shadow-inner">
-                    <Zap className="w-12 h-12 animate-pulse fill-current" />
+                <div className="bg-white p-8 lg:p-12 rounded-[3rem] shadow-[0_40px_80px_rgba(0,0,0,0.06)] border border-slate-50 relative z-20 flex flex-col items-center text-center space-y-6">
+                  <div className="w-20 h-20 lg:w-24 lg:h-24 bg-blue-50 rounded-[2rem] flex items-center justify-center text-primary shadow-inner">
+                    <Zap className="w-10 h-10 lg:w-12 lg:h-12 animate-pulse fill-current" />
                   </div>
                   <div className="space-y-2">
-                    <h3 className="text-2xl font-black text-slate-900 uppercase tracking-tighter leading-none">
+                    <h3 className="text-xl lg:text-2xl font-black text-slate-900 uppercase tracking-tighter leading-none">
                       Boost Your Inventory
                     </h3>
-                    <p className="text-slate-400 font-medium text-sm">
+                    <p className="text-slate-400 font-medium text-xs lg:text-sm">
                       Become a Founding Member and push your listings to the
                       spotlight.
                     </p>
                   </div>
                   <Link href="/verify">
-                    <Button className="h-14 px-10 rounded-2xl bg-primary text-white font-black uppercase text-xs tracking-widest shadow-xl shadow-primary/20">
+                    <Button className="h-12 lg:h-14 px-8 lg:px-10 rounded-2xl bg-primary text-white font-black uppercase text-[10px] lg:text-xs tracking-widest shadow-xl shadow-primary/20">
                       Get Verified Status
                     </Button>
                   </Link>
@@ -311,22 +305,22 @@ export default function LandingPage() {
               )}
 
               <div className="animate-fade-up [animation-delay:200ms]">
-                <div className="bg-[#FF8C00] p-6 rounded-[2.5rem] shadow-2xl flex items-center justify-between gap-6 group hover:scale-[1.02] transition-all duration-300">
-                  <div className="flex items-center gap-4">
-                    <div className="w-14 h-14 bg-white/20 rounded-2xl flex items-center justify-center shadow-inner">
-                      <Zap className="w-7 h-7 text-white fill-current animate-bounce" />
+                <div className="bg-[#FF8C00] p-5 lg:p-6 rounded-[2.5rem] shadow-2xl flex items-center justify-between gap-4 lg:gap-6 group hover:scale-[1.02] transition-all duration-300">
+                  <div className="flex items-center gap-3 lg:gap-4">
+                    <div className="w-12 h-12 lg:w-14 lg:h-14 bg-white/20 rounded-2xl flex items-center justify-center shadow-inner">
+                      <Zap className="w-6 h-6 lg:w-7 lg:h-7 text-white fill-current animate-bounce" />
                     </div>
                     <div>
-                      <p className="text-white font-black uppercase text-xs tracking-widest leading-none">
-                        Trending Auction
+                      <p className="text-white font-black uppercase text-[10px] lg:text-xs tracking-widest leading-none">
+                        Live Auction
                       </p>
-                      <p className="text-white/80 text-[10px] font-bold uppercase mt-1.5 tracking-tight">
-                        Active bidding on high-value lots
+                      <p className="text-white/80 text-[8px] lg:text-[10px] font-bold uppercase mt-1.5 tracking-tight">
+                        Timed bidding is active
                       </p>
                     </div>
                   </div>
                   <Link href="/auctions">
-                    <Button className="bg-white text-[#FF8C00] font-black h-12 px-8 rounded-2xl shadow-xl hover:bg-slate-50 active:scale-95 transition-all text-xs uppercase tracking-widest">
+                    <Button className="bg-white text-[#FF8C00] font-black h-10 lg:h-12 px-6 lg:px-8 rounded-2xl shadow-xl hover:bg-slate-50 active:scale-95 transition-all text-[10px] uppercase tracking-widest">
                       View Bids
                     </Button>
                   </Link>
