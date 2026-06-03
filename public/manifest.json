@@ -1,12 +1,12 @@
-
 {
-  "name": "The Exchange | Premium Marketplace",
-  "short_name": "Exchange",
-  "description": "Premium Verified Marketplace in South Africa",
+  "name": "The Exchange | Premium Verified Marketplace",
+  "short_name": "The Exchange",
+  "description": "High-trust verified marketplace for South African commerce.",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#F8FAFC",
   "theme_color": "#225BC3",
+  "orientation": "portrait",
   "icons": [
     {
       "src": "https://picsum.photos/seed/exchange-icon/192/192",
@@ -17,8 +17,7 @@
     {
       "src": "https://picsum.photos/seed/exchange-icon/512/512",
       "sizes": "512x512",
-      "type": "image/png",
-      "purpose": "any maskable"
+      "type": "image/png"
     }
   ]
 }
