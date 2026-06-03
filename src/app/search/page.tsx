@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState, Suspense } from "react";
+import { useMemo, useState, Suspense, useEffect } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { Navigation } from "@/components/Navigation";
 import { ListingCard } from "@/components/ListingCard";
@@ -32,12 +32,17 @@ function SearchContent() {
   const db = useFirestore();
   const router = useRouter();
   const searchParams = useSearchParams();
+  const [mounted, setMounted] = useState(false);
 
   const categoryFilter = searchParams.get("category");
   const searchQuery = searchParams.get("q");
   const [priceRange, setPriceRange] = useState([0, 100000]);
   const [activeCondition, setActiveCondition] = useState<string | null>(null);
   const [viewType, setViewType] = useState<string>("grid");
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const listingsQuery = useMemoFirebase(() => {
     if (!db) return null;
@@ -87,6 +92,8 @@ function SearchContent() {
     setPriceRange([0, 100000]);
     setActiveCondition(null);
   };
+
+  if (!mounted) return null;
 
   return (
     <div className="min-h-screen bg-[#F8FAFC]">

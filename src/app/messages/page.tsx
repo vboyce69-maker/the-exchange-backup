@@ -13,16 +13,13 @@ import {
   ShieldCheck,
   Lock,
   Loader2,
-  Globe,
   Navigation as NavIcon,
   X,
-  CheckCircle2,
   Banknote,
   MessageCircle,
   Inbox,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { VerifiedBadge } from "@/components/VerifiedBadge";
 import { LiveMeetupTracker } from "@/components/LiveMeetupTracker";
 import { cn } from "@/lib/utils";
 import {
@@ -50,12 +47,17 @@ function MessagesContent() {
   const searchParams = useSearchParams();
   const threadId = searchParams.get("thread");
   const { checkContent, isValidating } = useScamDetection();
+  const [mounted, setMounted] = useState(false);
 
   const [inputValue, setInputValue] = useState("");
   const [isMeetupActive, setIsMeetupActive] = useState(false);
   const [bothArrived, setBothArrived] = useState(false);
   const [isReleasing, setIsReleasing] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   // Fetch threads
   const threadsQuery = useMemoFirebase(() => {
@@ -122,11 +124,12 @@ function MessagesContent() {
     }, 2000);
   };
 
+  if (!mounted) return null;
+
   return (
     <div className="min-h-screen bg-[#EEF1F3] flex flex-col">
       <Navigation />
       <main className="flex-1 container mx-auto px-4 py-8 flex flex-col lg:flex-row gap-6 h-[calc(100vh-120px)] overflow-hidden">
-        {/* Threads List */}
         <aside className="hidden lg:block w-96 bg-white border rounded-[2.5rem] shadow-xl overflow-hidden flex flex-col">
           <div className="p-8 border-b bg-[#225BC3]/5 flex items-center justify-between">
             <h2 className="font-black text-2xl text-[#225BC3] uppercase tracking-tighter">
@@ -177,7 +180,6 @@ function MessagesContent() {
           </div>
         </aside>
 
-        {/* Chat Window */}
         <div className="flex-1 flex flex-col bg-white border rounded-[2.5rem] shadow-2xl overflow-hidden">
           {threadId ? (
             <>
@@ -321,15 +323,6 @@ function MessagesContent() {
                     )}
                   </Button>
                 </div>
-                <div className="mt-4 flex items-center justify-center gap-4 opacity-40">
-                  <div className="flex items-center gap-1.5 text-[8px] font-black uppercase tracking-widest text-[#225BC3]">
-                    <Lock className="w-3 h-3" /> End-to-End Encrypted
-                  </div>
-                  <div className="w-1 h-1 bg-slate-300 rounded-full" />
-                  <div className="flex items-center gap-1.5 text-[8px] font-black uppercase tracking-widest text-[#225BC3]">
-                    <ShieldCheck className="w-3 h-3" /> Scam-Filtered by Falcon
-                  </div>
-                </div>
               </div>
             </>
           ) : (
@@ -354,13 +347,16 @@ function MessagesContent() {
   );
 }
 
-function MessagesPageInner() {
+export default function MessagesPage() {
   return (
     <AuthGuard>
       <Suspense
         fallback={
-          <div className="min-h-screen bg-[#EEF1F3] flex items-center justify-center">
-            <Loader2 className="w-10 h-10 animate-spin text-[#225BC3]" />
+          <div className="min-h-screen bg-[#EEF1F3] flex flex-col">
+            <Navigation />
+            <div className="flex-1 flex items-center justify-center">
+              <Loader2 className="w-12 h-12 text-primary animate-spin" />
+            </div>
           </div>
         }
       >
@@ -368,8 +364,4 @@ function MessagesPageInner() {
       </Suspense>
     </AuthGuard>
   );
-}
-
-export default function MessagesPage() {
-  return <Suspense fallback={<div>Loading...</div>}><MessagesPageInner /></Suspense>;
 }

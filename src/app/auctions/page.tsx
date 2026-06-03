@@ -23,11 +23,13 @@ function AuctionsContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [now, setNow] = useState<number | null>(null);
+  const [mounted, setMounted] = useState(false);
 
   const categoryFilter = searchParams.get("category");
   const searchQuery = searchParams.get("q");
 
   useEffect(() => {
+    setMounted(true);
     setNow(new Date().getTime());
     const interval = setInterval(() => setNow(new Date().getTime()), 60000);
     return () => clearInterval(interval);
@@ -77,6 +79,8 @@ function AuctionsContent() {
   const clearFilters = () => {
     router.push("/auctions");
   };
+
+  if (!mounted) return null;
 
   return (
     <div className="min-h-screen bg-[#EEF1F3]">
