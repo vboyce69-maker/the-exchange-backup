@@ -144,7 +144,7 @@ export default function LandingPage() {
               </div>
 
               <h1 className="text-4xl sm:text-5xl lg:text-[5.5rem] font-black text-slate-900 leading-[1.1] lg:leading-[0.9] tracking-tighter">
-                Trade <span className="font-normal text-slate-500">with</span> <br />
+                Trade with <br />
                 <span className="text-primary italic font-serif">
                   Absolute
                 </span>{" "}
