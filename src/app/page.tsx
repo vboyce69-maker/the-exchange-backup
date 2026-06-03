@@ -117,10 +117,10 @@ export default function LandingPage() {
     <div className="min-h-screen bg-[#F8FAFC]">
       <Navigation />
 
-      <main className="container mx-auto px-4 py-8 lg:py-12">
+      <main className="container mx-auto px-4 pt-4 pb-8 lg:pt-6 lg:pb-12">
         <div className="space-y-12 lg:space-y-24">
           {/* Hero Section */}
-          <section className="grid lg:grid-cols-2 gap-10 lg:gap-16 items-start pt-2 lg:pt-8">
+          <section className="grid lg:grid-cols-2 gap-10 lg:gap-16 items-start pt-0">
             <div className="space-y-6 lg:space-y-10 animate-fade-up">
               <div className="inline-flex items-center gap-3 bg-white px-4 py-1.5 rounded-full border border-slate-100 shadow-sm">
                 <ShieldCheck className="w-3.5 h-3.5 text-primary" />
