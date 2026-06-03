@@ -1,18 +1,14 @@
 "use client";
 
-import { useMemo, useState, useEffect, Suspense } from "react";
+import { useMemo, useState, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { Navigation } from "@/components/Navigation";
 import { ListingCard } from "@/components/ListingCard";
 import { ListingMap } from "@/components/ListingMap";
 import {
-  Search,
   Loader2,
   X,
-  Filter,
   ChevronDown,
-  MapPin,
-  Zap,
   ShoppingBag,
   AlertCircle,
   LayoutGrid,
@@ -43,7 +39,6 @@ function SearchContent() {
   const [activeCondition, setActiveCondition] = useState<string | null>(null);
   const [viewType, setViewType] = useState<string>("grid");
 
-  // Simplified query: order by postedDate desc primarily
   const listingsQuery = useMemoFirebase(() => {
     if (!db) return null;
     return query(
@@ -54,7 +49,6 @@ function SearchContent() {
 
   const { data: rawListings, isLoading, error } = useCollection(listingsQuery);
 
-  // Client-side advanced filtering + BOOSTED SORTING
   const listings = useMemo(() => {
     if (!rawListings) return [];
 
@@ -79,7 +73,6 @@ function SearchContent() {
       );
     });
 
-    // PRIORITY: Boosted items first, then by date
     return filtered.sort((a, b) => {
       if (a.isBoosted && !b.isBoosted) return -1;
       if (!a.isBoosted && b.isBoosted) return 1;
@@ -228,7 +221,7 @@ function SearchContent() {
             </TabsList>
           </div>
 
-          <TabsContent value="grid" className="mt-0">
+          <TabsContent value="grid" className="mt-0 outline-none">
             {isLoading || !db ? (
               <div className="flex flex-col items-center justify-center py-24">
                 <Loader2 className="w-12 h-12 animate-spin text-[#225BC3] mb-4" />
@@ -259,7 +252,7 @@ function SearchContent() {
               </div>
             ) : (
               <div className="text-center py-32 bg-white rounded-[4rem] shadow-sm border-2 border-dashed border-slate-100">
-                <Search className="w-16 h-16 text-slate-100 mx-auto mb-6" />
+                <X className="w-16 h-16 text-slate-100 mx-auto mb-6" />
                 <h3 className="font-black text-[#225BC3] text-xl uppercase tracking-widest mb-2">
                   No matching items
                 </h3>

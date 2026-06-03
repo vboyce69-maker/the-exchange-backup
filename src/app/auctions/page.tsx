@@ -8,11 +8,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Gavel,
   Loader2,
-  Search,
-  TrendingUp,
-  Clock,
   AlertCircle,
   X,
+  Clock,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { useCollection, useFirestore, useMemoFirebase } from "@/firebase";
@@ -29,15 +27,12 @@ function AuctionsContent() {
   const categoryFilter = searchParams.get("category");
   const searchQuery = searchParams.get("q");
 
-  // Use a stable timestamp for filtering auctions that haven't ended yet
   useEffect(() => {
     setNow(new Date().getTime());
-    // Update every minute to keep "Ending Soon" accurate
     const interval = setInterval(() => setNow(new Date().getTime()), 60000);
     return () => clearInterval(interval);
   }, []);
 
-  // Simplified query to avoid complex index requirements
   const auctionsQuery = useMemoFirebase(() => {
     if (!db) return null;
     return query(
@@ -48,20 +43,16 @@ function AuctionsContent() {
 
   const { data: rawData, isLoading, error } = useCollection(auctionsQuery);
 
-  // Client-side search and status filtering
   const auctions = useMemo(() => {
     if (!rawData) return [];
 
     return rawData.filter((item) => {
-      // Must be an auction
       const isAuction = item.isAuction === true;
       if (!isAuction) return false;
 
-      // Category filter
       if (categoryFilter && item.categoryId !== categoryFilter.toLowerCase())
         return false;
 
-      // Search query filter
       if (searchQuery) {
         const term = searchQuery.toLowerCase();
         const inTitle = item.title?.toLowerCase().includes(term);
@@ -79,7 +70,6 @@ function AuctionsContent() {
       if (!a.auctionEndDate) return false;
       const end = new Date(a.auctionEndDate).getTime();
       const diff = end - now;
-      // Define "Ending Soon" as less than 24 hours away
       return diff < 86400000 && diff > 0;
     });
   }, [auctions, now]);

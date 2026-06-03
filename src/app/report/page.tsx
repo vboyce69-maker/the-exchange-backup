@@ -43,7 +43,7 @@ import { ref, uploadString, getDownloadURL } from "firebase/storage";
 import Image from "next/image";
 import { cn } from "@/lib/utils";
 
-export default function ReportPage() {
+function ReportPageInner() {
   return (
     <AuthGuard>
       <ReportContent />
@@ -294,4 +294,8 @@ function ReportContent() {
       </main>
     </div>
   );
+}
+
+export default function ReportPage() {
+  return <Suspense fallback={<div>Loading...</div>}><ReportPageInner /></Suspense>;
 }

@@ -1,8 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { Suspense, useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import Link from "next/link";
 import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
@@ -10,8 +9,19 @@ import {
   User,
 } from "firebase/auth";
 import { auth, db } from "@/firebase";
-import { doc, getDoc, setDoc, updateDoc, arrayUnion } from "firebase/firestore";
+import { 
+  doc, 
+  getDoc, 
+  setDoc, 
+  updateDoc, 
+  arrayUnion, 
+  collection, 
+  query, 
+  where, 
+  getDocs 
+} from "firebase/firestore";
 import { Navigation } from "@/components/Navigation";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
@@ -23,7 +33,6 @@ import {
   Lock,
   Loader2,
   AlertCircle,
-  ShieldCheck,
   Eye,
   EyeOff,
 } from "lucide-react";
@@ -32,7 +41,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { PhoneAuth } from "@/components/auth/PhoneAuth";
 import { MARKET_CONFIG } from "@/app/lib/market-config";
 
-export default function LoginPage() {
+function LoginPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [loading, setLoading] = useState(false);
@@ -66,21 +75,28 @@ export default function LoginPage() {
         lastLogin: new Date().toISOString(),
       });
 
-      // Handle Referral Tracking
+      // Handle Referral Tracking by Code
       if (referralCode) {
-        // Find the referrer by code
-        const refQ = doc(db, "referrals", referralCode);
-        // Note: For actual production, searching by referralCode field is better
-        // but for this prototype we assume ID = Code
-        await updateDoc(doc(db, "referrals", referralCode), {
-          invites: arrayUnion({
-            userId: user.uid,
-            date: new Date().toISOString(),
-          }),
-          credits: arrayUnion({ amount: 50, source: "referral_bonus" }),
-        }).catch(() =>
-          console.warn("Referrer document not found for reward award."),
-        );
+        try {
+          const referralsRef = collection(db, "referrals");
+          const q = query(referralsRef, where("referralCode", "==", referralCode));
+          const querySnap = await getDocs(q);
+          
+          if (!querySnap.empty) {
+            const referrerDoc = querySnap.docs[0];
+            const currentCredits = referrerDoc.data().credits || 0;
+            
+            await updateDoc(referrerDoc.ref, {
+              invites: arrayUnion({
+                userId: user.uid,
+                date: new Date().toISOString(),
+              }),
+              credits: currentCredits + 50,
+            });
+          }
+        } catch (err) {
+          console.warn("Referral award failed:", err);
+        }
       }
     } else {
       await updateDoc(profileRef, { lastLogin: new Date().toISOString() });
@@ -283,5 +299,17 @@ export default function LoginPage() {
         </div>
       </main>
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-[#EEF1F3] flex items-center justify-center">
+        <Loader2 className="w-10 h-10 animate-spin text-[#225BC3]" />
+      </div>
+    }>
+      <LoginPageContent />
+    </Suspense>
   );
 }
