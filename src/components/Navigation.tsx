@@ -23,6 +23,7 @@ import {
   Fingerprint,
   TrendingUp,
   Inbox,
+  Rocket,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
@@ -285,6 +286,29 @@ export function Navigation() {
                         </Link>
                       </DropdownMenuItem>
                     ))}
+                    
+                    {/* Admin Pre-Launch Shortcut */}
+                    <DropdownMenuItem
+                      asChild
+                      className="rounded-2xl p-3 cursor-pointer bg-primary/5 hover:bg-primary/10 transition-all group"
+                    >
+                      <Link
+                        href="/admin/readiness"
+                        className="flex items-center gap-4"
+                      >
+                        <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-primary text-white">
+                          <Rocket className="w-5 h-5" />
+                        </div>
+                        <div>
+                          <p className="font-black text-xs uppercase tracking-tight text-primary leading-none mb-1.5">
+                            Launch Readiness
+                          </p>
+                          <p className="text-[9px] font-bold text-primary/60 uppercase">
+                            Pre-Launch Audit
+                          </p>
+                        </div>
+                      </Link>
+                    </DropdownMenuItem>
                   </div>
                 </ScrollArea>
               </DropdownMenuContent>
@@ -382,3 +406,4 @@ export function Navigation() {
     </div>
   );
 }
+
