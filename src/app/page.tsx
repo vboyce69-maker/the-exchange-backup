@@ -136,7 +136,7 @@ export default function LandingPage() {
               </div>
 
               <h1 className="text-4xl sm:text-5xl lg:text-[5.5rem] font-black text-slate-900 leading-[1.1] lg:leading-[0.9] tracking-tighter">
-                <span className="text-red-600">Trade</span> with <br />
+                <span className="text-red-600">Trade</span> <span className="text-slate-400">with</span> <br />
                 <span className="text-primary italic font-serif">
                   Absolute
                 </span>{" "}
