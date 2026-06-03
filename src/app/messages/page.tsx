@@ -354,7 +354,7 @@ function MessagesContent() {
   );
 }
 
-export default function MessagesPage() {
+function MessagesPageInner() {
   return (
     <AuthGuard>
       <Suspense
@@ -368,4 +368,8 @@ export default function MessagesPage() {
       </Suspense>
     </AuthGuard>
   );
+}
+
+export default function MessagesPage() {
+  return <Suspense fallback={<div>Loading...</div>}><MessagesPageInner /></Suspense>;
 }
