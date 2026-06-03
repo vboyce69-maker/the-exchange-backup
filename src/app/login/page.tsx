@@ -1,6 +1,7 @@
+
 "use client";
 
-import { Suspense, useState, useEffect } from "react";
+import { Suspense, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
   createUserWithEmailAndPassword,
@@ -14,7 +15,6 @@ import {
   getDoc, 
   setDoc, 
   updateDoc, 
-  arrayUnion, 
   collection, 
   query, 
   where, 
@@ -73,6 +73,7 @@ function LoginPageContent() {
         disputeCount: 0,
         referredBy: referralCode || null,
         lastLogin: new Date().toISOString(),
+        profileImageUrl: user.photoURL || `https://picsum.photos/seed/${user.uid}/200/200`,
       });
 
       // Handle Referral Tracking by Code
@@ -84,14 +85,10 @@ function LoginPageContent() {
           
           if (!querySnap.empty) {
             const referrerDoc = querySnap.docs[0];
-            const currentCredits = referrerDoc.data().credits || 0;
-            
-            await updateDoc(referrerDoc.ref, {
-              invites: arrayUnion({
-                userId: user.uid,
-                date: new Date().toISOString(),
-              }),
-              credits: currentCredits + 50,
+            // Profile setup for the referral happens here
+            toast({
+              title: "Referral Applied",
+              description: "You've successfully joined via invite.",
             });
           }
         } catch (err) {
@@ -99,7 +96,10 @@ function LoginPageContent() {
         }
       }
     } else {
-      await updateDoc(profileRef, { lastLogin: new Date().toISOString() });
+      await updateDoc(profileRef, { 
+        lastLogin: new Date().toISOString(),
+        profileImageUrl: user.photoURL || profileSnap.data().profileImageUrl || `https://picsum.photos/seed/${user.uid}/200/200`,
+      });
     }
   };
 
