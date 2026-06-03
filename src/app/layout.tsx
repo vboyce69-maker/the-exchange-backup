@@ -32,16 +32,6 @@ export default function RootLayout({
   return (
     <html lang="en">
       <head>
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link
-          rel="preconnect"
-          href="https://fonts.gstatic.com"
-          crossOrigin="anonymous"
-        />
-        <link
-          href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
-          rel="stylesheet"
-        />
         <link
           rel="apple-touch-icon"
           href="https://picsum.photos/seed/exchange-icon/180/180"
@@ -49,7 +39,6 @@ export default function RootLayout({
       </head>
       <body
         className="antialiased selection:bg-primary/10 selection:text-primary overflow-x-hidden touch-pan-y"
-        style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}
       >
         <FirebaseClientProvider>
           <NetworkStatus />
