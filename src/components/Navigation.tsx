@@ -1,3 +1,4 @@
+
 "use client";
 
 import Link from "next/link";
@@ -67,7 +68,7 @@ export function Navigation() {
     return user ? doc(db, "userProfiles", user.uid) : null;
   }, [db, user?.uid]);
 
-  const { data: profile } = useDoc(profileRef);
+  const { data: profile } = useDoc(profileRef as any);
 
   const notificationsQuery = useMemoFirebase(() => {
     if (!db || !user) return null;

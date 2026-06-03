@@ -1,3 +1,4 @@
+
 "use client";
 
 import { Navigation } from "@/components/Navigation";
@@ -54,7 +55,7 @@ function NotificationsContent() {
       where("userId", "==", user.uid),
       orderBy("timestamp", "desc"),
     );
-  }, [db, user]);
+  }, [db, user?.uid]);
 
   const { data: notifications, isLoading } = useCollection(notificationsQuery);
 
