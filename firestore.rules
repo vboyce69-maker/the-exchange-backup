@@ -3,7 +3,9 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
     
-    // Standard Helpers
+    // ===============================================================
+    // Helper Functions
+    // ===============================================================
     function isAuthenticated() {
       return request.auth != null;
     }
@@ -12,7 +14,11 @@ service cloud.firestore {
       return isAuthenticated() && request.auth.uid == userId;
     }
 
-    // Listings - authenticated users can read all, owners can write
+    // ===============================================================
+    // Collection Rules
+    // ===============================================================
+
+    // Marketplace Listings
     match /publicListings/{listingId} {
       allow read: if isAuthenticated();
       allow create: if isAuthenticated();
@@ -24,45 +30,68 @@ service cloud.firestore {
       allow delete: if isOwner(resource.data.sellerId);
     }
 
-    // Users/Profiles - Strictly owner only for writing, authenticated read
+    // Public Profiles & Trust Metrics
     match /userProfiles/{userId} {
       allow read: if isAuthenticated();
       allow write: if isOwner(userId);
+
+      // Verified Feedback Subcollection
+      match /reviews/{reviewId} {
+        allow read: if isAuthenticated();
+        allow create: if isAuthenticated();
+      }
     }
 
-    // Referrals - track invites securely
-    match /referrals/{referralId} {
-      allow read: if isOwner(referralId);
-      allow write: if isAuthenticated();
+    // Price Watch / Listing Follows
+    match /follows/{followId} {
+      allow create: if isAuthenticated() && request.resource.data.userId == request.auth.uid;
+      allow read, delete: if isAuthenticated() && resource.data.userId == request.auth.uid;
     }
 
-    // Notifications - strictly owner only
-    // Refined to use the isOwner helper and ensure list queries match the filter
+    // Market Alerts & Notifications
     match /notifications/{notificationId} {
       allow create: if isAuthenticated();
       allow read, update, delete: if isAuthenticated() && (
-        // For 'get', resource is the doc. For 'list', resource is the doc being evaluated.
-        // Queries must include where('userId', '==', request.auth.uid) to succeed.
+        // For queries, Firestore checks that the filter matches this condition
         resource.data.userId == request.auth.uid
       );
     }
 
-    // Messaging - Participants only
+    // Secure Peer-to-Peer Messaging
     match /chatThreads/{threadId} {
       allow read: if isAuthenticated() && request.auth.uid in resource.data.participants;
       allow create: if isAuthenticated();
       allow update: if isAuthenticated() && request.auth.uid in resource.data.participants;
       
       match /messages/{messageId} {
+        // Only participants can read messages
         allow read: if isAuthenticated() && request.auth.uid in get(/databases/$(database)/documents/chatThreads/$(threadId)).data.participants;
         allow create: if isAuthenticated();
       }
     }
 
-    // Disputes - reporting user or admin
+    // Incident Reporting & Disputes
     match /disputes/{disputeId} {
       allow read: if isAuthenticated() && (resource.data.reporterId == request.auth.uid || request.auth.token.admin == true);
       allow create: if isAuthenticated();
+    }
+
+    // Referral System Logs
+    match /referrals/{referralId} {
+      allow read: if isOwner(referralId);
+      allow write: if isAuthenticated();
+    }
+
+    // System Stability Logs (Admin Only)
+    match /systemErrors/{errorId} {
+      allow read: if isAuthenticated() && request.auth.token.admin == true;
+      allow create: if true; // Allow anonymous error logging
+      allow update: if isAuthenticated() && request.auth.token.admin == true;
+    }
+    
+    // Moderation Queue (Admin Only)
+    match /moderationQueue/{recordId} {
+      allow read, write: if isAuthenticated() && request.auth.token.admin == true;
     }
   }
 }
