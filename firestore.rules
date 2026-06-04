@@ -4,6 +4,24 @@ service cloud.firestore {
   match /databases/{database}/documents {
     
     // ===============================================================
+    // Assumed Data Model
+    // ===============================================================
+    //
+    // Collection: userProfiles/{userId}
+    // Fields: id, kycStatus, reliabilityScore, trustScore, etc.
+    //
+    // Collection: publicListings/{listingId}
+    // Fields: sellerId, title, price, status, highestBid, etc.
+    //
+    // Collection: notifications/{id}
+    // Fields: userId, title, message, isRead, timestamp
+    //
+    // Collection: referrals/{userId}
+    // Fields: referralCode, invites, credits, createdAt
+    //
+    // ===============================================================
+
+    // ===============================================================
     // Security Infrastructure & Helper Functions
     // ===============================================================
     
@@ -16,7 +34,10 @@ service cloud.firestore {
     }
 
     function isAdmin() {
-      return isAuthenticated() && request.auth.token.admin == true;
+      return isAuthenticated() && (
+        request.auth.token.admin == true || 
+        request.auth.token.email == 'admin@theexchange.co.za' // Bootstrap admin email
+      );
     }
 
     // Validation: String size protection to prevent DoS
@@ -33,7 +54,7 @@ service cloud.firestore {
              data.sellerId == request.auth.uid &&
              data.price is number && data.price >= 0 &&
              isValidString(data.title, 100) &&
-             data.status in ['available', 'pending_meetup', 'sold', 'pending_review'];
+             data.status in ['available', 'pending_meetup', 'sold', 'pending_review', 'auction_active'];
     }
 
     function isValidProfile(data) {
@@ -71,13 +92,17 @@ service cloud.firestore {
     }
 
     match /notifications/{id} {
-      allow list: if isAuthenticated() && request.query.limit <= 50;
-      allow get, delete: if isAuthenticated() && resource.data.userId == request.auth.uid;
+      // List/Get: Strict ownership enforcement
+      allow list: if isAuthenticated() && resource.data.userId == request.auth.uid;
+      allow get: if isAuthenticated() && resource.data.userId == request.auth.uid;
+      allow delete: if isAuthenticated() && resource.data.userId == request.auth.uid;
+      allow update: if isAuthenticated() && resource.data.userId == request.auth.uid && 
+                   request.resource.data.diff(resource.data).affectedKeys().hasOnly(['isRead']);
       allow create: if isAdmin() || (isAuthenticated() && request.resource.data.userId == request.auth.uid);
     }
 
     match /follows/{id} {
-      allow list: if isAuthenticated();
+      allow list: if isAuthenticated() && resource.data.userId == request.auth.uid;
       allow get, delete: if isAuthenticated() && resource.data.userId == request.auth.uid;
       allow create: if isAuthenticated() && request.resource.data.userId == request.auth.uid;
     }
@@ -103,7 +128,9 @@ service cloud.firestore {
     }
 
     match /referrals/{userId} {
-      allow read, write: if isOwner(userId) || isAdmin();
+      allow read: if isOwner(userId) || isAdmin();
+      allow create: if isOwner(userId);
+      allow update: if isOwner(userId) || isAdmin();
     }
 
     match /auditLogs/{logId} {
