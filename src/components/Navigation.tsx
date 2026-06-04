@@ -1,3 +1,4 @@
+
 "use client";
 
 import Link from "next/link";
@@ -23,7 +24,6 @@ import {
   Fingerprint,
   TrendingUp,
   Inbox,
-  Rocket,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
@@ -283,28 +283,6 @@ export function Navigation() {
                         </Link>
                       </DropdownMenuItem>
                     ))}
-                    
-                    <DropdownMenuItem
-                      asChild
-                      className="rounded-2xl p-3.5 cursor-pointer bg-primary/5 hover:bg-primary text-primary hover:text-white transition-all group mt-4 border border-primary/10"
-                    >
-                      <Link
-                        href="/admin/readiness"
-                        className="flex items-center gap-4"
-                      >
-                        <div className="w-11 h-11 rounded-xl flex items-center justify-center bg-primary text-white shadow-lg group-hover:bg-white group-hover:text-primary transition-colors">
-                          <Rocket className="w-5 h-5" />
-                        </div>
-                        <div>
-                          <p className="font-black text-[11px] uppercase tracking-tight leading-none mb-1.5">
-                            Launch Readiness
-                          </p>
-                          <p className="text-[9px] font-bold opacity-60 uppercase tracking-tighter">
-                            Compliance Audit
-                          </p>
-                        </div>
-                      </Link>
-                    </DropdownMenuItem>
                   </div>
                 </ScrollArea>
               </DropdownMenuContent>

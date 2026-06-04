@@ -1,3 +1,4 @@
+
 {
   "entities": {
     "User": {
@@ -22,7 +23,8 @@
         "username": { "type": "string" },
         "kycStatus": { "type": "string", "enum": ["unverified", "pending", "verified"] },
         "reliabilityScore": { "type": "number" },
-        "transactionsCompleted": { "type": "number" }
+        "transactionsCompleted": { "type": "number" },
+        "isFoundingMember": { "type": "boolean" }
       },
       "required": ["id", "kycStatus", "reliabilityScore"]
     },
@@ -35,7 +37,9 @@
         "sellerId": { "type": "string" },
         "title": { "type": "string" },
         "price": { "type": "number" },
-        "status": { "type": "string" }
+        "status": { "type": "string" },
+        "isAuction": { "type": "boolean" },
+        "highestBid": { "type": "number" }
       },
       "required": ["id", "sellerId", "title", "price", "status"]
     },
@@ -70,28 +74,45 @@
         }
       },
       {
-        "path": "/transactions/{txId}",
+        "path": "/chatThreads/{threadId}",
         "definition": {
-          "description": "Marketplace trade records."
+          "description": "Secure trade logs and meetup coordination."
         }
       },
       {
-        "path": "/escrowHolds/{holdId}",
+        "path": "/notifications/{id}",
         "definition": {
-          "entityName": "EscrowHold",
-          "description": "Platform fund protection records."
+          "description": "System and market alerts (price drops, bids)."
+        }
+      },
+      {
+        "path": "/follows/{id}",
+        "definition": {
+          "description": "Watchlist for price tracking."
+        }
+      },
+      {
+        "path": "/disputes/{disputeId}",
+        "definition": {
+          "description": "Marketplace safety reports and fund freezes."
+        }
+      },
+      {
+        "path": "/moderationQueue/{id}",
+        "definition": {
+          "description": "Falcon Engine flags for admin review."
+        }
+      },
+      {
+        "path": "/referrals/{userId}",
+        "definition": {
+          "description": "Founding 100 program tracking."
         }
       },
       {
         "path": "/auditLogs/{logId}",
         "definition": {
-          "description": "Security and administrative audit trail."
-        }
-      },
-      {
-        "path": "/fraudEvents/{eventId}",
-        "definition": {
-          "description": "Detected suspicious activities."
+          "description": "Security audit trail."
         }
       }
     ]
