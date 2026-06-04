@@ -3,7 +3,7 @@ service cloud.firestore {
   match /databases/{database}/documents {
     
     // ===============================================================
-    // Assumed Data Models & Integrity Helpers
+    // Security Infrastructure & Helper Functions
     // ===============================================================
     
     function isAuthenticated() {
@@ -18,13 +18,13 @@ service cloud.firestore {
       return isAuthenticated() && request.auth.token.admin == true;
     }
 
-    // Validation: String size protection to prevent DoS (Phase 7)
+    // Validation: String size protection to prevent DoS
     function isValidString(val, maxLen) {
       return val is string && val.size() <= maxLen;
     }
 
     // ===============================================================
-    // Domain Validators (Phase 3)
+    // Domain Validators
     // ===============================================================
 
     function isValidListing(data) {
@@ -47,10 +47,11 @@ service cloud.firestore {
     // ===============================================================
 
     match /publicListings/{listingId} {
-      allow read: if isAuthenticated();
+      allow read: if true; // Marketplace is public
       allow create: if isAuthenticated() && isValidListing(request.resource.data);
       allow update: if isAuthenticated() && (
         (isOwner(resource.data.sellerId) && isValidListing(request.resource.data)) || 
+        // Bidding Protocol: Allow non-owners to update ONLY bid fields
         (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['highestBid', 'highestBidderId']) && 
          request.resource.data.highestBid > resource.data.highestBid)
       );
@@ -58,14 +59,38 @@ service cloud.firestore {
     }
 
     match /userProfiles/{userId} {
-      allow read: if isAuthenticated();
+      // PII Protection: Only owner can read full profile. Public data should be denormalized or split.
+      allow read: if isOwner(userId) || isAdmin();
       allow create: if isOwner(userId) && isValidProfile(request.resource.data);
       allow update: if isOwner(userId) && isValidProfile(request.resource.data) && 
-                      request.resource.data.reliabilityScore == resource.data.reliabilityScore; // Prevent self-trust escalation
+                      request.resource.data.reliabilityScore == resource.data.reliabilityScore;
       
       match /reviews/{reviewId} {
-        allow read: if isAuthenticated();
+        allow read: if true;
         allow create: if isAuthenticated() && request.resource.data.reviewerId == request.auth.uid;
+      }
+    }
+
+    match /notifications/{id} {
+      // Explicitly allow list operations where query filter matches userId
+      allow list: if isAuthenticated() && (resource == null || resource.data.userId == request.auth.uid);
+      allow get, delete: if isAuthenticated() && resource.data.userId == request.auth.uid;
+      allow create: if isAdmin() || (isAuthenticated() && request.resource.data.userId == request.auth.uid);
+    }
+
+    match /follows/{id} {
+      allow list: if isAuthenticated() && (resource == null || resource.data.userId == request.auth.uid);
+      allow get, delete: if isAuthenticated() && resource.data.userId == request.auth.uid;
+      allow create: if isAuthenticated() && request.resource.data.userId == request.auth.uid;
+    }
+
+    match /chatThreads/{threadId} {
+      allow read, update: if isAuthenticated() && request.auth.uid in resource.data.participants;
+      allow create: if isAuthenticated();
+      
+      match /messages/{messageId} {
+        allow read: if isAuthenticated() && request.auth.uid in get(/databases/$(database)/documents/chatThreads/$(threadId)).data.participants;
+        allow create: if isAuthenticated() && request.resource.data.senderId == request.auth.uid;
       }
     }
 
@@ -80,19 +105,18 @@ service cloud.firestore {
       allow write: if isAdmin();
     }
 
-    match /chatThreads/{threadId} {
-      allow read, update: if isAuthenticated() && request.auth.uid in resource.data.participants;
-      allow create: if isAuthenticated();
-      
-      match /messages/{messageId} {
-        allow read: if isAuthenticated() && request.auth.uid in get(/databases/$(database)/documents/chatThreads/$(threadId)).data.participants;
-        allow create: if isAuthenticated() && request.resource.data.senderId == request.auth.uid;
-      }
+    match /disputes/{disputeId} {
+      allow read: if isAuthenticated() && (resource.data.reporterId == request.auth.uid || isAdmin());
+      allow create: if isAuthenticated() && request.resource.data.reporterId == request.auth.uid;
+      allow update, delete: if isAdmin();
     }
 
-    match /notifications/{notificationId} {
-      allow read, delete: if isOwner(resource.data.userId);
-      allow create: if isAdmin() || (isAuthenticated() && request.resource.data.userId == request.auth.uid);
+    match /referrals/{userId} {
+      allow read, write: if isOwner(userId) || isAdmin();
+    }
+
+    match /moderationQueue/{id} {
+      allow read, write: if isAdmin();
     }
 
     match /auditLogs/{logId} {

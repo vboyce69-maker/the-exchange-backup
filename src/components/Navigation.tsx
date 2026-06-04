@@ -64,13 +64,13 @@ export function Navigation() {
   const [slotsLeft, setSlotsLeft] = useState(MARKET_CONFIG.FOUNDING_LIMIT);
 
   const profileRef = useMemoFirebase(() => {
-    return user ? doc(db, "userProfiles", user.uid) : null;
+    return user?.uid ? doc(db!, "userProfiles", user.uid) : null;
   }, [db, user?.uid]);
 
   const { data: profile } = useDoc(profileRef as any);
 
   const notificationsQuery = useMemoFirebase(() => {
-    if (!db || !user) return null;
+    if (!db || !user?.uid) return null;
     return query(
       collection(db, "notifications"),
       where("userId", "==", user.uid),
@@ -352,12 +352,12 @@ export function Navigation() {
                       <Badge
                         className={cn(
                           "text-[7px] font-black uppercase tracking-widest px-2 py-0.5 border-none",
-                          profile?.isIdVerified
+                          profile?.kycStatus === 'verified'
                             ? "bg-green-100 text-green-700"
                             : "bg-orange-100 text-orange-600",
                         )}
                       >
-                        {profile?.isIdVerified ? "Verified Pro" : "Unverified"}
+                        {profile?.kycStatus === 'verified' ? "Verified Pro" : "Unverified"}
                       </Badge>
                     </div>
                   </div>
