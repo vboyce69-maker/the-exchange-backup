@@ -1,4 +1,3 @@
-
 {
   "entities": {
     "User": {
@@ -10,19 +9,9 @@
         "displayName": { "type": "string" },
         "isVerified": { "type": "boolean" },
         "createdAt": { "type": "string", "format": "date-time" },
-        "lastSignIn": { "type": "string", "format": "date-time" },
-        "role": { "type": "string", "enum": ["buyer", "seller", "admin"] },
-        "businessInfo": {
-          "type": "object",
-          "properties": {
-            "registrationNumber": { "type": "string" },
-            "vatNumber": { "type": "string" },
-            "address": { "type": "string" }
-          },
-          "required": ["registrationNumber", "address"]
-        }
+        "role": { "type": "string", "enum": ["buyer", "seller", "admin"] }
       },
-      "required": ["phoneNumber", "isVerified", "createdAt", "role"]
+      "required": ["phoneNumber", "isVerified", "role"]
     },
     "UserProfile": {
       "title": "UserProfile",
@@ -31,20 +20,11 @@
       "properties": {
         "id": { "type": "string" },
         "username": { "type": "string" },
-        "firstName": { "type": "string" },
-        "lastName": { "type": "string" },
         "kycStatus": { "type": "string", "enum": ["unverified", "pending", "verified"] },
-        "isIdVerified": { "type": "boolean" },
         "reliabilityScore": { "type": "number" },
-        "transactionsCompleted": { "type": "number" },
-        "disputeCount": { "type": "number" },
-        "registrationDate": { "type": "string", "format": "date-time" },
-        "bio": { "type": "string" },
-        "profileImageUrl": { "type": "string" },
-        "trustScore": { "type": "number" },
-        "sellerType": { "type": "string", "enum": ["individual", "business"] }
+        "transactionsCompleted": { "type": "number" }
       },
-      "required": ["id", "username", "kycStatus", "reliabilityScore", "registrationDate"]
+      "required": ["id", "kycStatus", "reliabilityScore"]
     },
     "ProductListing": {
       "title": "ProductListing",
@@ -55,22 +35,23 @@
         "sellerId": { "type": "string" },
         "title": { "type": "string" },
         "price": { "type": "number" },
-        "status": { "type": "string" },
-        "isAuction": { "type": "boolean" },
-        "highestBid": { "type": "number" },
-        "isBulk": { "type": "boolean" },
-        "quantity": { "type": "number" },
-        "auctionEndDate": { "type": "string", "format": "date-time" },
-        "imageUrls": { "type": "array", "items": { "type": "string" } },
-        "postedDate": { "type": "string", "format": "date-time" },
-        "isBoosted": { "type": "boolean" },
-        "boostedAt": { "type": "string", "format": "date-time" }
+        "status": { "type": "string" }
       },
       "required": ["id", "sellerId", "title", "price", "status"]
+    },
+    "EscrowHold": {
+      "title": "EscrowHold",
+      "type": "object",
+      "properties": {
+        "transactionId": { "type": "string" },
+        "amount": { "type": "number" },
+        "status": { "type": "string", "enum": ["held", "released", "disputed", "refunded"] },
+        "heldAt": { "type": "string", "format": "date-time" }
+      }
     }
   },
   "auth": {
-    "providers": ["password", "anonymous", "phone"]
+    "providers": ["password", "phone", "google"]
   },
   "firestore": {
     "structure": [
@@ -78,23 +59,39 @@
         "path": "/userProfiles/{userId}",
         "definition": {
           "entityName": "UserProfile",
-          "schema": { "$ref": "#/backend/entities/UserProfile" },
-          "description": "Public profile and trust metrics."
+          "description": "User profiles and trust metrics."
         }
       },
       {
         "path": "/publicListings/{listingId}",
         "definition": {
           "entityName": "ProductListing",
-          "schema": { "$ref": "#/backend/entities/ProductListing" },
           "description": "Marketplace listings."
         }
       },
       {
-        "path": "/notifications/{notificationId}",
+        "path": "/transactions/{txId}",
         "definition": {
-          "entityName": "Notification",
-          "description": "User specific alerts and updates."
+          "description": "Marketplace trade records."
+        }
+      },
+      {
+        "path": "/escrowHolds/{holdId}",
+        "definition": {
+          "entityName": "EscrowHold",
+          "description": "Platform fund protection records."
+        }
+      },
+      {
+        "path": "/auditLogs/{logId}",
+        "definition": {
+          "description": "Security and administrative audit trail."
+        }
+      },
+      {
+        "path": "/fraudEvents/{eventId}",
+        "definition": {
+          "description": "Detected suspicious activities."
         }
       }
     ]
