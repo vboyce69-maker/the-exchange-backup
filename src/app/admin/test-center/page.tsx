@@ -54,6 +54,7 @@ export default function AutonomousTestCenter() {
       const data = await runAutonomousTesting({
         targetSuiteId: suiteId,
         intensity: intensity,
+        isSimulation: false,
       });
       setResults(data);
 
