@@ -6,6 +6,20 @@ This is a high-trust, local peer-to-peer and professional marketplace built with
 For the full application specification, feature list, and technical architecture (including AI logic), please refer to:
 **[docs/FULL_APP_PORTFOLIO.md](./docs/FULL_APP_PORTFOLIO.md)**
 
+## 🚀 GitHub Backup & Portability
+To copy this application to your own GitHub repository, execute the following commands in your workspace terminal:
+
+### 1. Initial Setup
+```bash
+npm run git:setup
+```
+
+### 2. Push to GitHub
+```bash
+npm run git:push
+```
+*Note: If you want to use a different repository, update the 'origin' URL in package.json or run `git remote set-url origin <your-repo-url>`.*
+
 ## How to Preview on Mobile (APK Alternative)
 The Exchange is configured as a **Progressive Web App (PWA)**, which is the web alternative to an APK. You can install it on your phone now:
 1. **Get the URL**: Copy the preview URL from the address bar of the internal browser in this workspace.
@@ -21,16 +35,10 @@ The application is built on **Firebase**, leveraging Google Cloud's high-perform
 2. **Secure Identity**: Using Firebase Phone Auth for sybil-attack prevention.
 3. **AI Integration**: Seamlessly running Genkit for biometric KYC and scam detection.
 
-## How to Sync & Deploy
+## Deployment
 Since terminal commands cannot be executed directly by the AI, please use these scripts in your local terminal:
 
-### 1. GitHub Backup
-```bash
-npm run git:setup  # Initialize and connect to your repo
-npm run git:push   # Push current code to GitHub
-```
-
-### 2. Firebase Setup & Deployment
+### Firebase Setup & Deployment
 ```bash
 npm run firebase:login  # Log in to your Firebase account
 npm run firebase:init   # Connect this code to your Firebase project

@@ -14,8 +14,8 @@
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
     "test:e2e": "playwright test",
-    "git:setup": "git init && git remote add origin https://github.com/vboyce69-maker/the-exchange-backup.git",
-    "git:push": "git add . && git commit -m 'Backup from Studio' && git push -u origin main",
+    "git:setup": "git init && git branch -M main && git remote add origin https://github.com/vboyce69-maker/the-exchange-backup.git",
+    "git:push": "git add . && git commit -m 'Production-ready backup from Firebase Studio' && git push -u origin main --force",
     "firebase:login": "npx -y firebase-tools@latest login",
     "firebase:init": "npx -y firebase-tools@latest init",
     "firebase:deploy": "npx -y firebase-tools@latest deploy"
