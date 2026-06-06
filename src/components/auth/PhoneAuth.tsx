@@ -75,6 +75,7 @@ export function PhoneAuth({ onSuccess, agreedToTerms }: PhoneAuthProps) {
 
     try {
       if (!recaptchaVerifierRef.current) {
+          if (!auth) return;
         recaptchaVerifierRef.current = new RecaptchaVerifier(
           auth,
           "recaptcha-container",
@@ -84,6 +85,7 @@ export function PhoneAuth({ onSuccess, agreedToTerms }: PhoneAuthProps) {
         );
       }
 
+if (!auth) return;
       const result = await signInWithPhoneNumber(
         auth,
         formattedPhone,

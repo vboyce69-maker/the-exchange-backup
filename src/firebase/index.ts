@@ -11,9 +11,9 @@ import { firebaseConfig } from "./config";
  * Implements a safer singleton pattern for client-side environments.
  */
 let app: any;
-let auth: Auth;
-let db: Firestore;
-let storage: FirebaseStorage;
+let auth: Auth | null = null;
+let db: Firestore | null = null;
+let storage: FirebaseStorage | null | null;
 
 if (typeof window !== "undefined") {
   app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
@@ -23,7 +23,6 @@ if (typeof window !== "undefined") {
 }
 
 export { auth, db, storage };
-export const firestore = db;
 export const firebaseApp = app;
 
 /**

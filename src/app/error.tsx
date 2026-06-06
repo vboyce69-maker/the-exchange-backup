@@ -20,7 +20,9 @@ export default function GlobalError({
   useEffect(() => {
     // Log the error for AI correction and Admin review
     console.error("Application Crash:", error);
+    if (db) {
     logSystemError(db, error, { userId: user?.uid });
+    }
   }, [error, db, user]);
 
   return (

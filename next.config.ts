@@ -1,6 +1,7 @@
 import type {NextConfig} from 'next';
 
 const nextConfig: NextConfig = {
+ output: 'export',
   /* Enforce strict production build validation */
   typescript: {
     ignoreBuildErrors: false,
