@@ -125,6 +125,7 @@ function LoginPageContent() {
     setError(null);
     try {
       if (isSignUp) {
+          if (!auth) return;
         const userCred = await createUserWithEmailAndPassword(
           auth,
           email,
@@ -138,6 +139,7 @@ function LoginPageContent() {
         });
         router.push("/verify-email");
       } else {
+          if (!auth) return;
         const userCred = await signInWithEmailAndPassword(
           auth,
           email,
@@ -154,7 +156,7 @@ function LoginPageContent() {
   };
 
   const handleAuthSuccess = async () => {
-    if (auth.currentUser) {
+    if (auth?.currentUser) {
       await ensureUserProfile(auth.currentUser);
     }
     router.push(redirectPath);

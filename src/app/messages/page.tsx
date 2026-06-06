@@ -99,7 +99,7 @@ function MessagesContent() {
       senderId: user.uid,
       text: inputValue,
       timestamp: serverTimestamp(),
-      riskScore: result.score,
+      riskScore: result.riskScore,
       aiAnalyzed: result.aiAnalysisPerformed,
     };
 
