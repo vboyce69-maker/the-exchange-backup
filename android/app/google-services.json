@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "865119751321",
+    "project_id": "studio-3125423928-66163",
+    "storage_bucket": "studio-3125423928-66163.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:865119751321:android:b42b0fe0ddb5280049bc08",
+        "android_client_info": {
+          "package_name": "com.theexchange.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDRlXuDGa2r3YUW7fbnTM8CkcrCxKr9ye0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -3,6 +3,7 @@
 import React, { useMemo, type ReactNode } from "react";
 import { FirebaseProvider } from "@/firebase/provider";
 import { initializeFirebase } from "@/firebase";
+import { useCapacitorNavigation } from "@/hooks/use-capacitor-navigation";
 
 interface FirebaseClientProviderProps {
   children: ReactNode;
@@ -11,6 +12,9 @@ interface FirebaseClientProviderProps {
 export function FirebaseClientProvider({
   children,
 }: FirebaseClientProviderProps) {
+  // Handle Android hardware back button
+  useCapacitorNavigation();
+
   const firebaseServices = useMemo(() => {
     // Initialize Firebase on the client side, once per component mount.
     return initializeFirebase();

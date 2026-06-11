@@ -121,7 +121,7 @@ function SettingsContent() {
         locationName,
         updatedAt: new Date().toISOString(),
         email: user.email,
-        phoneNumber: user.phoneNumber,
+        phoneNumber: user.phoneNumber ?? null,
       };
 
       const profileDocRef = doc(db, "userProfiles", user.uid);

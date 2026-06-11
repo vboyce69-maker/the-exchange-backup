@@ -1,3 +1,4 @@
+import { useCapacitorNavigation } from '@/hooks/use-capacitor-navigation';
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import { FirebaseClientProvider } from "@/firebase";
@@ -29,6 +30,7 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+    useCapacitorNavigation();
   return (
     <html lang="en">
       <head>
@@ -38,7 +40,7 @@ export default function RootLayout({
         />
       </head>
       <body
-        className="antialiased selection:bg-primary/10 selection:text-primary overflow-x-hidden touch-pan-y"
+        className="antialiased selection:bg-primary/10 selection:text-primary overflow-x-hidden touch-pan-y animated-bg"
       >
         <FirebaseClientProvider>
           <NetworkStatus />

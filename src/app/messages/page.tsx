@@ -129,77 +129,36 @@ function MessagesContent() {
   return (
     <div className="min-h-screen bg-[#EEF1F3] flex flex-col">
       <Navigation />
-      <main className="flex-1 container mx-auto px-4 py-8 flex flex-col lg:flex-row gap-6 h-[calc(100vh-120px)] overflow-hidden">
-        <aside className="hidden lg:block w-96 bg-white border rounded-[2.5rem] shadow-xl overflow-hidden flex flex-col">
-          <div className="p-8 border-b bg-[#225BC3]/5 flex items-center justify-between">
-            <h2 className="font-black text-2xl text-[#225BC3] uppercase tracking-tighter">
-              Inbox
-            </h2>
-            <Inbox className="w-5 h-5 text-[#34CBED]" />
-          </div>
-          <div className="flex-1 overflow-y-auto p-4 space-y-2">
-            {isThreadsLoading ? (
-              <div className="flex justify-center py-10">
-                <Loader2 className="w-8 h-8 animate-spin text-slate-200" />
-              </div>
-            ) : threads && threads.length > 0 ? (
-              threads.map((t) => (
-                <button
-                  key={t.id}
-                  onClick={() => router.push(`/messages?thread=${t.id}`)}
-                  className={cn(
-                    "w-full p-6 rounded-3xl transition-all flex gap-4 text-left group",
-                    threadId === t.id
-                      ? "bg-blue-50 border-l-8 border-[#225BC3] shadow-md"
-                      : "hover:bg-slate-50",
-                  )}
-                >
-                  <Avatar className="h-14 w-14 border-2 border-white shadow-md">
-                    <AvatarImage
-                      src={`https://picsum.photos/seed/${t.id}/200/200`}
-                    />
-                  </Avatar>
-                  <div className="flex-1 min-w-0">
-                    <p className="font-black text-sm text-slate-900 uppercase truncate mb-1">
-                      {t.listingTitle || "Trade Conversation"}
-                    </p>
-                    <p className="text-[10px] text-slate-400 font-bold truncate">
-                      {t.lastMessage}
-                    </p>
-                  </div>
-                </button>
-              ))
-            ) : (
-              <div className="text-center py-20 opacity-30">
-                <MessageCircle className="w-12 h-12 mx-auto mb-2" />
-                <p className="text-[10px] font-black uppercase tracking-widest">
-                  No active trades
-                </p>
-              </div>
-            )}
-          </div>
-        </aside>
-
-        <div className="flex-1 flex flex-col bg-white border rounded-[2.5rem] shadow-2xl overflow-hidden">
+      <main className="flex-1 container mx-auto px-4 py-8 flex flex-col lg:flex-row gap-6 h-auto lg:h-[calc(100vh-120px)] lg:overflow-hidden">
+        {/* Trade Session / Chat - Order 1 on mobile, 2 on desktop */}
+        <div className="order-1 lg:order-2 flex-1 flex flex-col premium-card overflow-hidden min-h-[500px] lg:min-h-0">
           {threadId ? (
             <>
-              <div className="p-6 border-b flex items-center justify-between bg-white z-10 shadow-sm">
+              <div className="p-6 border-b flex items-center justify-between bg-white/50 backdrop-blur-sm z-10 shadow-sm">
                 <div className="flex items-center gap-4">
-                  <Avatar className="h-12 w-12 border-2 border-[#225BC3]/10">
-                    <AvatarImage
-                      src={`https://picsum.photos/seed/${threadId}/200/200`}
-                    />
-                  </Avatar>
+                  <div className="relative">
+                    <Avatar className="h-14 w-14 border-2 border-[#225BC3]/10">
+                      <AvatarImage
+                        src={`https://picsum.photos/seed/${threadId}/200/200`}
+                      />
+                    </Avatar>
+                    <div className="absolute bottom-0 right-0 w-4 h-4 bg-green-500 border-2 border-white rounded-full shadow-sm" />
+                  </div>
                   <div>
-                    <h3 className="font-black text-[#225BC3] uppercase tracking-tighter leading-none mb-1.5">
-                      Trade Session
-                    </h3>
-                    <div className="flex gap-2">
-                      <Badge className="bg-green-100 text-green-700 border-none px-2 py-0.5 font-black text-[8px] uppercase">
-                        Secure Channel
+                    <div className="flex items-center gap-2 mb-1">
+                      <h3 className="font-black text-[#225BC3] uppercase tracking-tighter leading-none">
+                        Trade Session
+                      </h3>
+                      <span className="text-[10px] font-bold text-slate-400">
+                        #TX-2026-{threadId.substring(0, 5).toUpperCase()}
+                      </span>
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      <Badge className="bg-blue-50 text-[#225BC3] border-none px-2 py-0.5 font-black text-[7px] uppercase flex items-center gap-1">
+                        <ShieldCheck className="w-2 h-2" /> Escrow Protected
                       </Badge>
-                      <Badge className="bg-[#FF8C00] text-white border-none px-2 py-0.5 font-black text-[8px] uppercase">
-                        Payment On Hold
+                      <Badge className="bg-green-50 text-green-700 border-none px-2 py-0.5 font-black text-[7px] uppercase flex items-center gap-1">
+                        <CheckCircle2 className="w-2 h-2" /> Verified Seller
                       </Badge>
                     </div>
                   </div>
@@ -259,13 +218,19 @@ function MessagesContent() {
                   >
                     <div
                       className={cn(
-                        "px-6 py-4 rounded-[1.8rem] text-sm shadow-sm transition-all",
+                        "px-6 py-4 rounded-[2rem] text-sm shadow-md transition-all relative group/bubble",
                         m.senderId === user?.uid
-                          ? "bg-[#225BC3] text-white rounded-tr-none shadow-blue-500/10"
-                          : "bg-white border border-slate-100 rounded-tl-none",
+                          ? "bg-gradient-to-br from-primary to-[#225BC3] text-white rounded-tr-none shadow-blue-500/20"
+                          : "bg-white border border-slate-100 rounded-tl-none shadow-slate-200/50",
                       )}
                     >
                       {m.text}
+                      {m.senderId === user?.uid && (
+                        <div className="absolute -bottom-1 right-2 flex items-center gap-0.5">
+                          <CheckCircle2 className="w-2.5 h-2.5 text-blue-100 opacity-50" />
+                          <CheckCircle2 className="w-2.5 h-2.5 -ml-1 text-blue-100" />
+                        </div>
+                      )}
                     </div>
                     <span className="text-[9px] text-slate-400 font-bold px-2">
                       {m.timestamp
@@ -279,6 +244,19 @@ function MessagesContent() {
                     </span>
                   </div>
                 ))}
+              </div>
+
+              {/* Security Indicators Bar */}
+              <div className="px-8 py-2 bg-slate-50/50 flex justify-center gap-6 border-y border-slate-100/50">
+                <div className="flex items-center gap-1.5 text-[8px] font-black uppercase tracking-widest text-slate-400">
+                  <Lock className="w-3 h-3 text-[#225BC3]" /> End-to-End Protected
+                </div>
+                <div className="flex items-center gap-1.5 text-[8px] font-black uppercase tracking-widest text-slate-400">
+                  <ShieldCheck className="w-3 h-3 text-green-500" /> Identity Verified
+                </div>
+                <div className="flex items-center gap-1.5 text-[8px] font-black uppercase tracking-widest text-slate-400">
+                  <Banknote className="w-3 h-3 text-[#FF8C00]" /> Escrow Protected
+                </div>
               </div>
 
               {bothArrived && (
@@ -342,6 +320,77 @@ function MessagesContent() {
             </div>
           )}
         </div>
+
+        {/* Inbox / Sidebar - Order 2 on mobile, 1 on desktop */}
+        <aside className="order-2 lg:order-1 w-full lg:w-96 premium-card overflow-hidden flex flex-col min-h-[400px] lg:min-h-0">
+          <div className="p-8 border-b bg-[#225BC3]/5 flex items-center justify-between">
+            <h2 className="font-black text-2xl text-[#225BC3] uppercase tracking-tighter">
+              Inbox
+            </h2>
+            <Inbox className="w-5 h-5 text-[#34CBED]" />
+          </div>
+          <div className="flex-1 overflow-y-auto p-4 space-y-2">
+            {isThreadsLoading ? (
+              <div className="flex justify-center py-10">
+                <Loader2 className="w-8 h-8 animate-spin text-slate-200" />
+              </div>
+            ) : threads && threads.length > 0 ? (
+              threads.map((t) => (
+                <button
+                  key={t.id}
+                  onClick={() => {
+                    router.push(`/messages?thread=${t.id}`);
+                    window.scrollTo({ top: 0, behavior: "smooth" });
+                  }}
+                  className={cn(
+                    "w-full p-6 rounded-3xl transition-all flex gap-4 text-left group",
+                    threadId === t.id
+                      ? "bg-blue-50 border-l-8 border-[#225BC3] shadow-md"
+                      : "hover:bg-slate-50",
+                  )}
+                >
+                  <Avatar className="h-14 w-14 border-2 border-white shadow-md">
+                    <AvatarImage
+                      src={`https://picsum.photos/seed/${t.id}/200/200`}
+                    />
+                  </Avatar>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-black text-sm text-slate-900 uppercase truncate mb-1">
+                      {t.listingTitle || "Trade Conversation"}
+                    </p>
+                    <p className="text-[10px] text-slate-400 font-bold truncate">
+                      {t.lastMessage}
+                    </p>
+                  </div>
+                </button>
+              ))
+            ) : (
+              <div className="text-center py-24 px-8 space-y-4">
+                <div className="w-20 h-20 bg-slate-50 rounded-[2rem] flex items-center justify-center mx-auto shadow-inner">
+                  <MessageCircle className="w-10 h-10 text-slate-200" />
+                </div>
+                <div className="space-y-1">
+                  <h3 className="font-black text-xs uppercase tracking-widest text-[#225BC3]">
+                    No active trade sessions
+                  </h3>
+                  <p className="text-[10px] text-slate-400 font-bold leading-relaxed">
+                    Your verified trades will appear here.
+                    <br />
+                    Start browsing trusted listings.
+                  </p>
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="rounded-xl font-black text-[9px] uppercase tracking-widest border-slate-200 h-10 px-6"
+                  onClick={() => router.push("/search")}
+                >
+                  Browse Market
+                </Button>
+              </div>
+            )}
+          </div>
+        </aside>
       </main>
     </div>
   );
