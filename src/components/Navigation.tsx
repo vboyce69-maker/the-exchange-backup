@@ -386,30 +386,11 @@ export function Navigation() {
         </div>
       </nav>
 
-      <div className="bg-gradient-to-r from-primary via-[#225BC3] to-primary text-white h-10 lg:h-14 flex items-center justify-center relative overflow-hidden px-4 border-b border-white/10 shadow-[0_4px_20px_rgba(37,99,235,0.2)]">
-        {/* Subtle shine effect */}
-        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full animate-[shimmer_3s_infinite]" />
-
-        <div className="flex items-center gap-4 lg:gap-8 z-10">
-          <div className="flex items-center gap-2">
-            <Badge className="bg-white/20 text-white border-none text-[8px] lg:text-[10px] font-black uppercase px-2 py-0.5 animate-pulse">
-              🚀 Early Adopter
-            </Badge>
-            <p className="text-[9px] lg:text-[11px] font-black uppercase tracking-[0.15em] lg:tracking-[0.25em]">
-              Founding 100 Sellers Program
-            </p>
-          </div>
-
-          <div className="hidden sm:block h-4 w-px bg-white/20" />
-
-          <p className="text-[8px] lg:text-[10px] font-bold text-blue-100 uppercase tracking-widest hidden md:block">
-            Verified sellers receive reduced fees & priority placement
-          </p>
-
-          <Badge className="bg-secondary text-slate-900 border-none text-[8px] lg:text-[10px] font-black uppercase px-3 py-1 shadow-lg shadow-black/10 scale-105">
-            {slotsLeft} Spots Remaining
-          </Badge>
-        </div>
+      <div className="bg-primary/95 backdrop-blur-md text-white h-8 lg:h-10 flex items-center justify-center overflow-hidden whitespace-nowrap px-4 border-b border-white/10">
+        <p className="text-[8px] lg:text-[10px] font-black uppercase tracking-[0.2em] lg:tracking-[0.4em] truncate">
+          Founding 100 Sellers —{" "}
+          <span className="text-secondary italic">{slotsLeft} Slots Available</span>
+        </p>
       </div>
     </div>
   );

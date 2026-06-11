@@ -1,3 +1,4 @@
+"use client"
 import { useCapacitorNavigation } from '@/hooks/use-capacitor-navigation';
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
@@ -40,7 +41,7 @@ export default function RootLayout({
         />
       </head>
       <body
-        className="antialiased selection:bg-primary/10 selection:text-primary overflow-x-hidden touch-pan-y animated-bg"
+        className="antialiased selection:bg-primary/10 selection:text-primary overflow-x-hidden touch-pan-y"
       >
         <FirebaseClientProvider>
           <NetworkStatus />

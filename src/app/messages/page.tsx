@@ -218,19 +218,13 @@ function MessagesContent() {
                   >
                     <div
                       className={cn(
-                        "px-6 py-4 rounded-[2rem] text-sm shadow-md transition-all relative group/bubble",
+                        "px-6 py-4 rounded-[1.8rem] text-sm shadow-sm transition-all",
                         m.senderId === user?.uid
-                          ? "bg-gradient-to-br from-primary to-[#225BC3] text-white rounded-tr-none shadow-blue-500/20"
-                          : "bg-white border border-slate-100 rounded-tl-none shadow-slate-200/50",
+                          ? "bg-[#225BC3] text-white rounded-tr-none shadow-blue-500/10"
+                          : "bg-white border border-slate-100 rounded-tl-none",
                       )}
                     >
                       {m.text}
-                      {m.senderId === user?.uid && (
-                        <div className="absolute -bottom-1 right-2 flex items-center gap-0.5">
-                          <CheckCircle2 className="w-2.5 h-2.5 text-blue-100 opacity-50" />
-                          <CheckCircle2 className="w-2.5 h-2.5 -ml-1 text-blue-100" />
-                        </div>
-                      )}
                     </div>
                     <span className="text-[9px] text-slate-400 font-bold px-2">
                       {m.timestamp
@@ -365,28 +359,11 @@ function MessagesContent() {
                 </button>
               ))
             ) : (
-              <div className="text-center py-24 px-8 space-y-4">
-                <div className="w-20 h-20 bg-slate-50 rounded-[2rem] flex items-center justify-center mx-auto shadow-inner">
-                  <MessageCircle className="w-10 h-10 text-slate-200" />
-                </div>
-                <div className="space-y-1">
-                  <h3 className="font-black text-xs uppercase tracking-widest text-[#225BC3]">
-                    No active trade sessions
-                  </h3>
-                  <p className="text-[10px] text-slate-400 font-bold leading-relaxed">
-                    Your verified trades will appear here.
-                    <br />
-                    Start browsing trusted listings.
-                  </p>
-                </div>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="rounded-xl font-black text-[9px] uppercase tracking-widest border-slate-200 h-10 px-6"
-                  onClick={() => router.push("/search")}
-                >
-                  Browse Market
-                </Button>
+              <div className="text-center py-20 opacity-30">
+                <MessageCircle className="w-12 h-12 mx-auto mb-2" />
+                <p className="text-[10px] font-black uppercase tracking-widest">
+                  No active trades
+                </p>
               </div>
             )}
           </div>
