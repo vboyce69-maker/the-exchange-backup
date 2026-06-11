@@ -1,5 +1,4 @@
 "use client"
-import { useCapacitorNavigation } from '@/hooks/use-capacitor-navigation';
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import { FirebaseClientProvider } from "@/firebase";
@@ -31,7 +30,6 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-    useCapacitorNavigation();
   return (
     <html lang="en">
       <head>
