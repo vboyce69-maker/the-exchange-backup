@@ -146,19 +146,20 @@ function MessagesContent() {
                   </div>
                   <div>
                     <div className="flex items-center gap-2 mb-1">
+                      <span className="text-[10px] animate-pulse">🟢</span>
                       <h3 className="font-black text-[#225BC3] uppercase tracking-tighter leading-none">
                         Trade Session
                       </h3>
-                      <span className="text-[10px] font-bold text-slate-400">
+                      <span className="text-[10px] font-bold text-slate-400 bg-slate-50 px-1.5 py-0.5 rounded">
                         #TX-2026-{threadId.substring(0, 5).toUpperCase()}
                       </span>
                     </div>
                     <div className="flex flex-wrap gap-2">
-                      <Badge className="bg-blue-50 text-[#225BC3] border-none px-2 py-0.5 font-black text-[7px] uppercase flex items-center gap-1">
-                        <ShieldCheck className="w-2 h-2" /> Escrow Protected
-                      </Badge>
                       <Badge className="bg-green-50 text-green-700 border-none px-2 py-0.5 font-black text-[7px] uppercase flex items-center gap-1">
                         <CheckCircle2 className="w-2 h-2" /> Verified Seller
+                      </Badge>
+                      <Badge className="bg-blue-50 text-[#225BC3] border-none px-2 py-0.5 font-black text-[7px] uppercase flex items-center gap-1">
+                        <ShieldCheck className="w-2 h-2" /> Escrow Protected
                       </Badge>
                     </div>
                   </div>
@@ -218,13 +219,19 @@ function MessagesContent() {
                   >
                     <div
                       className={cn(
-                        "px-6 py-4 rounded-[1.8rem] text-sm shadow-sm transition-all",
+                        "px-6 py-4 rounded-[2rem] text-sm shadow-md transition-all relative group/bubble",
                         m.senderId === user?.uid
-                          ? "bg-[#225BC3] text-white rounded-tr-none shadow-blue-500/10"
-                          : "bg-white border border-slate-100 rounded-tl-none",
+                          ? "bg-gradient-to-br from-primary to-[#225BC3] text-white rounded-tr-none shadow-blue-500/20"
+                          : "bg-white border border-slate-100 rounded-tl-none shadow-slate-200/50",
                       )}
                     >
                       {m.text}
+                      {m.senderId === user?.uid && (
+                        <div className="absolute -bottom-1 right-2 flex items-center gap-0.5">
+                          <CheckCircle2 className="w-2.5 h-2.5 text-blue-100 opacity-50" />
+                          <CheckCircle2 className="w-2.5 h-2.5 -ml-1 text-blue-100" />
+                        </div>
+                      )}
                     </div>
                     <span className="text-[9px] text-slate-400 font-bold px-2">
                       {m.timestamp
@@ -241,15 +248,15 @@ function MessagesContent() {
               </div>
 
               {/* Security Indicators Bar */}
-              <div className="px-8 py-2 bg-slate-50/50 flex justify-center gap-6 border-y border-slate-100/50">
-                <div className="flex items-center gap-1.5 text-[8px] font-black uppercase tracking-widest text-slate-400">
-                  <Lock className="w-3 h-3 text-[#225BC3]" /> End-to-End Protected
+              <div className="px-8 py-3 bg-slate-50/50 flex flex-wrap justify-center gap-x-8 gap-y-2 border-y border-slate-100/50 shadow-inner">
+                <div className="flex items-center gap-1.5 text-[8px] font-black uppercase tracking-[0.1em] text-slate-500">
+                  <Lock className="w-2.5 h-2.5 text-[#225BC3]" /> 🔒 End-to-End Protected
                 </div>
-                <div className="flex items-center gap-1.5 text-[8px] font-black uppercase tracking-widest text-slate-400">
-                  <ShieldCheck className="w-3 h-3 text-green-500" /> Identity Verified
+                <div className="flex items-center gap-1.5 text-[8px] font-black uppercase tracking-[0.1em] text-slate-500">
+                  <CheckCircle2 className="w-2.5 h-2.5 text-green-500" /> ✓ Identity Verified
                 </div>
-                <div className="flex items-center gap-1.5 text-[8px] font-black uppercase tracking-widest text-slate-400">
-                  <Banknote className="w-3 h-3 text-[#FF8C00]" /> Escrow Protected
+                <div className="flex items-center gap-1.5 text-[8px] font-black uppercase tracking-[0.1em] text-slate-500">
+                  <ShieldCheck className="w-2.5 h-2.5 text-[#FF8C00]" /> ✓ Escrow Protected
                 </div>
               </div>
 
@@ -359,11 +366,29 @@ function MessagesContent() {
                 </button>
               ))
             ) : (
-              <div className="text-center py-20 opacity-30">
-                <MessageCircle className="w-12 h-12 mx-auto mb-2" />
-                <p className="text-[10px] font-black uppercase tracking-widest">
-                  No active trades
-                </p>
+              <div className="text-center py-24 px-8 space-y-6">
+                <div className="w-24 h-24 bg-gradient-to-br from-blue-50 to-white rounded-[2.5rem] flex items-center justify-center mx-auto shadow-inner ring-1 ring-slate-100">
+                  <div className="relative">
+                    <MessageCircle className="w-12 h-12 text-slate-200" />
+                    <ShieldCheck className="absolute -top-1 -right-1 w-5 h-5 text-[#225BC3] bg-white rounded-full p-0.5 shadow-sm" />
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <h3 className="font-black text-sm uppercase tracking-widest text-slate-800">
+                    No active trade sessions
+                  </h3>
+                  <p className="text-[11px] text-slate-400 font-bold leading-relaxed max-w-[200px] mx-auto">
+                    Your verified trades will appear here. Start browsing trusted listings to initiate a trade.
+                  </p>
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="rounded-2xl font-black text-[10px] uppercase tracking-widest border-slate-200 h-12 px-8 shadow-sm hover:bg-slate-50 transition-all"
+                  onClick={() => router.push("/search")}
+                >
+                  Start Browsing
+                </Button>
               </div>
             )}
           </div>
