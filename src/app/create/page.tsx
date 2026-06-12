@@ -108,7 +108,7 @@ function CreateListingContent() {
       byteArray[i] = byteCharacters.charCodeAt(i);
     }
     const blob = new Blob([byteArray], { type: 'image/jpeg' });
-    const storageRef = ref(storage, listings/${user.uid}/${Date.now()});
+    const storageRef = ref(storage, `listings/${user.uid}/${Date.now()}`);
     await uploadBytes(storageRef, blob);
     const downloadURL = await getDownloadURL(storageRef);
     setImages([...images, downloadURL]);
