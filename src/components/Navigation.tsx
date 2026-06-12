@@ -386,11 +386,31 @@ export function Navigation() {
         </div>
       </nav>
 
-      <div className="bg-primary/95 backdrop-blur-md text-white h-8 lg:h-10 flex items-center justify-center overflow-hidden whitespace-nowrap px-4 border-b border-white/10">
-        <p className="text-[8px] lg:text-[10px] font-black uppercase tracking-[0.2em] lg:tracking-[0.4em] truncate">
-          Founding 100 Sellers —{" "}
-          <span className="text-secondary italic">{slotsLeft} Slots Available</span>
-        </p>
+      <div className="bg-gradient-to-r from-primary via-[#225BC3] to-primary text-white h-12 lg:h-16 flex items-center justify-center relative overflow-hidden px-4 border-b border-white/10 shadow-[0_4px_20px_rgba(37,99,235,0.25)]">
+        {/* Animated shine effect */}
+        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full animate-[shimmer_3s_infinite]" />
+
+        <div className="flex items-center gap-4 lg:gap-10 z-10">
+          <div className="flex items-center gap-2.5">
+            <div className="bg-white/20 backdrop-blur-md text-white border border-white/10 text-[9px] lg:text-[11px] font-black uppercase px-3 py-1 rounded-full animate-pulse flex items-center gap-1.5">
+              <span className="w-1.5 h-1.5 bg-secondary rounded-full animate-ping" /> 🚀 Founding 100
+            </div>
+            <p className="text-[10px] lg:text-[12px] font-black uppercase tracking-[0.15em] lg:tracking-[0.2em] drop-shadow-sm">
+              Sellers Program <span className="hidden sm:inline opacity-50 mx-2">—</span>
+              <span className="text-secondary font-bold ml-1 hidden sm:inline">{slotsLeft} spots remaining.</span>
+            </p>
+          </div>
+
+          <div className="hidden lg:block h-6 w-px bg-white/20" />
+
+          <p className="text-[9px] lg:text-[11px] font-medium text-blue-50 uppercase tracking-widest hidden md:block">
+            Verified sellers receive <span className="text-secondary font-black">reduced platform fees</span> & priority placement.
+          </p>
+
+          <Badge className="bg-secondary text-slate-900 border-none text-[9px] lg:text-[11px] font-black uppercase px-4 py-1.5 shadow-xl shadow-black/10 scale-105 hover:scale-110 transition-transform cursor-default">
+            {slotsLeft} Open Slots
+          </Badge>
+        </div>
       </div>
     </div>
   );

@@ -19,8 +19,10 @@ export function useCapacitorNavigation() {
     let backButtonListener: any;
 
     const setupListener = async () => {
-      backButtonListener = await App.addListener("backButton", ({ canGoBack }) => {
-        if (pathname === "/" || pathname === "/login" || !canGoBack) {
+      backButtonListener = await App.addListener("backButton", () => {
+        // Only exit if we are on a "root" page.
+        // For all other pages, we trigger the router to go back.
+        if (pathname === "/" || pathname === "/login") {
           App.exitApp();
         } else {
           router.back();

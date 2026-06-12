@@ -39,7 +39,7 @@ export default function RootLayout({
         />
       </head>
       <body
-        className="antialiased selection:bg-primary/10 selection:text-primary overflow-x-hidden touch-pan-y"
+        className="antialiased selection:bg-primary/10 selection:text-primary overflow-x-hidden touch-pan-y premium-bg"
       >
         <FirebaseClientProvider>
           <NetworkStatus />
