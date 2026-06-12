@@ -1,4 +1,3 @@
-"use client"
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import { FirebaseClientProvider } from "@/firebase";

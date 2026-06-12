@@ -156,7 +156,7 @@ function MessagesContent() {
                     </div>
                     <div className="flex flex-wrap gap-2">
                       <Badge className="bg-green-50 text-green-700 border-none px-2 py-0.5 font-black text-[7px] uppercase flex items-center gap-1">
-                        <CheckCircle2 className="w-2 h-2" /> Verified Seller
+                        <ShieldCheck className="w-2 h-2" /> Verified Seller
                       </Badge>
                       <Badge className="bg-blue-50 text-[#225BC3] border-none px-2 py-0.5 font-black text-[7px] uppercase flex items-center gap-1">
                         <ShieldCheck className="w-2 h-2" /> Escrow Protected
@@ -228,8 +228,8 @@ function MessagesContent() {
                       {m.text}
                       {m.senderId === user?.uid && (
                         <div className="absolute -bottom-1 right-2 flex items-center gap-0.5">
-                          <CheckCircle2 className="w-2.5 h-2.5 text-blue-100 opacity-50" />
-                          <CheckCircle2 className="w-2.5 h-2.5 -ml-1 text-blue-100" />
+                          <ShieldCheck className="w-2.5 h-2.5 text-blue-100 opacity-50" />
+                          <ShieldCheck className="w-2.5 h-2.5 -ml-1 text-blue-100" />
                         </div>
                       )}
                     </div>
@@ -253,7 +253,7 @@ function MessagesContent() {
                   <Lock className="w-2.5 h-2.5 text-[#225BC3]" /> 🔒 End-to-End Protected
                 </div>
                 <div className="flex items-center gap-1.5 text-[8px] font-black uppercase tracking-[0.1em] text-slate-500">
-                  <CheckCircle2 className="w-2.5 h-2.5 text-green-500" /> ✓ Identity Verified
+                  <ShieldCheck className="w-2.5 h-2.5 text-green-500" /> ✓ Identity Verified
                 </div>
                 <div className="flex items-center gap-1.5 text-[8px] font-black uppercase tracking-[0.1em] text-slate-500">
                   <ShieldCheck className="w-2.5 h-2.5 text-[#FF8C00]" /> ✓ Escrow Protected
