@@ -33,7 +33,7 @@ import {
   useMemoFirebase,
 } from "@/firebase";
 import { addDocumentNonBlocking } from "@/firebase/non-blocking-updates";
-import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
+import { ref, uploadString, getDownloadURL } from "firebase/storage";
 import { Badge } from "@/components/ui/badge";
 import { MARKET_CONFIG, getListingLimit } from "@/app/lib/market-config";
 import { cn } from "@/lib/utils";
@@ -92,33 +92,41 @@ function CreateListingContent() {
   const isLimitReached = userListingCount >= maxListings;
 
   const handleListingCapture = async () => {
-  if (!user || !storage) return;
-  try {
-    setUploadingImage(true);
-    const { Camera, CameraResultType, CameraSource } = await import('@capacitor/camera');
-    const photo = await Camera.getPhoto({
-      resultType: CameraResultType.Base64,
-      source: CameraSource.Camera,
-      quality: 70,
-    });
-    const base64Data = photo.base64String!;
-    const byteCharacters = atob(base64Data);
-    const byteArray = new Uint8Array(byteCharacters.length);
-    for (let i = 0; i < byteCharacters.length; i++) {
-      byteArray[i] = byteCharacters.charCodeAt(i);
+    if (!user || !storage) return;
+    try {
+      setUploadingImage(true);
+      const { Camera, CameraResultType, CameraSource } = await import('@capacitor/camera');
+      const photo = await Camera.getPhoto({
+        resultType: CameraResultType.Base64,
+        source: CameraSource.Camera,
+        quality: 70,
+      });
+
+      if (!photo.base64String) throw new Error('No image data received');
+
+      const storageRef = ref(storage, `listings/${user.uid}/${Date.now()}.jpg`);
+      await uploadString(storageRef, photo.base64String, 'base64', {
+        contentType: 'image/jpeg',
+      });
+
+      const downloadURL = await getDownloadURL(storageRef);
+      setImages((prev) => [...prev, downloadURL]);
+
+      toast({
+        title: "Live Photo Added",
+        description: "In-app camera capture secured."
+      });
+    } catch (err: any) {
+      console.error('Capture Error:', err);
+      toast({
+        variant: "destructive",
+        title: "Capture Error",
+        description: String(err?.message || 'Could not upload live photo.')
+      });
+    } finally {
+      setUploadingImage(false);
     }
-    const blob = new Blob([byteArray], { type: 'image/jpeg' });
-    const storageRef = ref(storage, `listings/${user.uid}/${Date.now()}`);
-    await uploadBytes(storageRef, blob);
-    const downloadURL = await getDownloadURL(storageRef);
-    setImages([...images, downloadURL]);
-    toast({ title: "Live Photo Added", description: "In-app camera capture secured." });
-  } catch (err: any) {
-    toast({ variant: "destructive", title: "Capture Error", description: "Could not upload live photo." });
-  } finally {
-    setUploadingImage(false);
-  }
-};
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
