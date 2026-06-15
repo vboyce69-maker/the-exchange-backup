@@ -33,6 +33,7 @@ import {
   useMemoFirebase,
 } from "@/firebase";
 import { Capacitor } from '@capacitor/core';
+import { App as CapApp } from '@capacitor/app';
 import { uploadBytes } from 'firebase/storage';
 import { addDocumentNonBlocking } from "@/firebase/non-blocking-updates";
 import { ref, getDownloadURL } from "firebase/storage";
@@ -90,6 +91,41 @@ function CreateListingContent() {
     checkLimits();
   }, [user, db]);
 
+  // Rescue photo if Android killed the WebView during camera capture
+  useEffect(() => {
+    if (!Capacitor.isNativePlatform()) return;
+
+    const listenerPromise = CapApp.addListener('appRestoredResult', async (data: any) => {
+      if (data.pluginId !== 'Camera' || data.methodName !== 'getPhoto') return;
+      if (!data.success || !data.data) return;
+
+      const photo = data.data;
+      try {
+        setUploadingImage(true);
+        const filePath = photo.path ?? photo.webPath;
+        if (!filePath) throw new Error('No image path after restore');
+        const safeUrl = Capacitor.convertFileSrc(filePath);
+        const response = await fetch(safeUrl);
+        if (!response.ok) throw new Error(Fetch failed: ${response.status});
+        const blob = await response.blob();
+        const storageRef = ref(storage, listings/${user?.uid}/${Date.now()}.jpg);
+        await uploadBytes(storageRef, blob);
+        const downloadURL = await getDownloadURL(storageRef);
+        setImages((prev) => [...prev, downloadURL]);
+        toast({ title: "Live Photo Added", description: "In-app camera capture secured." });
+      } catch (err: any) {
+        console.error('Restored capture error:', err);
+        toast({ variant: "destructive", title: "Capture Error", description: err.message || 'Could not upload photo' });
+      } finally {
+        setUploadingImage(false);
+      }
+    });
+
+    return () => {
+      listenerPromise.then(l => l.remove());
+    };
+  }, [user, storage]);
+
   const maxListings = getListingLimit(profile);
   const isLimitReached = userListingCount >= maxListings;
 
@@ -104,12 +140,14 @@ function CreateListingContent() {
         quality: 70,
       });
 
-      if (!photo.webPath) throw new Error('No image data received');
+      const filePath = photo.path ?? photo.webPath;
+      if (!filePath) throw new Error('No image data received');
 
-      const safeUrl = Capacitor.convertFileSrc(photo.webPath);
+      const safeUrl = Capacitor.convertFileSrc(filePath);
       const response = await fetch(safeUrl);
+      if (!response.ok) throw new Error(Fetch failed: ${response.status});
       const blob = await response.blob();
-      const storageRef = ref(storage, 'listings/' + user.uid + '/' +Date.now() + '.jpg');
+      const storageRef = ref(storage, listings/${user.uid}/${Date.now()}.jpg);
       await uploadBytes(storageRef, blob);
 
       const downloadURL = await getDownloadURL(storageRef);
@@ -120,6 +158,7 @@ function CreateListingContent() {
         description: "In-app camera capture secured."
       });
     } catch (err: any) {
+      if (err?.message?.includes('cancelled') || err?.message?.includes('canceled')) return;
       console.error('Capture Error:', err);
       toast({
         variant: "destructive",
@@ -146,7 +185,7 @@ function CreateListingContent() {
     setLoading(true);
 
     const validationResult = await checkContent(
-      `${title} ${description}`,
+      ${title} ${description},
       "listing",
     );
 
@@ -296,7 +335,7 @@ function CreateListingContent() {
                             </span>
                           </>
                         )}
-                                              </button>
+                      </button>
                     )}
                   </div>
                   <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest text-center">
