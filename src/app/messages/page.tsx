@@ -161,6 +161,9 @@ function MessagesContent() {
                       <Badge className="bg-blue-50 text-[#225BC3] border-none px-2 py-0.5 font-black text-[7px] uppercase flex items-center gap-1">
                         <ShieldCheck className="w-2 h-2" /> Escrow Protected
                       </Badge>
+                      <Badge className="bg-[#FF8C00] text-white border-none px-2 py-0.5 font-black text-[7px] uppercase flex items-center gap-1">
+                        <Lock className="w-2 h-2" /> Payment On Hold
+                      </Badge>
                     </div>
                   </div>
                 </div>
