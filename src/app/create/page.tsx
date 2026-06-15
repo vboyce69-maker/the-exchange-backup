@@ -32,8 +32,10 @@ import {
   useDoc,
   useMemoFirebase,
 } from "@/firebase";
+import { Capacitor } from '@capacitor/core';
+import { uploadBytes } from 'firebase/storage';
 import { addDocumentNonBlocking } from "@/firebase/non-blocking-updates";
-import { ref, uploadString, getDownloadURL } from "firebase/storage";
+import { ref, getDownloadURL } from "firebase/storage";
 import { Badge } from "@/components/ui/badge";
 import { MARKET_CONFIG, getListingLimit } from "@/app/lib/market-config";
 import { cn } from "@/lib/utils";
@@ -97,17 +99,18 @@ function CreateListingContent() {
       setUploadingImage(true);
       const { Camera, CameraResultType, CameraSource } = await import('@capacitor/camera');
       const photo = await Camera.getPhoto({
-        resultType: CameraResultType.Base64,
+        resultType: CameraResultType.Uri,
         source: CameraSource.Camera,
         quality: 70,
       });
 
-      if (!photo.base64String) throw new Error('No image data received');
+      if (!photo.webPath) throw new Error('No image data received');
 
-      const storageRef = ref(storage, `listings/${user.uid}/${Date.now()}.jpg`);
-      await uploadString(storageRef, photo.base64String, 'base64', {
-        contentType: 'image/jpeg',
-      });
+      const safeUrl = Capacitor.convertFileSrc(photo.webPath);
+      const response = await fetch(safeUrl);
+      const blob = await response.blob();
+      const storageRef = ref(storage, 'listings/' + user.uid + '/' +Date.now() + '.jpg');
+      await uploadBytes(storageRef, blob);
 
       const downloadURL = await getDownloadURL(storageRef);
       setImages((prev) => [...prev, downloadURL]);
