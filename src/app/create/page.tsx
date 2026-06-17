@@ -186,9 +186,9 @@ function CreateListingContent() {
 
       const safeUrl = Capacitor.convertFileSrc(filePath);
       const response = await fetch(safeUrl);
-      if (!response.ok) throw new Error(Fetch failed: ${response.status});
+      if (!response.ok) throw new Error(`Fetch failed: ${response.status}`);
       const blob = await response.blob();
-      const storageRef = ref(storage, listings/${user.uid}/${Date.now()}.jpg);
+      const storageRef = ref(storage, `listings/${user.uid}/${Date.now()}.jpg`);
       await uploadBytes(storageRef, blob);
 
       const downloadURL = await getDownloadURL(storageRef);
