@@ -244,6 +244,53 @@ export default function ListingDetailPage() {
     }
   };
 
+const handlePlaceBid = async () => {
+  const newBid = parseFloat(bidAmount);
+  if (!db || !id || !user || !listing) return;
+  if (isNaN(newBid) || newBid <= (listing.highestBid || listing.price || 0)) {
+    toast({
+      variant: "destructive",
+      title: "Invalid Bid",
+      description: "Your bid must be higher than the current bid.",
+    });
+    return;
+  }
+
+  setIsBidding(true);
+  try {
+    const previousBidderId = listing.highestBidderId;
+    const listingDocRef = doc(db, "publicListings", id as string);
+
+    await updateDoc(listingDocRef, {
+      highestBid: newBid,
+      highestBidderId: user.uid,
+    });
+
+    if (previousBidderId && previousBidderId !== user.uid) {
+      await addDoc(collection(db, "notifications"), {
+        userId: previousBidderId,
+        listingId: id,
+        type: "outbid",
+        title: "You've Been Outbid! 🔔",
+        message: `Someone placed a higher bid of R ${newBid.toLocaleString()} on "${listing.title}".`,
+        timestamp: serverTimestamp(),
+        isRead: false,
+      });
+    }
+
+    toast({ title: "Bid Successful", description: `You're now the highest bidder at R ${newBid.toLocaleString()}.` });
+    setBidAmount("");
+  } catch (err) {
+    console.error(err);
+    toast({
+      variant: "destructive",
+      title: "Bid Failed",
+      description: "Could not place your bid. Please try again.",
+    });
+  } finally {
+    setIsBidding(false);
+  }
+};
   const handleStartChat = async () => {
     if (!db || !listing || !user) return;
     try {
@@ -433,13 +480,7 @@ export default function ListingDetailPage() {
                           />
                           <Button
                             className="h-16 px-10 bg-[#225BC3] text-white font-black rounded-2xl text-lg shadow-xl"
-                            onClick={() => {
-                              setIsBidding(true);
-                              setTimeout(() => {
-                                setIsBidding(false);
-                                toast({ title: "Bid Successful" });
-                              }, 1000);
-                            }}
+                            onClick={handlePlaceBid}
                             disabled={isBidding}
                           >
                             {isBidding ? (

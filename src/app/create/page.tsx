@@ -29,9 +29,8 @@ import {
 } from "@/firebase";
 import { Capacitor } from '@capacitor/core';
 import { App as CapApp } from '@capacitor/app';
-import { uploadBytes } from 'firebase/storage';
+import { uploadBytes, ref, getDownloadURL } from 'firebase/storage';
 import { addDocumentNonBlocking } from "@/firebase/non-blocking-updates";
-import { ref, getDownloadURL } from "firebase/storage";
 import { Badge } from "@/components/ui/badge";
 import { MARKET_CONFIG, getListingLimit } from "@/app/lib/market-config";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -93,11 +92,15 @@ function CreateListingContent() {
       if (data.pluginId !== 'Camera' || data.methodName !== 'getPhoto') return;
       if (!data.success || !data.data) return;
 
+      // Strict TypeScript guard for Storage
+      if (!storage || !user) return;
+
       const photo = data.data;
       try {
         setUploadingImage(true);
         const filePath = photo.path ?? photo.webPath;
         if (!filePath) throw new Error('No image path after restore');
+
         const safeUrl = Capacitor.convertFileSrc(filePath);
         const response = await fetch(safeUrl);
         if (!response.ok) throw new Error(`Fetch failed: ${response.status}`);
@@ -191,7 +194,7 @@ function CreateListingContent() {
 
     const validationResult = await checkContent(
       `${title} ${description}`,
-      "listing",
+      "listing"
     );
 
     if (validationResult?.decision === "block") {
@@ -210,8 +213,7 @@ function CreateListingContent() {
       currency: MARKET_CONFIG.CURRENCY,
       imageUrls: images,
       postedDate: new Date().toISOString(),
-      status:
-        validationResult?.decision === "warn" ? "pending_review" : "available",
+      status: validationResult?.decision === "warn" ? "pending_review" : "available",
       isVerified: profile?.kycStatus === "verified",
       trustScore: profile?.trustScore || 50,
       riskFlags: validationResult?.audit.matchedRules || [],
@@ -222,14 +224,8 @@ function CreateListingContent() {
     setTimeout(() => {
       setLoading(false);
       toast({
-        title:
-          listingData.status === "available"
-            ? "Listing Live"
-            : "Sent for Review",
-        description:
-          listingData.status === "available"
-            ? "Your item is visible to buyers."
-            : "Validation required for high-risk flags.",
+        title: listingData.status === "available" ? "Listing Live" : "Sent for Review",
+        description: listingData.status === "available" ? "Your item is visible to buyers." : "Validation required for high-risk flags.",
       });
       router.push("/search");
     }, 1000);
