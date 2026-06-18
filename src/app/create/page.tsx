@@ -11,16 +11,11 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import {
   X,
-  Zap,
   Loader2,
   Camera,
-  AlertTriangle,
-  Lock,
-  Award,
-  ShieldAlert,
-  Info,
   ShieldCheck,
   MapPin,
+  ShieldAlert,
 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import Image from "next/image";
@@ -39,7 +34,6 @@ import { addDocumentNonBlocking } from "@/firebase/non-blocking-updates";
 import { ref, getDownloadURL } from "firebase/storage";
 import { Badge } from "@/components/ui/badge";
 import { MARKET_CONFIG, getListingLimit } from "@/app/lib/market-config";
-import { cn } from "@/lib/utils";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { useScamDetection } from "@/hooks/use-scam-detection";
 
@@ -105,17 +99,17 @@ function CreateListingContent() {
         const filePath = photo.path ?? photo.webPath;
         if (!filePath) throw new Error('No image path after restore');
         const safeUrl = Capacitor.convertFileSrc(filePath);
-              const response = await fetch(safeUrl);
-              if (!response.ok) throw new Error(`Fetch failed: ${response.status}`);
+        const response = await fetch(safeUrl);
+        if (!response.ok) throw new Error(`Fetch failed: ${response.status}`);
 
-              const blob = await response.blob();
-              const storageRef = ref(storage, `listings/${user?.uid}/${Date.now()}.jpg`);
-              await uploadBytes(storageRef, blob);
+        const blob = await response.blob();
+        const storageRef = ref(storage, `listings/${user?.uid}/${Date.now()}.jpg`);
+        await uploadBytes(storageRef, blob);
 
-              const downloadURL = await getDownloadURL(storageRef);
-              setImages((prev) => [...prev, downloadURL]);
+        const downloadURL = await getDownloadURL(storageRef);
+        setImages((prev) => [...prev, downloadURL]);
 
-              toast({ title: "Live Photo Added", description: "In-app camera capture secured." });
+        toast({ title: "Live Photo Added", description: "In-app camera capture secured." });
       } catch (err: any) {
         console.error('Restored capture error:', err);
         toast({ variant: "destructive", title: "Capture Error", description: err.message || 'Could not upload photo' });
@@ -133,65 +127,35 @@ function CreateListingContent() {
   const isLimitReached = userListingCount >= maxListings;
 
   const handleListingCapture = async () => {
-      if (!user || !storage) return;
-      try {
-        setUploadingImage(true);
-        const { Camera, CameraResultType, CameraSource } = await import('@capacitor/camera');
+    if (!user || !storage) return;
+    try {
+      setUploadingImage(true);
+      const { Camera, CameraResultType, CameraSource } = await import('@capacitor/camera');
 
-        // 1. Force base64 data capture to completely bypass Android local file:// sandbox limits
-        const photo = await Camera.getPhoto({
-          resultType: CameraResultType.Base64,
-          source: CameraSource.Camera,
-          quality: 70,
-        });
+      // 1. Force base64 data capture to completely bypass Android local file:// sandbox limits
+      const photo = await Camera.getPhoto({
+        resultType: CameraResultType.Base64,
+        source: CameraSource.Camera,
+        quality: 70,
+      });
 
-        if (!photo.base64String) throw new Error('No image base64 data received');
+      if (!photo.base64String) throw new Error('No image base64 data received');
 
-        // 2. Render the preview UI instantly using the raw base64 data string
-        const localPreviewUrl = `data:image/jpeg;base64,${photo.base64String}`;
+      // 2. Render the preview UI instantly using the raw base64 data string
+      const localPreviewUrl = `data:image/jpeg;base64,${photo.base64String}`;
 
-        // 3. Construct a standard data-blob instance safely
-        const rawResponse = await fetch(localPreviewUrl);
-        const blob = await rawResponse.blob();
+      // 3. Construct a standard data-blob instance safely
+      const rawResponse = await fetch(localPreviewUrl);
+      const blob = await rawResponse.blob();
 
-        // 4. Generate the target Storage bucket directory reference path
-        const storageRef = ref(storage, `listings/${user.uid}/${Date.now()}.jpg`);
-
-        // 5. Explicitly await the complete byte upload cycle before pushing any URLs
-        await uploadBytes(storageRef, blob);
-        const downloadURL = await getDownloadURL(storageRef);
-
-        // 6. Push the verified, live Firebase download URL to your UI listing array
-        setImages((prev) => [...prev, downloadURL]);
-
-        toast({
-          title: "Live Photo Added",
-          description: "In-app camera capture secured."
-        });
-      } catch (err: any) {
-        if (err?.message?.includes('cancelled') || err?.message?.includes('canceled')) return;
-        console.error('Capture Error:', err);
-        toast({
-          variant: "destructive",
-          title: "Capture Error",
-          description: String(err?.message || 'Could not upload live photo.')
-        });
-      } finally {
-        setUploadingImage(false);
-      }
-    };
-
-      const filePath = photo.path ?? photo.webPath;
-      if (!filePath) throw new Error('No image data received');
-
-      const safeUrl = Capacitor.convertFileSrc(filePath);
-      const response = await fetch(safeUrl);
-      if (!response.ok) throw new Error(`Fetch failed: ${response.status}`);
-      const blob = await response.blob();
+      // 4. Generate the target Storage bucket directory reference path
       const storageRef = ref(storage, `listings/${user.uid}/${Date.now()}.jpg`);
-      await uploadBytes(storageRef, blob);
 
+      // 5. Explicitly await the complete byte upload cycle before pushing any URLs
+      await uploadBytes(storageRef, blob);
       const downloadURL = await getDownloadURL(storageRef);
+
+      // 6. Push the verified, live Firebase download URL to your UI listing array
       setImages((prev) => [...prev, downloadURL]);
 
       toast({
@@ -226,7 +190,7 @@ function CreateListingContent() {
     setLoading(true);
 
     const validationResult = await checkContent(
-      ${title} ${description},
+      `${title} ${description}`,
       "listing",
     );
 
