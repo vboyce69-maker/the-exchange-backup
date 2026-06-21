@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useEffect, useMemo } from "react";
 import { useParams, useRouter } from "next/navigation";
@@ -214,7 +214,7 @@ export default function ListingDetailPage() {
             userId: followData.userId,
             listingId: id,
             type: "price_drop",
-            title: "Price Drop Alert! 💸",
+            title: "Price Drop Alert! ðŸ’¸",
             message: `The item "${listing.title}" just dropped to R ${updatedPrice.toLocaleString()}!`,
             timestamp: serverTimestamp(),
             isRead: false,
@@ -271,7 +271,7 @@ const handlePlaceBid = async () => {
         userId: previousBidderId,
         listingId: id,
         type: "outbid",
-        title: "You've Been Outbid! 🔔",
+        title: "You've Been Outbid! ðŸ””",
         message: `Someone placed a higher bid of R ${newBid.toLocaleString()} on "${listing.title}".`,
         timestamp: serverTimestamp(),
         isRead: false,
@@ -307,7 +307,7 @@ const handlePlaceBid = async () => {
               listingTitle: listing.title,
               participants: [user.uid, listing.sellerId],
               updatedAt: serverTimestamp(),
-              lastMessage: "手 Handshake established.",
+              lastMessage: "æ‰‹ Handshake established.",
             })
           ).id
         : snap.docs[0].id;
