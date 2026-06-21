@@ -26,7 +26,7 @@ interface PhoneAuthProps {
   agreedToTerms: boolean;
 }
 
-export function PhoneAuth({ onSuccess, agreedToTerms }: PhoneAuthProps) {
+export function PhoneAuth({ onSuccess, agreedToTerms, onConsentChange }: PhoneAuthProps) {
   const [loading, setLoading] = useState(false);
   const [phoneNumber, setPhoneNumber] = useState("");
   const [otp, setOtp] = useState("");
@@ -136,12 +136,20 @@ if (!auth) return;
     setLoading(true);
     try {
       await confirmationResult.confirm(otp);
-      onSuccess();
+      toast({
+        title: "Access Granted",
+        description: "Your identity has been verified.",
+      });
+      // Small delay to ensure the toast is seen and state is stable
+      setTimeout(() => {
+        onSuccess();
+      }, 500);
     } catch (err: any) {
+      console.error("OTP Verification Error:", err);
       toast({
         variant: "destructive",
         title: "Invalid Code",
-        description: "The code you entered is incorrect.",
+        description: "The code you entered is incorrect or expired.",
       });
     } finally {
       setLoading(false);

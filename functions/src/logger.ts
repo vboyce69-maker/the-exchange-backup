@@ -1,5 +1,6 @@
 import { onCall, HttpsError } from "firebase-functions/v2/https";
 import { getFirestore, FieldValue } from "firebase-admin/firestore";
+import { sanitizeMetadata } from "./sanitize";
 
 const db = getFirestore();
 
@@ -29,7 +30,7 @@ export const logAuditEvent = onCall(async (request) => {
       category,
       type,
       userId: request.auth.uid,
-      metadata, // In production, add a sanitization layer here to strip PII
+      metadata: sanitizeMetadata(metadata),
       timestamp: FieldValue.serverTimestamp(),
       source: "client_call",
     };

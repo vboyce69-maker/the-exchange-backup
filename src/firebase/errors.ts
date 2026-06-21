@@ -102,11 +102,13 @@ function buildRequestObject(context: SecurityRuleContext): SecurityRuleRequest {
 }
 
 /**
- * Builds the final, formatted error message for the LLM.
- * @param requestObject The simulated request object.
- * @returns A string containing the error message and the JSON payload.
+ * Builds the final, formatted error message.
+ * In production, we return a generic message to prevent information leakage.
  */
 function buildErrorMessage(requestObject: SecurityRuleRequest): string {
+  if (process.env.NODE_ENV === "production") {
+    return "Insufficient permissions for this marketplace action.";
+  }
   return `Missing or insufficient permissions: The following request was denied by Firestore Security Rules:
 ${JSON.stringify(requestObject, null, 2)}`;
 }
