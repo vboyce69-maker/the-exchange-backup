@@ -98,7 +98,7 @@ if (!auth) return;
         description: `Verification code sent to ${formattedPhone}`,
       });
     } catch (err: any) {
-      console.error("Phone Auth Error:", err);
+      console.error("Phone Auth Error:", err.code);
 
       let errorMessage = err.message || "An unexpected error occurred.";
 
@@ -145,7 +145,7 @@ if (!auth) return;
         onSuccess();
       }, 500);
     } catch (err: any) {
-      console.error("OTP Verification Error:", err);
+      console.error("OTP Verification Error:", err.code);
       toast({
         variant: "destructive",
         title: "Invalid Code",
