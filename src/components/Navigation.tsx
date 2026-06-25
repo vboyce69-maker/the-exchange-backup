@@ -200,6 +200,36 @@ export function Navigation() {
           </form>
 
           <div className="flex items-center gap-1.5 sm:gap-2 lg:gap-4">
+            {user && (
+              <>
+                <Link
+                  href={profile?.kycStatus === 'verified' ? "/create" : "/verify"}
+                  className="hidden sm:block"
+                >
+                  <Button className="h-9 lg:h-11 px-4 lg:px-6 rounded-xl lg:rounded-2xl bg-[#225BC3] text-white font-black uppercase text-[9px] lg:text-[10px] tracking-widest gap-2 shadow-lg shadow-blue-500/20 hover:scale-105 transition-all">
+                    {profile?.kycStatus === 'verified' ? (
+                      <><PlusCircle className="w-4 h-4" /> Post Item</>
+                    ) : (
+                      <><ShieldCheck className="w-4 h-4" /> Seller Hub</>
+                    )}
+                  </Button>
+                </Link>
+                {/* Mobile version icon only */}
+                <Link
+                  href={profile?.kycStatus === 'verified' ? "/create" : "/verify"}
+                  className="sm:hidden"
+                >
+                  <div className="h-8 w-8 rounded-lg flex items-center justify-center bg-[#225BC3] text-white shadow-lg">
+                    {profile?.kycStatus === 'verified' ? (
+                      <PlusCircle className="w-4 h-4" />
+                    ) : (
+                      <ShieldCheck className="w-4 h-4" />
+                    )}
+                  </div>
+                </Link>
+              </>
+            )}
+
             <div className="flex items-center gap-1 lg:gap-2 sm:mr-2">
               <Link
                 href="/notifications"
