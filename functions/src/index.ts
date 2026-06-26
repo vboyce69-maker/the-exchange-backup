@@ -12,6 +12,9 @@ import {setGlobalOptions} from "firebase-functions";
 // Export Escrow & Logger Functions
 export * from "./escrow";
 export * from "./logger";
+export * from "./feeCalculator";
+export * from "./listingBoost";
+
 
 // Start writing functions
 // https://firebase.google.com/docs/functions/typescript
