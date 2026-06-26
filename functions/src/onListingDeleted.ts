@@ -10,7 +10,7 @@ interface DeletedListingData {
 }
 
 export const onListingDeleted = onDocumentDeleted(
-  "listings/{listingId}",
+  "publicListings/{listingId}",
   async (event) => {
     const listingId = event.params.listingId;
     const deletedData = event.data?.data() as DeletedListingData | undefined;

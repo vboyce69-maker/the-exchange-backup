@@ -22,7 +22,7 @@ export const boostListing = onCall(async (request) => {
     throw new HttpsError("invalid-argument", "A valid listingId is required.");
   }
 
-  const listingRef = db.collection("listings").doc(listingId);
+  const listingRef = db.collection("publicListings").doc(listingId);
 
   return db.runTransaction(async (transaction) => {
     const listingSnap = await transaction.get(listingRef);
