@@ -1,6 +1,7 @@
 
 "use client";
 
+import { getFunctions, httpsCallable } from "firebase/functions";
 import { useState, useRef, useEffect } from "react";
 import { Navigation } from "@/components/Navigation";
 import { AuthGuard } from "@/components/auth/AuthGuard";
@@ -212,82 +213,107 @@ function OnboardingContent() {
     }
   };
 
-  const finalizeOnboarding = async () => {
-    if (!popiaConsent || !authUser || !db) return;
+const finalizeOnboarding = async () => {
+  if (!popiaConsent || !authUser || !db) return;
+  if (sellerType === "individual" && !validateRSAID(idNumber)) {
+    toast({
+      variant: "destructive",
+      title: "Invalid ID",
+      description:
+        "RSA ID failed verification. Please enter a valid 13-digit number.",
+    });
+    return;
+  }
+  setIsProcessing(true);
+  try {
+    // Secure Masking Protocol
+    const maskedAccountNumber = `****${accountNumber.slice(-4)}`;
 
-    if (sellerType === "individual" && !validateRSAID(idNumber)) {
+    // Create the Paystack Transfer Recipient now, while the real account
+    // number is still in memory. It is never sent to Firestore — only the
+    // resulting recipientCode is saved below.
+    const recipientName = sellerType === "individual" ? fullName : businessName;
+
+    const functions = getFunctions();
+    const createRecipient = httpsCallable(functions, "createPaystackRecipientForSeller");
+
+    let paystackRecipientCode: string;
+
+    try {
+      const result = await createRecipient({
+        bankName,
+        accountNumber,
+        recipientName,
+      });
+      paystackRecipientCode = (result.data as { recipientCode: string }).recipientCode;
+    } catch (error: any) {
+      console.error("Paystack recipient creation failed:", error);
       toast({
         variant: "destructive",
-        title: "Invalid ID",
+        title: "Banking Verification Failed",
         description:
-          "RSA ID failed verification. Please enter a valid 13-digit number.",
+          error?.message ||
+          "Could not verify your banking details. Please check your bank name and account number.",
       });
+      setIsProcessing(false);
       return;
     }
 
-    setIsProcessing(true);
-
-    try {
-      // Secure Masking Protocol
-      const maskedAccountNumber = `****${accountNumber.slice(-4)}`;
-
-      const trustScore = calculateTrustScore({
-        phoneVerified: true,
-        kycStatus: "verified",
-        sellerType: sellerType,
-        isIdVerified: true,
-      });
-
-      const profileRef = doc(db, "userProfiles", authUser.uid);
-      const updateData: any = {
-        id: authUser.uid,
-        sellerType,
-        kycStatus: "verified",
-        trustScore,
-        onboardedAt: new Date().toISOString(),
-        isIdVerified: true,
-        registrationDate: new Date().toISOString(),
-        reliabilityScore: 50,
-        transactionsCompleted: 0,
-        disputeCount: 0,
-        banking: {
-          bankName,
-          accountNumberMasked: maskedAccountNumber,
-          accountType,
-          registeredAt: new Date().toISOString(),
-        },
-      };
-
-      if (sellerType === "individual") {
-        updateData.firstName = fullName.split(" ")[0] || "";
-        updateData.lastName = fullName.split(" ").slice(1).join(" ") || "";
-        updateData.idNumberMasked = `*******${idNumber.slice(-4)}`;
-        updateData.idPhotoUrl = idPhoto;
-        updateData.selfieUrl = selfie;
-      } else {
-        updateData.firstName = businessName;
-        updateData.businessName = businessName;
-        updateData.cipcNumber = registrationNumber;
-        updateData.physicalAddress = address;
-      }
-
-      await setDoc(profileRef, updateData, { merge: true });
-      setStep(4);
-      toast({
-        title: "Persistence Confirmed",
-        description: "Your verified profile tier is now permanent.",
-      });
-    } catch (error: any) {
-      console.error("Onboarding error:", error);
-      toast({
-        variant: "destructive",
-        title: "Registry Error",
-        description: "Could not finalize profile sync.",
-      });
-    } finally {
-      setIsProcessing(false);
+    const trustScore = calculateTrustScore({
+      phoneVerified: true,
+      kycStatus: "verified",
+      sellerType: sellerType,
+      isIdVerified: true,
+    });
+    const profileRef = doc(db, "userProfiles", authUser.uid);
+    const updateData: any = {
+      id: authUser.uid,
+      sellerType,
+      kycStatus: "verified",
+      trustScore,
+      onboardedAt: new Date().toISOString(),
+      isIdVerified: true,
+      registrationDate: new Date().toISOString(),
+      reliabilityScore: 50,
+      transactionsCompleted: 0,
+      disputeCount: 0,
+      banking: {
+        bankName,
+        accountNumberMasked: maskedAccountNumber,
+        accountType,
+        registeredAt: new Date().toISOString(),
+        paystackRecipientCode,
+      },
+    };
+    if (sellerType === "individual") {
+      updateData.firstName = fullName.split(" ")[0] || "";
+      updateData.lastName = fullName.split(" ").slice(1).join(" ") || "";
+      updateData.idNumberMasked = `*******${idNumber.slice(-4)}`;
+      updateData.idPhotoUrl = idPhoto;
+      updateData.selfieUrl = selfie;
+    } else {
+      updateData.firstName = businessName;
+      updateData.businessName = businessName;
+      updateData.cipcNumber = registrationNumber;
+      updateData.physicalAddress = address;
     }
-  };
+    await setDoc(profileRef, updateData, { merge: true });
+    setStep(4);
+    toast({
+      title: "Persistence Confirmed",
+      description: "Your verified profile tier is now permanent.",
+    });
+  } catch (error: any) {
+    console.error("Onboarding error:", error);
+    toast({
+      variant: "destructive",
+      title: "Registry Error",
+      description: "Could not finalize profile sync.",
+    });
+  } finally {
+    setIsProcessing(false);
+  }
+};
 
   return (
     <div className="min-h-screen bg-[#F8FAFC]">
