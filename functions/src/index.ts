@@ -19,6 +19,7 @@ export * from "./paystackRecipient";
 export * from "./confirmReceiptAndRelease";
 export * from "./createPaystackRecipientForSeller";
 export * from "./createTransaction";
+export * from "./paystackWebhook";
 
 
 
