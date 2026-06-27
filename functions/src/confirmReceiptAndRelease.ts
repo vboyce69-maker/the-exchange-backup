@@ -3,11 +3,12 @@ import { getFirestore, FieldValue } from "firebase-admin/firestore";
 import * as logger from "firebase-functions/logger";
 import { defineSecret } from "firebase-functions/params";
 import { v4 as uuidv4 } from "uuid";
-import { resolveBankCode, createTransferRecipient } from "./paystackRecipient";
 import { calculateFees } from "./feeCalculator";
 
 const db = getFirestore();
+
 const paystackSecretKey = defineSecret("PAYSTACK_SECRET_KEY");
+
 const PAYSTACK_BASE_URL = "https://api.paystack.co";
 
 interface ConfirmReceiptRequestData {
@@ -23,11 +24,10 @@ interface TransactionData {
 }
 
 interface SellerProfileData {
-  bankName?: string;
-  bankAccountNumber?: string;
-  fullName?: string;
   outstandingBoostDebt?: number;
-  paystackRecipientCode?: string;
+  banking?: {
+    paystackRecipientCode?: string;
+  };
 }
 
 interface ListingData {
@@ -94,48 +94,23 @@ export const confirmReceiptAndRelease = onCall(
     }
 
     const sellerProfile = sellerProfileSnap.data() as SellerProfileData;
+    const recipientCode = sellerProfile.banking?.paystackRecipientCode;
+
+    if (!recipientCode) {
+      logger.error(
+        `confirmReceiptAndRelease: seller ${transaction.sellerId} has no paystackRecipientCode on file. Transaction ${transactionId} remains held.`
+      );
+      throw new HttpsError(
+        "failed-precondition",
+        "The seller's payout details are not fully set up. The transaction has not been released; please contact support so the seller can complete their banking verification."
+      );
+    }
 
     const listingRef = db.collection("publicListings").doc(transaction.listingId);
     const listingSnap = await listingRef.get();
     const listing = (listingSnap.exists ? listingSnap.data() : {}) as ListingData;
 
     const secretKey = paystackSecretKey.value();
-
-    let recipientCode = sellerProfile.paystackRecipientCode;
-
-    if (!recipientCode) {
-      if (!sellerProfile.bankName || !sellerProfile.bankAccountNumber || !sellerProfile.fullName) {
-        logger.error(
-          `confirmReceiptAndRelease: seller ${transaction.sellerId} is missing bank details (bankName/bankAccountNumber/fullName). Transaction ${transactionId} remains held.`
-        );
-        throw new HttpsError(
-          "failed-precondition",
-          "The seller has not completed their payout bank details yet. The transaction has not been released; please try again once the seller has updated their details, or contact support."
-        );
-      }
-
-      try {
-        const bankCode = await resolveBankCode(sellerProfile.bankName, secretKey);
-
-        recipientCode = await createTransferRecipient(
-          sellerProfile.bankAccountNumber,
-          bankCode,
-          sellerProfile.fullName,
-          secretKey
-        );
-
-        await sellerProfileRef.update({ paystackRecipientCode: recipientCode });
-      } catch (error) {
-        logger.error(
-          `confirmReceiptAndRelease: failed to resolve/create Paystack recipient for seller ${transaction.sellerId} (transaction ${transactionId}). Transaction remains held.`,
-          { error }
-        );
-        throw new HttpsError(
-          "internal",
-          "We couldn't set up the seller's payout details. The transaction has not been released; please contact support."
-        );
-      }
-    }
 
     const feeResult = calculateFees({
       salePrice: transaction.amount,
