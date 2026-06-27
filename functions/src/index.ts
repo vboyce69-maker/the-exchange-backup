@@ -17,7 +17,7 @@ export * from "./listingBoost";
 export * from "./onListingDeleted";
 export * from "./paystackRecipient";
 export * from "./confirmReceiptAndRelease";
-
+export * from "./createPaystackRecipientForSeller";
 
 
 
