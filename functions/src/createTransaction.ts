@@ -29,6 +29,18 @@ interface PaystackInitializeResponse {
   };
 }
 
+/**
+ * Creates a pending transaction for a listing and initializes a Paystack
+ * payment session for the buyer.
+ *
+ * IMPORTANT: this function does NOT lock the listing. The listing stays
+ * "available" until paystackWebhook confirms the charge actually succeeded.
+ * Locking here, before payment is confirmed, would let a buyer who opens
+ * checkout and never completes payment hold the item hostage indefinitely
+ * -- there is currently no cleanup function to recover a listing stuck in
+ * "pending_sale" with no successful payment behind it. Locking happens
+ * exclusively in paystackWebhook, on confirmed "charge.success".
+ */
 export const createTransaction = onCall(
   { secrets: [paystackSecretKey] },
   async (request) => {
@@ -47,6 +59,7 @@ export const createTransaction = onCall(
     const transactionRef = db.collection("transactions").doc();
 
     let transactionAmount = 0;
+    let sellerId = "";
 
     try {
       await db.runTransaction(async (firestoreTransaction) => {
@@ -62,10 +75,15 @@ export const createTransaction = onCall(
           throw new HttpsError("invalid-argument", "You cannot buy your own listing.");
         }
 
+        // This is the check that prevents double payment: once
+        // paystackWebhook confirms a buyer's payment, it locks the listing
+        // to "pending_sale" and every other buyer is blocked right here.
         if (listing.status !== "available") {
           throw new HttpsError(
             "failed-precondition",
-            "This listing is no longer available for purchase. It may have just been sold or is pending another buyer's purchase."
+            listing.status === "pending_sale"
+              ? "This item is already pending a sale to another buyer."
+              : "This item has already been sold."
           );
         }
 
@@ -84,11 +102,10 @@ export const createTransaction = onCall(
         }
 
         transactionAmount = listing.price;
+        sellerId = listing.sellerId;
 
-        firestoreTransaction.update(listingRef, {
-          status: "pending_sale",
-        });
-
+        // Note: the listing is deliberately NOT updated here. See the
+        // function-level comment above for why.
         firestoreTransaction.set(transactionRef, {
           listingId,
           buyerId,
@@ -116,7 +133,20 @@ export const createTransaction = onCall(
     const buyerEmail =
       typeof request.auth.token.email === "string" && request.auth.token.email.trim() !== ""
         ? request.auth.token.email
-        : `${buyerId}@theexchange.placeholder`;
+        : undefined;
+
+    if (!buyerEmail) {
+      // The transaction doc above is harmless to leave in "pending_payment"
+      // -- it never locked the listing, so nothing is stuck. It's left in
+      // place (rather than deleted) as an audit trail of the failed attempt.
+      logger.warn(
+        `createTransaction: buyer ${buyerId} has no email on their auth token. Cannot initialize Paystack for transaction ${transactionRef.id}.`
+      );
+      throw new HttpsError(
+        "failed-precondition",
+        "We couldn't find an email address on your account. Please add one in your profile settings before purchasing."
+      );
+    }
 
     const secretKey = paystackSecretKey.value();
     const amountInCents = Math.round(transactionAmount * 100);
@@ -134,6 +164,9 @@ export const createTransaction = onCall(
           currency: "ZAR",
           metadata: {
             transactionId: transactionRef.id,
+            listingId,
+            buyerId,
+            sellerId,
           },
         }),
       });
@@ -152,17 +185,21 @@ export const createTransaction = onCall(
       return {
         success: true,
         transactionId: transactionRef.id,
+        authorizationUrl: result.data.authorization_url,
         accessCode: result.data.access_code,
         reference: result.data.reference,
       };
     } catch (error) {
+      // Unlike the original version of this function, a failure here is
+      // NOT catastrophic: the listing was never locked, so it's still
+      // "available" and the buyer (or anyone else) can simply try again.
       logger.error(
-        `createTransaction: Paystack initialization failed AFTER Firestore transaction ${transactionRef.id} was created. Listing ${listingId} is now stuck in pending_sale with no way to pay.`,
+        `createTransaction: Paystack initialization failed for transaction ${transactionRef.id}, listing ${listingId}. Listing remains "available" -- no cleanup needed.`,
         { error }
       );
       throw new HttpsError(
         "internal",
-        "Your purchase was registered but we couldn't start the payment process. Please contact support."
+        "We couldn't start the payment process. Please try again."
       );
     }
   }
