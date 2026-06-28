@@ -7,6 +7,10 @@
  * See a full list of supported triggers at https://firebase.google.com/docs/functions
  */
 
+import { initializeApp } from "firebase-admin/app";
+
+initializeApp();
+
 import {setGlobalOptions} from "firebase-functions";
 
 // Export Escrow & Logger Functions
@@ -20,6 +24,7 @@ export * from "./confirmReceiptAndRelease";
 export * from "./createPaystackRecipientForSeller";
 export * from "./createTransaction";
 export * from "./paystackWebhook";
+export * from "./createTransaction";
 
 
 
