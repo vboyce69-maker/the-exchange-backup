@@ -5,6 +5,7 @@ import { initializeAppCheck, ReCaptchaV3Provider } from "firebase/app-check";
 import { getAuth, Auth } from "firebase/auth";
 import { getFirestore, Firestore } from "firebase/firestore";
 import { getStorage, FirebaseStorage } from "firebase/storage";
+import { getFunctions, Functions } from "firebase/functions";
 import { firebaseConfig } from "./config";
 
 /**
@@ -15,6 +16,7 @@ let app: any;
 let auth: Auth | null = null;
 let db: Firestore | null = null;
 let storage: FirebaseStorage | null | null;
+let functions: Functions | null = null;
 
 if (typeof window !== "undefined") {
   app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
@@ -30,9 +32,10 @@ if (typeof window !== "undefined") {
   auth = getAuth(app);
   db = getFirestore(app);
   storage = getStorage(app);
+  functions = getFunctions(app);
 }
 
-export { auth, db, storage };
+export { auth, db, storage, functions };
 export const firebaseApp = app;
 
 /**
@@ -47,6 +50,7 @@ export function initializeFirebase() {
       auth: null as any,
       firestore: null as any,
       storage: null as any,
+      functions: null as any,
     };
   }
 
@@ -57,6 +61,7 @@ export function initializeFirebase() {
     auth: getAuth(currentApp),
     firestore: getFirestore(currentApp),
     storage: getStorage(currentApp),
+    functions: getFunctions(currentApp),
   };
 }
 
