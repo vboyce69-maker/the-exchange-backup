@@ -74,6 +74,16 @@ service cloud.firestore {
       );
       allow delete: if isOwner(resource.data.sellerId) || isAdmin();
     }
+// Transactions are created and updated exclusively by Cloud Functions
+    // (createTransaction, paystackWebhook, confirmReceiptAndRelease) using
+    // the Admin SDK, which is not subject to these rules. Clients only
+    // ever need to read a transaction to show payment/escrow status, so
+    // client writes are denied entirely.
+    match /transactions/{transactionId} {
+      allow read: if isAuthenticated() &&
+        (isOwner(resource.data.buyerId) || isOwner(resource.data.sellerId));
+      allow write: if false;
+    }
 
     match /userProfiles/{userId} {
       allow read: if isAuthenticated();
