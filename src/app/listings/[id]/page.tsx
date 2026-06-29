@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useState, useEffect, useMemo } from "react";
 import { useParams, useRouter } from "next/navigation";
@@ -11,10 +11,6 @@ import {
   ShieldCheck,
   MessageSquare,
   ChevronRight,
-  CreditCard,
-  Building2,
-  SmartphoneNfc,
-  Lock,
   Gavel,
   ArrowLeft,
   Clock,
@@ -36,17 +32,18 @@ import {
   DialogHeader,
   DialogFooter,
 } from "@/components/ui/dialog";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import {
   useDoc,
   useFirestore,
+  useFunctions,
   useMemoFirebase,
   useUser,
   useCollection,
 } from "@/firebase";
+import { httpsCallable } from "firebase/functions";
 import {
   doc,
   collection,
@@ -60,39 +57,19 @@ import {
   writeBatch,
 } from "firebase/firestore";
 
-const PAYMENT_METHODS = [
-  {
-    id: "card",
-    name: "Credit/Debit Card",
-    icon: CreditCard,
-    description: "Visa, Mastercard, American Express",
-  },
-  {
-    id: "capitec",
-    name: "Capitec Pay",
-    icon: SmartphoneNfc,
-    description: "Fastest bank checkout in SA",
-  },
-  {
-    id: "eft",
-    name: "Instant EFT (Ozow)",
-    icon: Building2,
-    description: "Directly from your bank account",
-  },
-];
 
 export default function ListingDetailPage() {
   const { id } = useParams();
   const router = useRouter();
   const db = useFirestore();
+  const functionsInstance = useFunctions();
   const { user } = useUser();
 
-  const [isPaymentOpen, setIsPaymentOpen] = useState(false);
+  const [isInitiatingPurchase, setIsInitiatingPurchase] = useState(false);
+  const [pendingTransactionId, setPendingTransactionId] = useState<string | null>(null);
   const [isOfferOpen, setIsOfferOpen] = useState(false);
   const [isEditPriceOpen, setIsEditPriceOpen] = useState(false);
 
-  const [paymentMethod, setPaymentMethod] = useState("card");
-  const [isPaying, setIsPaying] = useState(false);
   const [bidAmount, setBidAmount] = useState("");
   const [newPrice, setNewPrice] = useState("");
   const [isBidding, setIsBidding] = useState(false);
@@ -119,6 +96,36 @@ export default function ListingDetailPage() {
   }, [db, user, id]);
 
   const { data: followDocs } = useCollection(followQuery);
+
+  const pendingTransactionRef = useMemoFirebase(() => {
+    if (!db || !pendingTransactionId) return null;
+    return doc(db, "transactions", pendingTransactionId);
+  }, [db, pendingTransactionId]);
+
+  const { data: pendingTransaction } = useDoc(pendingTransactionRef);
+
+  useEffect(() => {
+    if (!pendingTransaction || !pendingTransactionId) return;
+
+    // This is the real confirmation, not the Paystack popup's onSuccess.
+    // paystackWebhook is the only thing that ever sets status to "held",
+    // and it only does so after verifying the charge with Paystack
+    // server-side. Until this fires, the buyer sees "Verifying payment...".
+    if (pendingTransaction.status === "held") {
+      toast({
+        title: "Payment Confirmed",
+        description: "Your payment is held securely in escrow. Arrange the meetup with the seller to complete the sale.",
+      });
+      setPendingTransactionId(null);
+    } else if (pendingTransaction.status === "cancelled") {
+      toast({
+        variant: "destructive",
+        title: "Payment Could Not Be Confirmed",
+        description: "Something went wrong confirming your payment. If you were charged, please contact support.",
+      });
+      setPendingTransactionId(null);
+    }
+  }, [pendingTransaction, pendingTransactionId]);
 
   useEffect(() => {
     setMounted(true);
@@ -214,7 +221,7 @@ export default function ListingDetailPage() {
             userId: followData.userId,
             listingId: id,
             type: "price_drop",
-            title: "Price Drop Alert! ðŸ’¸",
+            title: "Price Drop Alert! 💸",
             message: `The item "${listing.title}" just dropped to R ${updatedPrice.toLocaleString()}!`,
             timestamp: serverTimestamp(),
             isRead: false,
@@ -271,7 +278,7 @@ const handlePlaceBid = async () => {
         userId: previousBidderId,
         listingId: id,
         type: "outbid",
-        title: "You've Been Outbid! ðŸ””",
+        title: "You've Been Outbid! 🔔",
         message: `Someone placed a higher bid of R ${newBid.toLocaleString()} on "${listing.title}".`,
         timestamp: serverTimestamp(),
         isRead: false,
@@ -291,6 +298,91 @@ const handlePlaceBid = async () => {
     setIsBidding(false);
   }
 };
+
+const handleInitiatePurchase = async () => {
+  if (!user) {
+    toast({
+      variant: "destructive",
+      title: "Sign In Required",
+      description: "Please sign in to make a purchase.",
+    });
+    return;
+  }
+
+  if (!functionsInstance || !listing) return;
+
+  // Guards against a second press while a purchase is already mid-flight,
+  // whether we're still talking to createTransaction or already waiting
+  // on the Paystack popup / webhook confirmation.
+  if (isInitiatingPurchase || pendingTransactionId) return;
+
+  setIsInitiatingPurchase(true);
+
+  try {
+    const createTransaction = httpsCallable(functionsInstance, "createTransaction");
+    const result = await createTransaction({ listingId: id });
+    const data = result.data as {
+      success: boolean;
+      transactionId: string;
+      accessCode: string;
+      reference: string;
+    };
+
+    // Paystack's Inline JS is a browser-only popup library, so it's
+    // dynamically imported here rather than at the top of the file —
+    // importing it at module scope would break server-side rendering.
+    const PaystackPop = (await import("@paystack/inline-js")).default;
+    const popup = new PaystackPop();
+
+    popup.resumeTransaction(data.accessCode, {
+      onSuccess: () => {
+        // IMPORTANT: this does NOT mean the payment is confirmed. It only
+        // means the buyer finished interacting with Paystack's popup and
+        // Paystack's client-side SDK believes the charge went through.
+        // That belief can be wrong or spoofed, so we never act on it
+        // directly — it's purely the cue to switch into a "Verifying..."
+        // state and start watching the transaction doc in Firestore.
+        // The real confirmation only comes from paystackWebhook, which
+        // verifies the charge server-side before setting status to "held".
+        setIsInitiatingPurchase(false);
+        setPendingTransactionId(data.transactionId);
+
+        // Safety net: if paystackWebhook never fires (Paystack outage,
+        // misconfigured webhook URL, etc.), don't leave the buyer staring
+        // at "Verifying payment..." forever.
+        setTimeout(() => {
+          setPendingTransactionId((current) =>
+            current === data.transactionId ? null : current
+          );
+        }, 60000);
+      },
+      onCancel: () => {
+        // The buyer closed the popup without paying. No transaction was
+        // confirmed, the listing was never locked (see createTransaction's
+        // comments), so there's nothing to undo — just let them retry.
+        setIsInitiatingPurchase(false);
+      },
+      onError: (error: any) => {
+        setIsInitiatingPurchase(false);
+        toast({
+          variant: "destructive",
+          title: "Payment Error",
+          description: error?.message ?? "Something went wrong with the payment popup. Please try again.",
+        });
+      },
+    });
+  } catch (err: any) {
+    console.error(err);
+    toast({
+      variant: "destructive",
+      title: "Could Not Start Purchase",
+      description:
+        err?.message ?? "Something went wrong starting your purchase. Please try again.",
+    });
+    setIsInitiatingPurchase(false);
+  }
+};
+
   const handleStartChat = async () => {
     if (!db || !listing || !user) return;
     try {
@@ -307,7 +399,7 @@ const handlePlaceBid = async () => {
               listingTitle: listing.title,
               participants: [user.uid, listing.sellerId],
               updatedAt: serverTimestamp(),
-              lastMessage: "æ‰‹ Handshake established.",
+              lastMessage: "🤝 Handshake established.",
             })
           ).id
         : snap.docs[0].id;
@@ -495,10 +587,20 @@ const handlePlaceBid = async () => {
                   ) : (
                     <div className="grid grid-cols-1 gap-4">
                       <Button
-                        className="w-full bg-[#FF8C00] text-white font-black h-18 rounded-[1.8rem] shadow-xl text-xl hover:scale-105 transition-all"
-                        onClick={() => setIsPaymentOpen(true)}
+                        className="w-full bg-[#FF8C00] text-white font-black h-18 rounded-[1.8rem] shadow-xl text-xl hover:scale-105 transition-all disabled:opacity-80 disabled:hover:scale-100"
+                        onClick={handleInitiatePurchase}
+                        disabled={isInitiatingPurchase || !!pendingTransactionId}
                       >
-                        Purchase Securely
+                        {pendingTransactionId ? (
+                          <span className="flex items-center gap-3">
+                            <Loader2 className="w-6 h-6 animate-spin" />
+                            Verifying Payment...
+                          </span>
+                        ) : isInitiatingPurchase ? (
+                          <Loader2 className="w-6 h-6 animate-spin" />
+                        ) : (
+                          "Purchase Securely"
+                        )}
                       </Button>
                       {!isSeller && (
                         <Button
@@ -605,79 +707,6 @@ const handlePlaceBid = async () => {
               )}
             </Button>
           </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      <Dialog open={isPaymentOpen} onOpenChange={setIsPaymentOpen}>
-        <DialogContent className="sm:max-w-[420px] rounded-[2.5rem] border-none p-0 overflow-hidden shadow-2xl">
-          <div className="bg-[#225BC3] p-10 text-white relative">
-            <div className="absolute top-0 right-0 p-8 opacity-10">
-              <Lock className="w-16 h-16" />
-            </div>
-            <DialogTitle className="text-2xl font-black text-white uppercase tracking-tighter">
-              Safe Payout Hold
-            </DialogTitle>
-            <DialogDescription className="text-sm text-white/70 font-medium mt-2">
-              Funds are secured by platform escrow.
-            </DialogDescription>
-          </div>
-          <div className="p-10 space-y-8">
-            <RadioGroup
-              value={paymentMethod}
-              onValueChange={setPaymentMethod}
-              className="gap-3"
-            >
-              {PAYMENT_METHODS.map((method) => (
-                <Label
-                  key={method.id}
-                  className={cn(
-                    "flex items-center gap-4 p-5 rounded-3xl border-2 transition-all cursor-pointer group",
-                    paymentMethod === method.id
-                      ? "border-[#225BC3] bg-[#225BC3]/5"
-                      : "border-slate-50 bg-white hover:border-slate-100",
-                  )}
-                >
-                  <RadioGroupItem value={method.id} className="sr-only" />
-                  <div
-                    className={cn(
-                      "w-12 h-12 rounded-2xl flex items-center justify-center transition-all",
-                      paymentMethod === method.id
-                        ? "bg-[#225BC3] text-white"
-                        : "bg-slate-50 text-slate-400 group-hover:bg-slate-100",
-                    )}
-                  >
-                    <method.icon className="w-6 h-6" />
-                  </div>
-                  <div className="flex-1">
-                    <p className="font-black text-sm text-slate-900 uppercase tracking-tight">
-                      {method.name}
-                    </p>
-                    <p className="text-[10px] text-slate-400 font-bold">
-                      {method.description}
-                    </p>
-                  </div>
-                </Label>
-              ))}
-            </RadioGroup>
-            <Button
-              className="w-full h-18 bg-[#225BC3] text-white font-black rounded-3xl shadow-2xl text-lg hover:scale-[1.02] transition-all"
-              onClick={() => {
-                setIsPaying(true);
-                setTimeout(() => {
-                  setIsPaying(false);
-                  setIsPaymentOpen(false);
-                  toast({ title: "Payment Held" });
-                }, 2000);
-              }}
-              disabled={isPaying}
-            >
-              {isPaying ? (
-                <Loader2 className="w-6 h-6 animate-spin" />
-              ) : (
-                `Deposit R ${listing.price?.toLocaleString()}`
-              )}
-            </Button>
-          </div>
         </DialogContent>
       </Dialog>
     </div>
