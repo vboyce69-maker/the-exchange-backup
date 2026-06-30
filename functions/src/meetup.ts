@@ -96,7 +96,7 @@ export const proposeMeetup = onCall(async (request) => {
       proposedBy: uid,
       location,
       proposedAt: FieldValue.serverTimestamp(),
-      confirmedBy: [],
+      confirmedBy: [uid], // proposer implicitly confirms their own proposal
       confirmedAt: null,
       liveLocations: {}, // reset any stale live tracking from a prior proposal
     },
