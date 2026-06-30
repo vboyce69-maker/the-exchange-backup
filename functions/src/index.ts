@@ -24,7 +24,7 @@ export * from "./confirmReceiptAndRelease";
 export * from "./createPaystackRecipientForSeller";
 export * from "./createTransaction";
 export * from "./paystackWebhook";
-
+export { proposeMeetup, confirmMeetup, cancelMeetup, updateLiveLocation } from './meetup';
 
 
 // Start writing functions
