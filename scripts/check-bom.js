@@ -5,7 +5,8 @@ const filesToCheck = [
   'firestore.indexes.json',
   'firestore.rules',
   'firebase.json',
-  'package.json'
+  'package.json',
+  'storage.rules',
 ];
 
 filesToCheck.forEach(file => {
