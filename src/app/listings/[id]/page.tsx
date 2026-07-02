@@ -69,6 +69,7 @@ export default function ListingDetailPage() {
   const [isInitiatingPurchase, setIsInitiatingPurchase] = useState(false);
   const [pendingTransactionId, setPendingTransactionId] = useState<string | null>(null);
   const [activeTransactionId, setActiveTransactionId] = useState<string | null>(null);
+  const [isPurchaseConfirmOpen, setIsPurchaseConfirmOpen] = useState(false);
   const [isOfferOpen, setIsOfferOpen] = useState(false);
   const [isEditPriceOpen, setIsEditPriceOpen] = useState(false);
 
@@ -105,6 +106,14 @@ export default function ListingDetailPage() {
   }, [db, pendingTransactionId]);
 
   const { data: pendingTransaction } = useDoc(pendingTransactionRef);
+
+  const sellerTransactionQuery = useMemoFirebase(() => {
+    if (!db || !isSeller || !id) return null;
+    return query(collection(db, "transactions"), where("listingId", "==", id), where("status", "in", ["held", "pending_meetup"]));
+  }, [db, isSeller, id, listing]);
+
+  const { data: sellerTransactions } = useCollection(sellerTransactionQuery);
+  const sellerActiveTransactionId = sellerTransactions?.[0]?.id ?? null;
 
   useEffect(() => {
     if (!pendingTransaction || !pendingTransactionId) return;
@@ -591,7 +600,7 @@ const handleInitiatePurchase = async () => {
                     <div className="grid grid-cols-1 gap-4">
                       <Button
                         className="w-full bg-[#FF8C00] text-white font-black h-18 rounded-[1.8rem] shadow-xl text-xl hover:scale-105 transition-all disabled:opacity-80 disabled:hover:scale-100"
-                        onClick={handleInitiatePurchase}
+                        onClick={() => setIsPurchaseConfirmOpen(true)}
                         disabled={isInitiatingPurchase || !!pendingTransactionId}
                       >
                         {pendingTransactionId ? (
@@ -654,17 +663,50 @@ const handleInitiatePurchase = async () => {
                 <ChevronRight className="w-8 h-8 text-[#225BC3]" />
               </Button>
             </Card>
-          {activeTransactionId && !isSeller && (
+          {(activeTransactionId || sellerActiveTransactionId) && user && (
               <MeetupFlow
-                transactionId={activeTransactionId}
-                currentUserId={user!.uid}
-                buyerName={user?.displayName ?? "Buyer"}
-                sellerName="Seller"
+                transactionId={(activeTransactionId || sellerActiveTransactionId)!}
+                currentUserId={user.uid}
+                buyerName={!isSeller ? (user?.displayName ?? "Buyer") : "Buyer"}
+                sellerName={isSeller ? (user?.displayName ?? "Seller") : "Seller"}
               />
             )}
           </div>
         </div>
       </main>
+
+      <Dialog open={isPurchaseConfirmOpen} onOpenChange={setIsPurchaseConfirmOpen}>
+        <DialogContent className="rounded-[2.5rem] p-10 max-w-md border-none shadow-2xl">
+          <DialogHeader className="space-y-2">
+            <DialogTitle className="text-2xl font-black text-[#225BC3] uppercase tracking-tighter">
+              Confirm Purchase
+            </DialogTitle>
+            <DialogDescription className="text-sm font-medium text-slate-500">
+              You are about to securely purchase <span className="font-black text-slate-700">{listing?.title}</span> for <span className="font-black text-[#225BC3]">R{listing?.price?.toLocaleString()}</span>. Payment will be held in escrow until you confirm receipt at the meetup.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-6 space-y-4">
+            <div className="p-4 bg-blue-50 rounded-2xl border border-blue-100 flex gap-3">
+              <ShieldCheck className="w-5 h-5 text-[#225BC3] shrink-0 mt-0.5" />
+              <p className="text-[11px] text-blue-700 font-bold leading-relaxed">
+                Your payment is protected. Funds are only released to the seller after you inspect the item and confirm receipt at the SAPS Safe Zone meetup.
+              </p>
+            </div>
+          </div>
+          <DialogFooter className="gap-3">
+            <Button variant="ghost" onClick={() => setIsPurchaseConfirmOpen(false)} className="rounded-2xl font-black uppercase text-[10px]">
+              Cancel
+            </Button>
+            <Button
+              className="bg-[#FF8C00] rounded-3xl font-black text-white px-12 h-16 shadow-xl flex-1 text-lg"
+              onClick={() => { setIsPurchaseConfirmOpen(false); handleInitiatePurchase(); }}
+              disabled={isInitiatingPurchase}
+            >
+              {isInitiatingPurchase ? <Loader2 className="w-5 h-5 animate-spin" /> : "Confirm & Pay"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <Dialog open={isEditPriceOpen} onOpenChange={setIsEditPriceOpen}>
         <DialogContent className="rounded-[2.5rem] p-10 max-w-md border-none shadow-2xl">
