@@ -56,6 +56,7 @@ import {
   deleteDoc,
   writeBatch,
 } from "firebase/firestore";
+import { MeetupFlow } from "@/components/MeetupFlow";
 
 
 export default function ListingDetailPage() {
@@ -67,6 +68,7 @@ export default function ListingDetailPage() {
 
   const [isInitiatingPurchase, setIsInitiatingPurchase] = useState(false);
   const [pendingTransactionId, setPendingTransactionId] = useState<string | null>(null);
+  const [activeTransactionId, setActiveTransactionId] = useState<string | null>(null);
   const [isOfferOpen, setIsOfferOpen] = useState(false);
   const [isEditPriceOpen, setIsEditPriceOpen] = useState(false);
 
@@ -116,6 +118,7 @@ export default function ListingDetailPage() {
         title: "Payment Confirmed",
         description: "Your payment is held securely in escrow. Arrange the meetup with the seller to complete the sale.",
       });
+      setActiveTransactionId(pendingTransactionId);
       setPendingTransactionId(null);
     } else if (pendingTransaction.status === "cancelled") {
       toast({
@@ -651,6 +654,14 @@ const handleInitiatePurchase = async () => {
                 <ChevronRight className="w-8 h-8 text-[#225BC3]" />
               </Button>
             </Card>
+          {activeTransactionId && !isSeller && (
+              <MeetupFlow
+                transactionId={activeTransactionId}
+                currentUserId={user!.uid}
+                buyerName={user?.displayName ?? "Buyer"}
+                sellerName="Seller"
+              />
+            )}
           </div>
         </div>
       </main>
