@@ -107,6 +107,14 @@ export default function ListingDetailPage() {
 
   const { data: pendingTransaction } = useDoc(pendingTransactionRef);
 
+  const buyerTransactionQuery = useMemoFirebase(() => {
+    if (!db || isSeller || !id || !user) return null;
+    return query(collection(db, "transactions"), where("listingId", "==", id), where("buyerId", "==", user.uid), where("status", "in", ["held", "pending_meetup"]));
+  }, [db, isSeller, id, user]);
+
+  const { data: buyerTransactions } = useCollection(buyerTransactionQuery);
+  const buyerActiveTransactionId = buyerTransactions?.[0]?.id ?? null;
+
   const sellerTransactionQuery = useMemoFirebase(() => {
     if (!db || !isSeller || !id) return null;
     return query(collection(db, "transactions"), where("listingId", "==", id), where("status", "in", ["held", "pending_meetup"]));
@@ -663,9 +671,9 @@ const handleInitiatePurchase = async () => {
                 <ChevronRight className="w-8 h-8 text-[#225BC3]" />
               </Button>
             </Card>
-          {(activeTransactionId || sellerActiveTransactionId) && user && (
+          {(activeTransactionId || buyerActiveTransactionId || sellerActiveTransactionId) && user && (
               <MeetupFlow
-                transactionId={(activeTransactionId || sellerActiveTransactionId)!}
+                transactionId={(activeTransactionId || buyerActiveTransactionId || sellerActiveTransactionId)!}
                 currentUserId={user.uid}
                 buyerName={!isSeller ? (user?.displayName ?? "Buyer") : "Buyer"}
                 sellerName={isSeller ? (user?.displayName ?? "Seller") : "Seller"}
