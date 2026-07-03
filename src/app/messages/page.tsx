@@ -20,7 +20,6 @@ import {
   Inbox,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { LiveMeetupTracker } from "@/components/LiveMeetupTracker";
 import { cn } from "@/lib/utils";
 import {
   useUser,
@@ -192,23 +191,7 @@ function MessagesContent() {
                 className="flex-1 overflow-y-auto p-8 space-y-6 bg-slate-50/20"
                 ref={scrollRef}
               >
-                {isMeetupActive && (
-                  <div className="mb-10 sticky top-0 z-20">
-                    <LiveMeetupTracker
-                      buyerName="You"
-                      sellerName="Seller"
-                      safeZoneName="Secure Safe Zone"
-                      onArrival={(role) => {
-                        if (role === "buyer")
-                          toast({
-                            title: "Check-in Successful",
-                            description: "Location verified at Safe Zone.",
-                          });
-                        setBothArrived(true);
-                      }}
-                    />
-                  </div>
-                )}
+                
 
                 {messages?.map((m) => (
                   <div
