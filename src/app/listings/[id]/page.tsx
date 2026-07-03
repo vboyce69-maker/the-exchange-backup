@@ -108,9 +108,9 @@ export default function ListingDetailPage() {
   const { data: pendingTransaction } = useDoc(pendingTransactionRef);
 
   const buyerTransactionQuery = useMemoFirebase(() => {
-    if (!db || isSeller || !id || !user) return null;
+    if (!db || !id || !user || !listing || user.uid === listing.sellerId) return null;
     return query(collection(db, "transactions"), where("listingId", "==", id), where("buyerId", "==", user.uid), where("status", "in", ["held", "pending_meetup"]));
-  }, [db, isSeller, id, user]);
+  }, [db, id, user, listing]);
 
   const { data: buyerTransactions } = useCollection(buyerTransactionQuery);
   const buyerActiveTransactionId = buyerTransactions?.[0]?.id ?? null;
