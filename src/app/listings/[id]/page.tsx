@@ -671,14 +671,18 @@ const handleInitiatePurchase = async () => {
                 <ChevronRight className="w-8 h-8 text-[#225BC3]" />
               </Button>
             </Card>
-          {(activeTransactionId || buyerActiveTransactionId || sellerActiveTransactionId) && user && (
-              <MeetupFlow
-                transactionId={(activeTransactionId || buyerActiveTransactionId || sellerActiveTransactionId)!}
-                currentUserId={user.uid}
-                buyerName={!isSeller ? (user?.displayName ?? "Buyer") : "Buyer"}
-                sellerName={isSeller ? (user?.displayName ?? "Seller") : "Seller"}
-              />
-            )}
+          {(() => {
+                          const devTxId = process.env.NODE_ENV === "development" ? "test-tx-001" : null;
+                          const resolvedTxId = activeTransactionId || buyerActiveTransactionId || sellerActiveTransactionId || devTxId;
+                          return resolvedTxId && user ? (
+                            <MeetupFlow
+                              transactionId={resolvedTxId}
+                              currentUserId={user.uid}
+                              buyerName={!isSeller ? (user?.displayName ?? "Buyer") : "Buyer"}
+                              sellerName={isSeller ? (user?.displayName ?? "Seller") : "Seller"}
+                            />
+                          ) : null;
+                        })()}
           </div>
         </div>
       </main>
