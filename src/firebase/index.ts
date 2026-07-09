@@ -21,8 +21,9 @@ let functions: Functions | null = null;
 if (typeof window !== "undefined") {
   app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
 
-  // Initialize App Check (reCAPTCHA v3)
-  if (process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY) {
+// Initialize App Check (reCAPTCHA v3 — web only, not in Capacitor WebView)
+  const isCapacitor = !!(window as any).Capacitor;
+  if (!isCapacitor && process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY) {
     initializeAppCheck(app, {
       provider: new ReCaptchaV3Provider(process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY),
       isTokenAutoRefreshEnabled: true,
