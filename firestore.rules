@@ -160,10 +160,10 @@ service cloud.firestore {
       allow create: if false; // Cloud Functions only
     }
 
-    match /systemErrors/{errorId} {
-      allow read: if isAdmin();
-      allow create: if false; // Cloud Functions only
-    }
+        match /systemErrors/{errorId} {
+          allow read: if isAdmin();
+          allow create: if true; // client-side error logger (error.tsx) writes here directly
+        }
 
     match /escrow/{escrowId} {
       allow read: if isAuthenticated() && (

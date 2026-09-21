@@ -23,7 +23,7 @@ import { Button } from "./ui/button";
 interface ListingCardProps {
   id: string;
   title: string;
-  price: number;
+  price?: number;
   location: string;
   imageUrl: string;
   sellerName: string;
@@ -159,7 +159,7 @@ export function ListingCard({
             </Link>
           </div>
           <p className="font-black text-primary text-2xl tracking-tighter leading-none">
-            R {price.toLocaleString()}
+            R {price?.toLocaleString() ?? "-"}
           </p>
         </div>
 

@@ -14,9 +14,9 @@ export function logSystemError(
 ) {
   const errorData = {
     message: error.message,
-    stack: error.stack,
-    digest: error.digest,
-    componentStack: context?.componentStack,
+    stack: error.stack ?? null,
+    digest: error.digest ?? null,
+    componentStack: context?.componentStack ?? null,
     userId: context?.userId || "anonymous",
     timestamp: new Date().toISOString(),
     status: "new",
