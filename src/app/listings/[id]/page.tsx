@@ -738,7 +738,7 @@ const handleInitiatePurchase = async () => {
               </Label>
               <Input
                 type="number"
-                placeholder={listing.price.toString()}
+                placeholder={listing.price?.toString() ?? "0"}
                 className="h-20 rounded-3xl bg-slate-50 border-none font-black text-4xl px-8 shadow-inner"
                 value={newPrice}
                 onChange={(e) => setNewPrice(e.target.value)}
