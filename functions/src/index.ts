@@ -26,6 +26,7 @@ export * from "./createTransaction";
 export * from "./paystackWebhook";
 export { proposeMeetup, confirmMeetup, cancelMeetup, updateLiveLocation } from './meetup';
 export * from "./closeExpiredAuctions";
+export * from "./purgeExpiredKycData";
 
 
 // Start writing functions
