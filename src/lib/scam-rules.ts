@@ -19,6 +19,8 @@ export interface ScamRule {
     | "price_anomaly";
   weight: number;
   patterns: string[];
+  /** Tested against the original lowercased text (before digit/symbol substitution). */
+  rawPatterns?: RegExp[];
   explanation: string;
 }
 
@@ -67,6 +69,17 @@ export function normalizeText(text: string): string {
   return normalized.trim().replace(/\s+/g, " ");
 }
 
+function escapeRegExp(value: string): string {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+/** Whole-word / whole-phrase match so "eft" does not hit "left", "cell" does not hit "cellphone". */
+function matchesPhrase(normalizedText: string, pattern: string): boolean {
+  return new RegExp(`(?:^|\\s)${escapeRegExp(pattern)}(?:\\s|$)`).test(
+    normalizedText,
+  );
+}
+
 export const SCAM_RULES: ScamRule[] = [
   {
     id: "strict_phone_numbers",
@@ -78,28 +91,17 @@ export const SCAM_RULES: ScamRule[] = [
       "number is",
       "dm me",
       "contact me",
-      "phone",
-      "cell",
-      "mobile",
-      "+27",
-      "072",
-      "082",
-      "071",
-      "073",
-      "074",
-      "076",
-      "078",
-      "079",
-      "081",
-      "083",
-      "084",
-      "060",
-      "061",
-      "062",
-      "063",
-      "064",
-      "065",
+      "phone number",
+      "cell number",
+      "mobile number",
+      "my phone",
+      "my cell",
+      "my mobile",
     ],
+    // SA numbers: 0 + 9 digits, or +27 / 27 + 9 digits, allowing spaces, dashes,
+    // dots or brackets between digits. Checked on raw text because normalizeText
+    // turns digits into letters.
+    rawPatterns: [/(?<!\d)(?:\+?27|0)(?:[\s\-.()]*\d){9}(?!\d)/],
     explanation:
       "Sharing contact details is prohibited. Keep discussions inside The Exchange for protection.",
   },
@@ -115,11 +117,12 @@ export const SCAM_RULES: ScamRule[] = [
       "linkedin",
       "snapchat",
       "fbme",
-      "wa.me",
       "insta",
       "messenger",
-      "x.com",
-      "t.me",
+    ],
+    // Short-link domains contain punctuation that normalizeText strips.
+    rawPatterns: [
+      /(?:^|[^a-z0-9])(?:wa\.me|t\.me|x\.com|fb\.me|m\.me)(?:[^a-z0-9]|$)/,
     ],
     explanation:
       "Off-platform links are blocked to maintain verified trade logs and prevent fraud.",
@@ -181,13 +184,16 @@ export function detectScam(
   userTrustScore: number = 50,
 ): DetectionResult {
   const normalized = normalizeText(text);
+  const rawLower = (text || "").toLowerCase();
   let score = 0;
   const matchedRules: string[] = [];
   const reasons: string[] = [];
   const ruleWeights: Record<string, number> = {};
 
   SCAM_RULES.forEach((rule) => {
-    const hasPattern = rule.patterns.some((p) => normalized.includes(p));
+    const hasPattern =
+      rule.patterns.some((p) => matchesPhrase(normalized, p)) ||
+      (rule.rawPatterns?.some((r) => r.test(rawLower)) ?? false);
     if (hasPattern) {
       score += rule.weight;
       matchedRules.push(rule.id);
